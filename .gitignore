@@ -104,8 +104,6 @@ ENV/
 .idea/
 
 # Virtualenv related
-bin/
-include/
 pip-selfcheck.json
 
 config/config.ini
