@@ -107,16 +107,5 @@ ENV/
 pip-selfcheck.json
 
 config/config.ini
-<<<<<<< HEAD
-
 # CV photos
-
-modules/sensors/computer_vision/dice_false_pos/
-modules/sensors/computer_vision/dice_test_data/
-modules/sensors/computer_vision/neg_images/
-modules/sensors/computer_vision/pos_dice/
-modules/sensors/computer_vision/pos_images
-modules/sensors/computer_vision/temp_negs
-=======
->>>>>>> ff6d37b1a6fe565badb94a608cb42361bab2a16b
 
