@@ -53,6 +53,9 @@ add_message_files(
   HControl.msg
   RControl.msg
   MControl.msg
+  CVIn.msg
+  CVOut.msg
+  Hydrophone.msg
 )
 
 ## Generate services in the 'srv' folder
