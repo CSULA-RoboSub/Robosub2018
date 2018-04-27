@@ -32,3 +32,5 @@ def install():
     call(['sudo', 'adduser', getpass.getuser(), 'dialout'])
 
     print('\nPlease restart computer for changes to take effect.')
+    print('\nNew file directory will be in ~/robosub_ws')
+    print('\nAfter restart please open terminal in ~/robosub_ws/ and run "catkin_make"')

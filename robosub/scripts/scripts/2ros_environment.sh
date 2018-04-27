@@ -1,11 +1,14 @@
 source /opt/ros/lunar/setup.bash
 
-mkdir -p ~/catkin_ws/src
-mv ../Robosub ~/catkin_ws/src
+mkdir -p ~/robosub_ws
+mv ../../../Robosub2018 ~/robosub_ws/src
 
-cd ~/catkin_ws/
+cd ~/robosub_ws/
 catkin_make
 
 source devel/setup.bash
 
-echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
+echo "source ~/robosub_ws/devel/setup.bash" >> ~/.bashrc
+
+cp ~/robosub_ws/src/robosub/scripts/scripts/robosub_cli.sh ~
+cp ~/robosub_ws/src/robosub/scripts/scripts/robosub_gui.sh ~
