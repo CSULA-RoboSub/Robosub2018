@@ -11,7 +11,7 @@ sys.path.append('../control/')
 import BuoyDetector
 import DiceDetector
 import GateDetector
-#from navigation import Navigation
+from navigation import Navigation
 
 class CVController():
     """ To decide on the task at hand than send coordinates to navigation"""
