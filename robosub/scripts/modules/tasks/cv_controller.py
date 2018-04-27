@@ -1,22 +1,33 @@
 import rospy
 import math
-from auv_cal_state_la_2017.msg import CVIn
-from auv_cal_state_la_2017.msg import CVOut
-#from modules.control.navigation import Navigation
+import sys
 
-from modules.sensors.computer_vision import BuoyDetector
-from modules.sensors.computer_vision import DiceDetector
-from modules.sensors.computer_vision import GateDetector
-#from modules.control.navigation import Navigation
+from robosub.msg import CVIn
+from robosub.msg import CVOut
 
-class CVController:
+sys.path.append('../sensors/computer_vision/')
+sys.path.append('../control/')
+
+import BuoyDetector
+import DiceDetector
+import GateDetector
+#from navigation import Navigation
+
+class CVController():
     """ To decide on the task at hand than send coordinates to navigation"""
 
     def __init__(self):
         """ To initialize the TaskManger. """
 
+        #self.navi = Navigation()
+
         self.coordinates = []
         self.dice_pair = []
+        self.tasks = []
+
+        #the follow variables are just for testing purposes
+        self.temp_task_test = ['gate', 'buoy', 'dice']
+        self.task_num = 0
         
         self.detectgate = None
         self.detectdice = None
@@ -31,14 +42,21 @@ class CVController:
 
         self.is_buoy_found = False
         self.is_gate_found = False
+        self.is_path_found = False
         self.is_dice_found = False
+        self.is_chip_found = False
         self.is_roulette_found = False
+        self.is_slots_found = False
+        self.is_pinger_a_found = False
+        self.is_pinger_b_found = False
         self.is_cash_in_found = False
 
         self.is_gate_done = False
         self.is_dice_done = False
         self.is_roulette_done = False
         self.is_cash_in_done = False
+
+        self.found_timer = 0
 
     def detect_gate(self):
         print('detect_gate')
@@ -47,13 +65,15 @@ class CVController:
 
         found, gate_coordinates = self.detectgate.detect()
         ''' add 'and found is True' when gate circle works '''
-        #if gate_coordinates[0] == 0 and gate_coordinates[1] == 0 and found:
-        #    self.is_gate_found = True
+        if gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
+            if not found:
+                gate_coordinates[0] = 1
+            else:
+                self.found_timer += 1
 
-        """ neg_gate_coords is used to invert the coordinate """
-        """values to its negative or positive counterpart """
+        if self.found_timer == 300:
+            self.is_gate_found = True
 
-        #neg_gate_coords = [ -x for x in gate_coordinates]
         return found, gate_coordinates
 
 
@@ -98,7 +118,6 @@ class CVController:
         #if buoy_coordinates[0] == 0 and buoy_coordinates[1] == 0 and found is True:
         #    self.is_buoy_found = True
         
-        #neg_gate_coords = [ -x for x in buoy_coordinates]
         return found, buoy_coordinates
 
 
@@ -153,15 +172,36 @@ class CVController:
         pass
         #navigation.brake(self)
     
-    def start(self):
+    def start(self, args):
         """ Starts TaskManager. """
-        pass
+        self.tasks = args
+
+        if tasks is 'gate':
+            #msg.found, coords = cv_control.detect_gate()
+            pass
+        elif tasks is 'path':
+            pass
+        elif tasks is 'dice':
+            pass
+        elif tasks is 'chips':
+            pass
+        elif tasks is 'slots':
+            pass
+        elif tasks is 'pinger b':
+            pass
+        elif tasks is 'roulette':
+            pass
+        elif tasks is 'pinger a':
+            pass
+        elif tasks is 'cash in':
+            pass
+
         # TODO perhaps start needs to be call along with which task you would like to perform
         #self.navigation.start()
         
     def stop(self):
         """ Stops TasksManager. """
-        rospy.on_shutdown(shutdown())
+        #rospy.on_shutdown(shutdown())
         # TODO can perhaps be used to stop a task when a error/checker is found
         pass
 
@@ -192,46 +232,55 @@ def talker():
 
     """ Added just to test other methods. """
     """ Will only loop one specific task until shutdown. """
-    userinput = raw_input('enter task to run...(buoy, dice, gate are only options for now)')
+    #userinput = raw_input('enter task to run...(buoy, dice, gate are only options for now)...')
 
     pub = rospy.Publisher('cv_to_master', CVIn)
     rospy.init_node('cv_talker', anonymous=True)
     r = rospy.Rate(30) #30hz
     
     msg = CVIn()
-
+    
     while not rospy.is_shutdown():
     #   msg.found, coords = cv_control.detect_buoy()
     # cv_controller will need to get task from auv(houston)"""
     # which will be give to houston by the task queue """
-        if (userinput == 'buoy'):
-            if not cv_control.is_buoy_found:
-                msg.found, coords = cv_control.detect_buoy()
+        
+        '''if not cv_control.is_gate_found:
+            print('gate detect-----------------')
+            msg.found, coords = cv_control.detect_gate()
+        else:
+            if not cv_control.is_gate_done:
+                print('gate detect completed-------------')
+                msg.found, coords = cv_control.complete_gate()
             else:
-                print('buoy detect completed---------------')
+                print('gate task completed---------------')
                 rospy.on_shutdown(close)
                 break
-        elif (userinput == 'dice'):
-            if not cv_control.is_dice_found:
-                msg.found, coords = cv_control.detect_dice()
-            else:
-                msg.found, coords = cv_control.complete_dice()
-        elif (userinput == 'gate'):
-            if not cv_control.is_gate_found:
-                print('gate detect-----------------')
-                msg.found, coords = cv_control.detect_gate()
-            else:
-                if not cv_control.is_gate_done:
-                    print('gate detect completed-------------')
-                    msg.found, coords = cv_control.complete_gate()
-                else:
-                    print('gate task completed---------------')
-                    rospy.on_shutdown(close)
-                    break
+        if not cv_control.is_buoy_found:
+            msg.found, coords = cv_control.detect_buoy()
         else:
-            print('incorrect user input, please try again')
+            print('buoy detect completed---------------')
             rospy.on_shutdown(close)
             break
+            
+        
+        if not cv_control.is_dice_found:
+            msg.found, coords = cv_control.detect_dice()
+        else:
+            msg.found, coords = cv_control.complete_dice()
+        rospy.on_shutdown(close)
+        break
+
+        '''
+
+        if cv_control.temp_task_test[cv_control.task_num] is 'gate':
+            msg.found, coords = cv_control.detect_gate()
+        elif cv_control.temp_task_test[cv_control.task_num] is 'buoy':
+            msg.found, coords = cv_control.detect_buoy()
+        elif cv_control.temp_task_test[cv_control.task_num] is 'dice':
+            msg.found, coords = cv_control.detect_dice()
+        
+        msg.done = False
         msg.horizontal = coords[0]
         msg.vertical = coords[1]
         msg.distance = 1.25
