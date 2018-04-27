@@ -104,8 +104,6 @@ ENV/
 .idea/
 
 # Virtualenv related
-bin/
-include/
 pip-selfcheck.json
 
 robosub/scripts/config/config.ini
