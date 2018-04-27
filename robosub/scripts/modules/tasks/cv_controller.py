@@ -19,7 +19,8 @@ class CVController():
     def __init__(self):
         """ To initialize the TaskManger. """
 
-        #self.navi = Navigation()
+        self.navi = Navigation()
+        #TODO will be used with h_nav, r_nav and m_nav       
 
         self.coordinates = []
         self.dice_pair = []
@@ -30,6 +31,7 @@ class CVController():
         self.task_num = 0
         
         self.detectgate = None
+        self.detectpath = None
         self.detectdice = None
         self.detectbuoy = None
         self.detectroulette = None
@@ -37,8 +39,6 @@ class CVController():
 
         self.is_complete_first_die = False
         self.is_complete_second_die = False
-
-        self.gate_circle_loc = 0
 
         self.is_buoy_found = False
         self.is_gate_found = False
@@ -57,6 +57,7 @@ class CVController():
         self.is_cash_in_done = False
 
         self.found_timer = 0
+        self.gate_circle_loc = 0
 
     def detect_gate(self):
         print('detect_gate')
@@ -71,11 +72,19 @@ class CVController():
             else:
                 self.found_timer += 1
 
-        if self.found_timer == 300:
+        if self.found_timer == 240:
             self.is_gate_found = True
+            self.task_num += 1
 
         return found, gate_coordinates
 
+    def detect_path(self):
+        print('detect_path')
+        if not self.detectpath:
+            self.detectpath = PathDetector.PathDetector()
+        
+        found, gate_coordinates = self.detectpath()
+        
 
     def detect_dice(self):
         print('detect_dice')
@@ -262,8 +271,6 @@ def talker():
             print('buoy detect completed---------------')
             rospy.on_shutdown(close)
             break
-            
-        
         if not cv_control.is_dice_found:
             msg.found, coords = cv_control.detect_dice()
         else:
@@ -279,6 +286,8 @@ def talker():
             msg.found, coords = cv_control.detect_buoy()
         elif cv_control.temp_task_test[cv_control.task_num] is 'dice':
             msg.found, coords = cv_control.detect_dice()
+        elif cv_control.temp_task_test[cv_control.task_num] is 'path':
+            msg.found, coords = cv_control.detect_path()
         
         msg.done = False
         msg.horizontal = coords[0]
