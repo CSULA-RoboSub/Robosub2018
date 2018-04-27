@@ -15,5 +15,3 @@ echo "source /opt/ros/lunar/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
 sudo apt-get -y install python-rosinstall python-rosinstall-generator python-wstool build-essential
-
-sudo apt-get -y install ros-lunar-ros-tutorials
