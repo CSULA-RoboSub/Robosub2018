@@ -1,7 +1,7 @@
 import rospy
-from auv2018.msg import HControl
-from auv2018.msg import RControl
-from auv2018.msg import MControl
+from robosub.msg import HControl
+from robosub.msg import RControl
+from robosub.msg import MControl
 
 
 class StatusLogger():
