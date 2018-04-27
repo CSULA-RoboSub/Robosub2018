@@ -18,5 +18,7 @@ and python 2.7.13
 ## Running the program:
 - open terminal
 - ./robosub_cli.sh
+
 or
+
 - ./robosub_gui.sh
