@@ -16,7 +16,8 @@ and python 2.7.13
 - catkin_make
 
 ## Running the program:
-- open terminal
+
+### In terminal:
 - ./robosub_cli.sh
 
 or
