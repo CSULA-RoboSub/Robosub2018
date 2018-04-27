@@ -10,4 +10,5 @@ source devel/setup.bash
 
 echo "source ~/robosub_ws/devel/setup.bash" >> ~/.bashrc
 
-cp ~/robosub_ws/src/scripts/scripts/robosub_cli.sh ~/Desktop
+cp ~/robosub_ws/src/robosub/scripts/scripts/robosub_cli.sh ~
+cp ~/robosub_ws/src/robosub/scripts/scripts/robosub_gui.sh ~

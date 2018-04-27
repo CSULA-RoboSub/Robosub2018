@@ -6,10 +6,17 @@ and python 2.7.13
 ## First time setup:
 
 ### In terminal:
-- git clone https://github.com/CSULA-RoboSub/Robosub.git
-- cd Robosub/
-- python robosub.py
+- git clone https://github.com/CSULA-RoboSub/Robosub2018.git or git@github.com:CSULA-RoboSub/Robosub2018.git
+- cd Robosub2018/robosub/scripts
+- python installer.py
 
-### In the robosub program:
-- if ROS has not been installed, it will be installed automatically
-- After installing restart computer
+#### After installation:
+- Restart computer
+- cd ~/robosub_ws/
+- catkin_make
+
+## Running the program:
+- open terminal
+- ./robosub_cli.sh
+or
+- ./robosub_gui.sh
