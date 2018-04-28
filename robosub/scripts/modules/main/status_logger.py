@@ -1,7 +1,8 @@
 import rospy
-from auv2018.msg import HControl
-from auv2018.msg import RControl
-from auv2018.msg import MControl
+from datetime import datetime
+from robosub.msg import HControl
+from robosub.msg import RControl
+from robosub.msg import MControl
 
 
 class StatusLogger():
@@ -12,6 +13,8 @@ class StatusLogger():
 
     def __init__(self, is_logging=True):
         self.is_logging = is_logging
+
+        self.file = None
 
         rospy.Subscriber('height_control_status', HControl, self.printHControl)
         rospy.Subscriber('rotation_control_status', RControl, self.printRControl)
@@ -43,10 +46,13 @@ class StatusLogger():
                 2: 'up'
             }
 
-            print(
+            log = (
                 'state: %s depth: %.2f power: %d'
                 % (hStates[data.state], data.depth, data.power)
             )
+
+            print(log)
+            self.file.write(log + '\n')
 
     def printRControl(self, data):
         """Callback. Prints all the data for RControl"""
@@ -60,10 +66,13 @@ class StatusLogger():
                 4: 'keep_rotate_front_cam_dist'  # keeping rotating with fcd
             }
 
-            print(
+            log = (
                 'state: %s rotation: %.2f power: %d'
                 % (rStates[data.state], data.rotation, data.power)
             )
+
+            print(log)
+            self.file.write(log + '\n')
 
     def printMControl(self, data):
         """Callback. Prints all the data for MControl"""
@@ -86,7 +95,16 @@ class StatusLogger():
                 4: 'left'
             }
 
-            print(
+            log = (
                 'state: %s direction: %s power: %d distance: %.2f runningTime: %.2f'
                 % (mStates[data.state], directions[data.mDirection], data.power, data.distance, data.runningTime)
             )
+
+            print(log)
+            self.file.write(log + '\n')
+
+    def start(self):
+        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'w')
+
+    def stop(self):
+        self.file.close()
