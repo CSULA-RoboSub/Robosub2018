@@ -121,7 +121,7 @@ class CLI(cmd.Cmd):
             AUV.model_picker.get_model()
 
 
-    # auto-complete status logger
+    # auto-complete CV model picker
     def complete_model(self, text, line, start_index, end_index):
         args = ['view']
 
@@ -159,6 +159,7 @@ class CLI(cmd.Cmd):
     def do_exit(self, arg):
         '\nExits auv'
 
+        AUV.stop()
         print('Closing Robosub')
 
         return True
