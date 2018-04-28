@@ -3,26 +3,7 @@ import cmd
 import subprocess
 import time
 import os
-
-"""If ROS is not detected, installs ROS lunar for Ubuntu 17.04."""
-try:
-    import rospy
-except ImportError:
-    import sys
-    from scripts import setup_ros
-
-    print('No ROS detected')
-    response = raw_input(
-                '\nAre you sure you want to do first time setup for ROS? [y/n]: '
-            ).lower()
-    if response == 'y':
-        print('Setting up ROS lunar for Ubuntu 17.04')
-        setup_ros.install()
-
-    sys.exit()
-else:
-    """Import auv"""
-    from modules.main.auv import AUV
+from modules.main.auv import AUV  # Import auv
 
 
 class CLI(cmd.Cmd):
@@ -140,7 +121,7 @@ class CLI(cmd.Cmd):
             AUV.model_picker.get_model()
 
 
-    # auto-complete status logger
+    # auto-complete CV model picker
     def complete_model(self, text, line, start_index, end_index):
         args = ['view']
 
@@ -178,6 +159,7 @@ class CLI(cmd.Cmd):
     def do_exit(self, arg):
         '\nExits auv'
 
+        AUV.stop()
         print('Closing Robosub')
 
         return True

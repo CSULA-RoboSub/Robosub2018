@@ -106,6 +106,6 @@ ENV/
 # Virtualenv related
 pip-selfcheck.json
 
-config/config.ini
-# CV photos
-
+robosub/scripts/scripts/sources_backup.list
+robosub/scripts/config/config.ini
+robosub/scripts/logs/*.txt

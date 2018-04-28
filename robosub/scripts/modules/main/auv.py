@@ -98,6 +98,7 @@ class AUV():
         self.motor.start()
         self.navigation.start()
         self.keyboard.start()
+        self.status_logger.start()
         # self.cv.start(self.tasks)
 
     def stop(self):
@@ -106,3 +107,4 @@ class AUV():
         self.motor.stop()
         self.navigation.stop()
         self.keyboard.stop()
+        self.status_logger.stop()
