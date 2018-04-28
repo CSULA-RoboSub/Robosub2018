@@ -40,11 +40,13 @@ class CLI(cmd.Cmd):
         if arg.lower() == 'view':
             print(AUV.tasks)
         elif arg.lower() == 'set':
+            # AUV.config.set_config('auv', 'tasks', response)
+            # AUV.read_config()
             # TODO set tasks
             # AUV.set_config('tasks', '0 1 2 3 4 5 6 7 8')
             print('test')
         elif arg.lower() == 'reset':
-            AUV.set_config('tasks', '', True)
+            AUV.config.reset_option('auv', 'tasks')
         else:
             print(AUV.tasks)
 
@@ -120,7 +122,6 @@ class CLI(cmd.Cmd):
         else:
             AUV.model_picker.get_model()
 
-
     # auto-complete CV model picker
     def complete_model(self, text, line, start_index, end_index):
         args = ['view']
@@ -129,7 +130,6 @@ class CLI(cmd.Cmd):
             return [arg for arg in args if arg.startswith(text)]
         else:
             return args
-
 
     # status logger ####################################################################################################
     def do_logging(self, arg):
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     print('\n***Plug in magnet after setting up configurations to start AUV.***')
     print('\n***Set motor state to 1 to start motors.***')
 
-    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1#############################################################
+    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1#########################
 
     CLI().cmdloop()  # run AUV command interpreter
 

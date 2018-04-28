@@ -104,7 +104,7 @@ class StatusLogger():
             self.file.write(log + '\n')
 
     def start(self):
-        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + 'log.txt', 'w')
+        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'w')
 
     def stop(self):
         self.file.close()
