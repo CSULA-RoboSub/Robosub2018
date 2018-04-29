@@ -21,9 +21,9 @@ from buoy import Buoy
 from task import Task
 
 from navigation import Navigation
-from cv_controller import CVController
 
 class Houston():
+    #implements(Task)
     
     """self.gate = None
     self.path = None
@@ -45,34 +45,14 @@ class Houston():
         self.temp_task_test = ['gate', 'buoy', 'dice']
         self.task_num = 0
 
-        self.detectgate = None
-        self.detectpath = None
-        self.detectdice = None
-        self.detectbuoy = None
-        self.detectroulette = None
-        self.detectdice = None
-
-        self.is_complete_first_die = False
-        self.is_complete_second_die = False
-
-        self.is_buoy_found = False
-        self.is_gate_found = False
-        self.is_path_found = False
-        self.is_dice_found = False
-        self.is_chip_found = False
-        self.is_roulette_found = False
-        self.is_slots_found = False
-        self.is_pinger_a_found = False
-        self.is_pinger_b_found = False
-        self.is_cash_in_found = False
-
-        self.is_gate_done = False
-        self.is_dice_done = False
-        self.is_roulette_done = False
-        self.is_cash_in_done = False
-
-        self.found_timer = 0
-        self.gate_circle_loc = 0
+        self.gate = None
+        self.path = None
+        self.roulette = None
+        self.slots = None
+        self.pinger_a = None
+        self.pinger_b = None
+        self.cash_in = None
+        self.buoy = None
 
         self.cv_controller = CVController()
         self.navigation = Navigation()
@@ -82,24 +62,30 @@ class Houston():
     def do_task(self, argh):
         """ the follow ifs' are for testing methods, will modify soon """
         if argh is 'gate':
-            pass
+            if not self.gate:
+                self.gate = Gate()
+            else:
+                print(self.gate.detect())
+
         if argh is 'path':
-            pass
+            print('do_task path')
         if argh is 'dice':
-            pass
+            print('do_task dice')
         if argh is 'chip':
-            pass
+            print('do_task chip')
         if argh is 'slots':
-            pass
+            print('do_task slots')
         if argh is 'pinger_a':
-            pass
+            print('do_tasks pinger_a')
         if argh is 'pinger_b':
-            pass
+            print('do_task pinger_b')
         if argh is 'roulette':
-            pass
+            print('do_task roulette')
         if argh is 'cash_in':
-            pass
+            print('do_task cash_in')
         
+    def detect(self):
+        pass
 
     def gate(self):
         pass
