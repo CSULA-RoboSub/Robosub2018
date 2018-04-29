@@ -27,5 +27,6 @@ def main():
         elif int(selection) == 4:
             installer.set_dialout()
 
+
 if __name__ == "__main__":
     main()
