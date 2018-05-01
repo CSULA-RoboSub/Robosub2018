@@ -90,7 +90,7 @@ class CLI(cmd.Cmd):
         '\n[cv] toggle computer vision task manager\
          \n[keyboard] keyboard manual navigation'
 
-        if arg.lower() == 'cv' or arg.lower() == 'tm':
+        if arg.lower() == 'cv' or arg.lower() = = 'tm':
             # temp method for testing purposes
             AUV.perform_tasks()
             print(arg)

@@ -81,8 +81,6 @@ class Houston():
                 if self.gate.not_found_timer > 480 and not self.gate.is_gate_found:
                     self.task_num += 1
                     self.navigation.m_nav('power', 'forward', 400)
-                
-                if self.gate.found_timer > 480 or self.gate.not_found_timer > 480:
                     self.gate.is_gate_done = True
                 
                 self.msg.horizontal = gate_coordinates[0]
