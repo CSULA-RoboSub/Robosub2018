@@ -19,14 +19,33 @@ class GatePreprocessor:
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
+    def color_subtract(frame):
+        blue = frame.copy()
+        green = frame.copy()
+        red = frame.copy()
+        
+        blue[:, :, 0] = 255
+        green[:, :, 1] = 255
+        red[:, :, 2] = 255
+        
+        blue_gray = cv2.cvtColor(blue, cv2.COLOR_BGR2GRAY)
+        green_gray = cv2.cvtColor(green, cv2.COLOR_BGR2GRAY)
+        red_gray = cv2.cvtColor(red, cv2.COLOR_BGR2GRAY)
+
+        green_blue = green_gray - blue_gray
+
+        return green_blue
+
 
     # returns ROI
     def get_interest_regions(self, frame):
         height, width, lines = frame.shape
-        #center = (width / 2, height / 2) # not used
-        pimage, mask = self.preprocess(frame)
         
-        imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
+        #pimage, mask = self.preprocess(frame)
+        #imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
+        
+        imgray = color_subtract(frame) # new test method
+        
         flag, binary_image = cv2.threshold(imgray, 127, 255, cv2.THRESH_TOZERO)
         im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
