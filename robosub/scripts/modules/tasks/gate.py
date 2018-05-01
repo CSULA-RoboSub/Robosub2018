@@ -25,7 +25,6 @@ class Gate(Task):
         ''' add 'and found is True' when gate circle works '''
         if gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
             if not found:
-                gate_coordinates[0] = 1
                 self.not_found_timer += 1
             else:
                 self.found_timer += 1
@@ -38,7 +37,7 @@ class Gate(Task):
     def navigate(self):
         #TODO must implement way for AUV to navigate to complete task
         print 'we have now made it to the navigation section of the task'
-        return True, [0,0]
+        #self.navigation.m_nav('power', 'forward', power)
     
     def complete(self):
         if (self.gate_circle_loc < 2*math.pi):

@@ -91,7 +91,8 @@ class CLI(cmd.Cmd):
          \n[keyboard] keyboard manual navigation'
 
         if arg.lower() == 'cv' or arg.lower() == 'tm':
-            # TODO cv taskmanager
+            # temp method for testing purposes
+            AUV.perform_tasks()
             print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()

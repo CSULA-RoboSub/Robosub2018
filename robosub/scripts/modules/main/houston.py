@@ -45,6 +45,12 @@ class Houston():
 
         self.navigation = Navigation()
 
+        self.pub = rospy.Publisher('cv_to_master', CVIn)
+        #rospy.init_node('cv_talker', anonymous=True)
+        self.r = rospy.Rate(30) #30hz
+        
+        self.msg = CVIn()
+
         print 'houston init method successful'
 
     def do_task(self):
@@ -65,15 +71,31 @@ class Houston():
             while not self.gate.is_gate_done:
 
                 if not self.gate.is_gate_found or not self.gate.not_found_timer > 240:
-                    found, gate_coordinates = self.detect_task(self.gate)
+                    #found, gate_coordinates = self.detect_task(self.gate)
+                    self.msg.found, gate_coordinates = self.gate.detect()
                 
                 if self.gate.is_gate_found:
-                    found, gate_coordinates = self.gate.navigate()
+                    #found, gate_coordinates = self.gate.navigate()
+                    self.navigation.m_nav('power', 'forward', 400)
                 
-                if self.not_found_timer > 240:
+                if self.gate.not_found_timer > 480 and not self.gate.is_gate_found:
                     self.task_num += 1
+                    self.navigation.m_nav('power', 'forward', 400)
+                
+                if self.gate.found_timer > 480 or self.gate.not_found_timer > 480:
+                    self.gate.is_gate_done = True
+                
+                self.msg.horizontal = gate_coordinates[0]
+                self.msg.vertical = gate_coordinates[1]
+                self.msg.distance = 1.25
+                self.msg.targetType = 1.0
 
-                navigation.m_nav(gate_coordinates)
+                rospy.loginfo(self.msg)
+                self.pub.publish(self.msg)
+                self.r.sleep()
+
+                #navigation.m_nav(gate_coordinates)
+                
 
                 #return found, gate_coordinates
             # TODO use while statement until task is completed or done
