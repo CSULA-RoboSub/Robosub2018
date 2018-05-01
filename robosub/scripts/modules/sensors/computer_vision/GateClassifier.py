@@ -95,12 +95,17 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
+        min_prob = .9
+        
         for box in roi:
             x, y, w, h = box
             window = frame[y:y + h, x:x + w, :]
             window_resized = cv2.resize(window, self.dims)
             feat = self.hog.compute(window_resized)
-            prob = self.lsvm.predict_proba( feat.reshape(1, -1) )[0]
-            if prob[1] > .1 and prob[1] > max_val:
+            feat_reshape = feat.reshape(1, -1)
+            prob = self.lsvm.predict_proba(feat_reshape)[0]
+            prediction = self.lsvm.predict(feat_reshape)
+            gate_class = proba[1] # corresponds to class 1 (positive gate)
+            if(prediction > 0 and gate_class > min_prob and gate_class > max_val):
                 gate = box
         return gate
