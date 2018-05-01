@@ -25,39 +25,7 @@ class CVController():
         self.coordinates = []
         self.dice_pair = []
         self.tasks = []
-
-        #the follow variables are just for testing purposes
-        self.temp_task_test = ['gate', 'buoy', 'dice']
-        self.task_num = 0
         
-        self.detectgate = None
-        self.detectpath = None
-        self.detectdice = None
-        self.detectbuoy = None
-        self.detectroulette = None
-        self.detectdice = None
-
-        self.is_complete_first_die = False
-        self.is_complete_second_die = False
-
-        self.is_buoy_found = False
-        self.is_gate_found = False
-        self.is_path_found = False
-        self.is_dice_found = False
-        self.is_chip_found = False
-        self.is_roulette_found = False
-        self.is_slots_found = False
-        self.is_pinger_a_found = False
-        self.is_pinger_b_found = False
-        self.is_cash_in_found = False
-
-        self.is_gate_done = False
-        self.is_dice_done = False
-        self.is_roulette_done = False
-        self.is_cash_in_done = False
-
-        self.found_timer = 0
-        self.gate_circle_loc = 0
 
     def detect_gate(self):
         print('detect_gate')
@@ -181,9 +149,9 @@ class CVController():
         pass
         #navigation.brake(self)
     
-    def start(self, args):
+    def start(self):
         """ Starts TaskManager. """
-        self.tasks = args
+        '''self.tasks = args
 
         if tasks is 'gate':
             #msg.found, coords = cv_control.detect_gate()
@@ -204,7 +172,8 @@ class CVController():
             pass
         elif tasks is 'cash in':
             pass
-
+        '''
+        print('start cv_controller successful')
         # TODO perhaps start needs to be call along with which task you would like to perform
         #self.navigation.start()
         
