@@ -12,10 +12,11 @@ from sklearn.externals import joblib
 class GateClassifier:
 
     def __init__(self):
-        self.model_path = 'models/gate/'
+        self.new_struct_path = 'modules/sensors/computer_vision/'
+        self.model_path = self.new_struct_path + 'models/gate/'
         self.model_file_name = 'svm.pkl'
-        self.positive_image_path = 'data/gate/positive/*.jpg' # maybe add different file formats??
-        self.negative_image_path = 'data/gate/negative/*.jpg'
+        self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg' # maybe add different file formats??
+        self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
@@ -94,12 +95,17 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
+        min_prob = .9
+        
         for box in roi:
             x, y, w, h = box
             window = frame[y:y + h, x:x + w, :]
             window_resized = cv2.resize(window, self.dims)
             feat = self.hog.compute(window_resized)
-            prob = self.lsvm.predict_proba( feat.reshape(1, -1) )[0]
-            if prob[1] > .1 and prob[1] > max_val:
+            feat_reshape = feat.reshape(1, -1)
+            prob = self.lsvm.predict_proba(feat_reshape)[0]
+            prediction = self.lsvm.predict(feat_reshape)
+            gate_class = proba[1] # corresponds to class 1 (positive gate)
+            if(prediction > 0 and gate_class > min_prob and gate_class > max_val):
                 gate = box
         return gate
