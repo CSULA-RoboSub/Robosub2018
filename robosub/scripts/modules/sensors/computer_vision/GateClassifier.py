@@ -12,10 +12,11 @@ from sklearn.externals import joblib
 class GateClassifier:
 
     def __init__(self):
-        self.model_path = 'models/gate/'
+        self.new_struct_path = 'modules/sensors/computer_vision/'
+        self.model_path = self.new_struct_path + 'models/gate/'
         self.model_file_name = 'svm.pkl'
-        self.positive_image_path = 'data/gate/positive/*.jpg' # maybe add different file formats??
-        self.negative_image_path = 'data/gate/negative/*.jpg'
+        self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg' # maybe add different file formats??
+        self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
