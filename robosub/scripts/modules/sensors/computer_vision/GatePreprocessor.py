@@ -19,7 +19,7 @@ class GatePreprocessor:
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
-    def color_subtract(frame):
+    def color_subtract(self, frame):
         blue = frame.copy()
         green = frame.copy()
         red = frame.copy()
@@ -44,7 +44,7 @@ class GatePreprocessor:
         #pimage, mask = self.preprocess(frame)
         #imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
         
-        imgray = color_subtract(frame) # new test method
+        imgray = self.color_subtract(frame) # new test method
         
         flag, binary_image = cv2.threshold(imgray, 127, 255, cv2.THRESH_TOZERO)
         im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
