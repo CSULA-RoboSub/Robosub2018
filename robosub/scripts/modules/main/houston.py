@@ -1,6 +1,8 @@
 import rospy
 import math
 import sys
+import cv2
+import time
 
 from robosub.msg import CVIn
 from robosub.msg import CVOut
@@ -25,12 +27,15 @@ from modules.tasks.task import Task
 
 from modules.control.navigation import Navigation
 
+# TODO houston will communicate with CV controller through ROS
+# houston will interpet the coordinates and then send it to navigation
 class Houston():
     # implements(Task)
     
     def __init__(self):
         """ To initilize Houston """
         self.config = Config()
+        self.POWER = 400
         self.coordinates = []
         self.task_num = 0
 
@@ -42,13 +47,15 @@ class Houston():
         self.pinger_b = None
         self.cash_in = None
         self.buoy = None
-
+        self.cap = cv2.VideoCapture(0)
         self.navigation = Navigation()
 
         self.pub = rospy.Publisher('cv_to_master', CVIn)
         #rospy.init_node('cv_talker', anonymous=True)
         self.r = rospy.Rate(30) #30hz
-        
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.out = cv2.VideoWriter('gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
+
         self.msg = CVIn()
 
         print 'houston init method successful'
@@ -69,20 +76,23 @@ class Houston():
                     self.gate = Gate()
                     
             while not self.gate.is_gate_done:
-
+                _, frame = self.cap.read()
+                
                 if not self.gate.is_gate_found or not self.gate.not_found_timer > 240:
                     #found, gate_coordinates = self.detect_task(self.gate)
-                    self.msg.found, gate_coordinates = self.gate.detect()
+                    self.msg.found, gate_coordinates = self.gate.detect(frame)
                 
                 if self.gate.is_gate_found:
                     #found, gate_coordinates = self.gate.navigate()
-                    self.navigation.m_nav('power', 'forward', 400)
+                    self.navigation.m_nav('power', 'forward', self.POWER)
                 
                 if self.gate.not_found_timer > 480 and not self.gate.is_gate_found:
                     self.task_num += 1
-                    self.navigation.m_nav('power', 'forward', 400)
+                    self.navigation.m_nav('power', 'forward', self.POWER)
                     self.gate.is_gate_done = True
                 
+                self.out.write(frame)
+                cv2.imshow('frame',frame)
                 self.msg.horizontal = gate_coordinates[0]
                 self.msg.vertical = gate_coordinates[1]
                 self.msg.distance = 1.25
@@ -148,6 +158,13 @@ class Houston():
     def gate(self):
         pass
 
+    def get_task(self):
+        self.tasks = self.config.get_config('auv', 'tasks')
+        # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
+        # 'roulette', 'pinger_a', 'cash_in']
+        print 'test printing tasks'
+        print self.tasks
+
     def start(self):
         #self.navigation.start()
         self.get_task()
@@ -155,12 +172,5 @@ class Houston():
     def stop(self):
         #self.navigation.stop()
         print 'stopping houston'
-
-    def get_task(self):
-        self.tasks = self.config.get_config('auv', 'tasks')
-        # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
-        # 'roulette', 'pinger_a', 'cash_in']
-        print 'test printing tasks'
-        print self.tasks
 
 

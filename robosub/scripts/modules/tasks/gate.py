@@ -16,12 +16,12 @@ class Gate(Task):
         self.found_timer = 0
         self.gate_circle_loc = 0
     
-    def detect(self):
+    def detect(self,frame):
         print('detect_gate')
         if not self.detectgate:
             self.detectgate = GateDetector.GateDetector()
 
-        found, gate_coordinates = self.detectgate.detect()
+        found, gate_coordinates = self.detectgate.detect(frame)
         ''' add 'and found is True' when gate circle works '''
         if gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
             if not found:

@@ -9,7 +9,7 @@ class GateDetector:
     def __init__(self):
         self.classifier = gc.GateClassifier()
         self.found =  False;
-        self.cap = cv2.VideoCapture(0)
+#        self.cap = cv2.VideoCapture(0)
         self.preprocess = gp.GatePreprocessor()
         #self.hog = self.classifier.get_hog() # why - to init? should init in class...
         #self.lsvm = self.classifier.get_lsvm() # why - same?
@@ -20,16 +20,16 @@ class GateDetector:
         #print self.isTaskComplete # python2
         print(self.isTaskComplete)
 
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
+#       self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#        self.out = cv2.VideoWriter('gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
         
     '''
     def get_directions(self,x,y,w,h):
         return utils.get_directions(x,y,w,h)
     '''
     
-    def detect(self):
-        ret, frame = self.cap.read()
+    def detect(self, frame):
+    #     ret, frame = self.cap.read()
         height, width, ch = frame.shape
         center = (width / 2, height / 2)
         regions_of_interest = self.preprocess.get_interest_regions(frame)
@@ -48,7 +48,4 @@ class GateDetector:
             cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
             self.directions = utils.get_directions(center, x, y ,w, h)
             self.found = True
-
-        self.out.write(frame)
-        
         return self.found, self.directions
