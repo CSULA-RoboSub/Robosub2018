@@ -1,6 +1,8 @@
 from modules.sensors.computer_vision import GateDetector
 from task import Task
 
+from modules.control.navigation import Navigation
+
 class Gate(Task):
     
     def __init__(self):
@@ -34,7 +36,7 @@ class Gate(Task):
 
         return found, gate_coordinates
     
-    def navigate(self):
+    def navigate(self, found, coordinates):
         #TODO must implement way for AUV to navigate to complete task
         print 'we have now made it to the navigation section of the task'
         #self.navigation.m_nav('power', 'forward', power)

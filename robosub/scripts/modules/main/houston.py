@@ -28,9 +28,15 @@ class Houston():
         """ To initilize Houston """
         self.is_killswitch_on = False
         self.config = Config()
-        self.POWER = 400
+        self.MAX_POWER = 400
+        self.MID_POWER = 200
+        self.MIN_POWER = 100
+
         self.coordinates = []
         self.task_num = 0
+        self.sway_dir = 'right'
+        self.sway_counter = 0
+        self.task_timer = 300
 
         # setting class instances of the tasks to none
         self.gate = None
@@ -68,11 +74,31 @@ class Houston():
                 _, frame = self.cap.read()
                 self.msg.found, gate_coordinates = self.gate.detect(frame)
 
-                if gate_coordinates[0] == 0 and gate_coordinates[1] == 0 and self.msg.found:
-                    self.navigation.m_nav('power', 'forward', self.POWER)
+                if self.msg.found and gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
+                    self.navigation.m_nav('power', 'forward', self.MID_POWER)
+
+                if gate_coordinates[0] == 1 and self.msg.found:
+                    self.navigation.m_nav('power', 'right', self.MID_POWER)
+                elif gate_coordinates[0] == -1 and self.msg.found:
+                    self.navigation.m_nav('power', 'left', self.MID_POWER)
+
+                if gate_coordinates[1] == 1 and self.msg.found: 
+                    self.navigation.h_nav('up', height, self.MID_POWER)
+                elif gate_coordinates[1] == -1 and self.msg.found:
+                    self.navigation.h_nav('down', height, self.MID_POWER)
+
+                if not self.msg.found:
+                    self.navigation.m_nav('power', self.sway_dir, self.MID_POWER)
+                    self.sway_counter += 1
+
+                if self.sway_counter > 60:
+                    self.sway_counter = 0
+                    if self.sway_dir == 'right': self.sway_dir = 'left'
+                    else: self.sway_dir = 'right'
+
                 
-                if self.gate.not_found_timer > 240 and not self.gate.is_gate_found:
-                    self.navigation.m_nav('power', 'forward', self.POWER)
+                if self.gate.not_found_timer > self.task_timer and not self.gate.is_gate_found:
+                    self.navigation.m_nav('power', 'forward', self.MID_POWER)
                     self.gate.is_gate_done = True
                 
                 # TODO must eventually move to CVController
@@ -84,11 +110,10 @@ class Houston():
                 self.msg.vertical = gate_coordinates[1]
                 self.msg.distance = 1.25
                 self.msg.targetType = 1.0
-                rospy.loginfo(self.msg)
+                #rospy.loginfo(self.msg)
                 self.pub.publish(self.msg)
                 self.r.sleep()
 
-            print 'do_task gate'
             self.task_num += 1
 
         elif self.tasks[self.task_num] == 'path':
@@ -151,5 +176,4 @@ class Houston():
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
         self.navigation.stop()
-
-
+        
