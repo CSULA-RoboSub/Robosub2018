@@ -5,6 +5,9 @@ import time
 from robosub.msg import CVIn
 from robosub.msg import CVOut
 from config.config import Config
+# TODO create new msg for Task and CVData
+#from robosub.msg import Task
+#from robosub.msg import CVData
 
 from modules.tasks.gate import Gate
 from modules.tasks.path import Path
@@ -27,6 +30,7 @@ class Houston():
     def __init__(self):
         """ To initilize Houston """
         self.is_killswitch_on = False
+        self.navigation = Navigation()
         self.config = Config()
         self.MAX_POWER = 400
         self.MID_POWER = 200
@@ -34,11 +38,14 @@ class Houston():
 
         self.coordinates = []
         self.task_num = 0
+
+        # will eventually move variables to task modules
         self.sway_dir = 'right'
         self.sway_counter = 0
         self.task_timer = 300
 
         # setting class instances of the tasks to none
+        # to be used to prevent mutiple instances of same class
         self.gate = None
         self.path = None
         self.roulette = None
@@ -47,11 +54,18 @@ class Houston():
         self.pinger_b = None
         self.cash_in = None
         self.buoy = None
+
+        # TODO move to CVcontroller
         self.cap = cv2.VideoCapture(0)
-        self.navigation = Navigation()
+
+        # TODO will use code below for houston and CV controller to communicate
+        '''self.pub_houston = rospy.Publisher('houston_to_cv', Task)
+        rospy.Subscriber('cv_to_houston', CVData, 'cvdata')'''
 
         # below is code to use rostopic cv_to_master
         self.pub = rospy.Publisher('cv_to_master', CVIn)
+
+        # init_node only needs to be ran once, which is already called in auv.py
         #rospy.init_node('cv_talker', anonymous=True)
         self.r = rospy.Rate(30) #30hz
         self.msg = CVIn()
@@ -74,6 +88,7 @@ class Houston():
                 _, frame = self.cap.read()
                 self.msg.found, gate_coordinates = self.gate.detect(frame)
 
+                # TODO clean up code and move into each task module
                 if self.msg.found and gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
                     self.navigation.m_nav('power', 'forward', self.MID_POWER)
 
@@ -106,6 +121,7 @@ class Houston():
                 cv2.imshow('gate',frame)
 
                 # below code is used to add data to msg to be published by ros
+                # wll be removed eventually since not using master.cpp
                 self.msg.horizontal = gate_coordinates[0]
                 self.msg.vertical = gate_coordinates[1]
                 self.msg.distance = 1.25
@@ -116,6 +132,7 @@ class Houston():
 
             self.task_num += 1
 
+        # TODO placeholders until testing of gate is complete
         elif self.tasks[self.task_num] == 'path':
             '''if not self.path:
                 self.path = Path()
@@ -155,7 +172,7 @@ class Houston():
 
         '''setattr(self, argh, self.get_thing)'''
 
-        
+    # TODO will be used once dynamic class instances are figured out
     def detect_task(self, task):
         print 'testing poly'
         task.detect()
