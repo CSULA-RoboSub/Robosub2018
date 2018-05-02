@@ -1,18 +1,10 @@
 import rospy
-import math
-import sys
 import cv2
 import time
 
 from robosub.msg import CVIn
 from robosub.msg import CVOut
 from config.config import Config
-
-'''
-sys.path.append('../controller/')
-sys.path.append('../control/')
-sys.path.append('../tasks/')
-'''
 
 from modules.tasks.gate import Gate
 from modules.tasks.path import Path
@@ -34,11 +26,13 @@ class Houston():
     
     def __init__(self):
         """ To initilize Houston """
+        self.is_killswitch_on = False
         self.config = Config()
         self.POWER = 400
         self.coordinates = []
         self.task_num = 0
 
+        # setting class instances of the tasks to none
         self.gate = None
         self.path = None
         self.roulette = None
@@ -50,63 +44,49 @@ class Houston():
         self.cap = cv2.VideoCapture(0)
         self.navigation = Navigation()
 
+        # below is code to use rostopic cv_to_master
         self.pub = rospy.Publisher('cv_to_master', CVIn)
         #rospy.init_node('cv_talker', anonymous=True)
         self.r = rospy.Rate(30) #30hz
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
-
         self.msg = CVIn()
 
-        print 'houston init method successful'
+        # TODO must eventually move to CVController
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.out = cv2.VideoWriter('video_output/gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
 
     def do_task(self):
-        """ the follow ifs' are for testing methods, will modify soon """
-        '''id = argh
-        constructor = globals()[id]
-        instance = constructor()
-        if not self.instance:
-            self.instance = instance
-        '''
+        # when task_num is > 10, there will be no more tasks to complete
         if self.task_num > 10:
             print 'no more tasks to complete'
 
         elif self.tasks[self.task_num] == 'gate':
             if not self.gate:
-                    self.gate = Gate()
+                self.gate = Gate()
                     
             while not self.gate.is_gate_done:
+                # TODO must eventually move to CVController
                 _, frame = self.cap.read()
-                
-                if not self.gate.is_gate_found or not self.gate.not_found_timer > 240:
-                    #found, gate_coordinates = self.detect_task(self.gate)
-                    self.msg.found, gate_coordinates = self.gate.detect(frame)
-                
-                if self.gate.is_gate_found:
-                    #found, gate_coordinates = self.gate.navigate()
+                self.msg.found, gate_coordinates = self.gate.detect(frame)
+
+                if gate_coordinates[0] == 0 and gate_coordinates[1] == 0 and self.msg.found:
                     self.navigation.m_nav('power', 'forward', self.POWER)
                 
-                if self.gate.not_found_timer > 480 and not self.gate.is_gate_found:
-                    self.task_num += 1
+                if self.gate.not_found_timer > 240 and not self.gate.is_gate_found:
                     self.navigation.m_nav('power', 'forward', self.POWER)
                     self.gate.is_gate_done = True
                 
+                # TODO must eventually move to CVController
                 self.out.write(frame)
-                cv2.imshow('frame',frame)
+                cv2.imshow('gate',frame)
+
+                # below code is used to add data to msg to be published by ros
                 self.msg.horizontal = gate_coordinates[0]
                 self.msg.vertical = gate_coordinates[1]
                 self.msg.distance = 1.25
                 self.msg.targetType = 1.0
-
                 rospy.loginfo(self.msg)
                 self.pub.publish(self.msg)
                 self.r.sleep()
-
-                #navigation.m_nav(gate_coordinates)
-                
-
-                #return found, gate_coordinates
-            # TODO use while statement until task is completed or done
 
             print 'do_task gate'
             self.task_num += 1
@@ -155,22 +135,21 @@ class Houston():
         print 'testing poly'
         task.detect()
 
-    def gate(self):
-        pass
-
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
-        print 'test printing tasks'
-        print self.tasks
 
     def start(self):
-        #self.navigation.start()
         self.get_task()
+
+        # similar start to other classes, such as auv, and keyboard
+        #self.is_killswitch_on = True
+        self.navigation.start()
     
     def stop(self):
-        #self.navigation.stop()
-        print 'stopping houston'
+        # similar start to other classes, such as auv, and keyboard
+        #self.is_killswitch_on = False
+        self.navigation.stop()
 
 
