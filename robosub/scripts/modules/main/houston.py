@@ -54,6 +54,11 @@ class Houston():
         self.pinger_b = None
         self.cash_in = None
         self.buoy = None
+    
+        self.last_reading = []
+        self.horizontal_move = {0: 'forward', -1: 'left', 1: 'right'}
+        self.vertical_movement = {-1: 'down', 1: 'up'}
+        self.height = 5
 
         # TODO move to CVcontroller
         self.cap = cv2.VideoCapture(0)
@@ -89,18 +94,14 @@ class Houston():
                 self.msg.found, gate_coordinates = self.gate.detect(frame)
 
                 # TODO clean up code and move into each task module
-                if self.msg.found and gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
-                    self.navigation.m_nav('power', 'forward', self.MID_POWER)
-
-                if gate_coordinates[0] == 1 and self.msg.found:
-                    self.navigation.m_nav('power', 'right', self.MID_POWER)
-                elif gate_coordinates[0] == -1 and self.msg.found:
-                    self.navigation.m_nav('power', 'left', self.MID_POWER)
+                if self.msg.found:
+                    self.last_reading = gate_coordinates
+                    self.navigation.m_nav('power', self.horizontal_move[self.last_reading[0]], self.MID_POWER)
 
                 if gate_coordinates[1] == 1 and self.msg.found: 
-                    self.navigation.h_nav('up', height, self.MID_POWER)
+                    self.navigation.h_nav('up', self.height, self.MID_POWER)
                 elif gate_coordinates[1] == -1 and self.msg.found:
-                    self.navigation.h_nav('down', height, self.MID_POWER)
+                    self.navigation.h_nav('down', self.height, self.MID_POWER)
 
                 if not self.msg.found:
                     self.navigation.m_nav('power', self.sway_dir, self.MID_POWER)
