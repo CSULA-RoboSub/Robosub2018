@@ -1,9 +1,9 @@
 #include <ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
-#include <auv2018/HControl.h>
-#include <auv2018/RControl.h>
-#include <auv2018/MControl.h>
+#include <robosub/HControl.h>
+#include <robosub/RControl.h>
+#include <robosub/MControl.h>
 #include <ez_async_data/Rotation.h>
 #include <auv_cal_state_la_2017/FrontCamDistance.h>
 #include <auv_cal_state_la_2017/BottomCamDistance.h>
@@ -45,14 +45,14 @@ const byte DRDYG  = 49; // DRDYG  tells us when gyro data is ready
 //--------------------------------------------------------------------------------
 
 //Initialization of the Servo's for Blue Robotics Motors
-Servo T1;     //right front
-Servo T2;     //right back
-Servo T3;     //left front
-Servo T4;     //left back
-Servo T5;     //right front
-Servo T6;     //right back
-Servo T7;     //left front
-Servo T8;     //left back
+Servo T1;     //
+Servo T2;     //
+Servo T3;     //
+Servo T4;     //
+Servo T5;     //
+Servo T6;     //
+Servo T7;     //
+Servo T8;     //
 
 MS5837 sensor;
 
@@ -77,6 +77,7 @@ int reedVal = HIGH;  //reed switch value
 
 int i;
 int PWM_Motors_orient;
+float rotatePowerMax = 120;
 float abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
@@ -136,9 +137,9 @@ float positionY = 0;
 ros::NodeHandle nh;
 std_msgs::Float32 currentDepth;
 //std_msgs::Float32 currentRotation;
-auv2018::HControl hControlStatus;
-auv2018::RControl rControlStatus;
-auv2018::MControl mControlStatus;
+robosub::HControl hControlStatus;
+robosub::RControl rControlStatus;
+robosub::MControl mControlStatus;
 
 ros::Publisher hControlPublisher("height_control_status", &hControlStatus);     //int: state, float: depth
 ros::Publisher rControlPublisher("rotation_control_status", &rControlStatus);   //int: state, float: rotation
@@ -146,18 +147,18 @@ ros::Publisher mControlPublisher("movement_control_status", &mControlStatus);   
 ros::Publisher currentDepthPublisher("current_depth", &currentDepth);           //float: depth
 //ros::Publisher currentRotationPublisher("current_rotation", &currentRotation);  //float: rotation
 
-void hControlCallback(const auv2018::HControl& hControl);
-void rControlCallback(const auv2018::RControl& rControl);
-void mControlCallback(const auv2018::MControl& mControl);
+void hControlCallback(const robosub::HControl& hControl);
+void rControlCallback(const robosub::RControl& rControl);
+void mControlCallback(const robosub::MControl& mControl);
 
 void rotationCallback(const ez_async_data::Rotation& rotation);
 
 void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance);
 void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance);
 
-ros::Subscriber<auv2018::HControl> hControlSubscriber("height_control", &hControlCallback);   //int: state, float: depth
-ros::Subscriber<auv2018::RControl> rControlSubscriber("rotation_control", &rControlCallback); //int: state, float: rotation
-ros::Subscriber<auv2018::MControl> mControlSubscriber("movement_control", &mControlCallback);
+ros::Subscriber<robosub::HControl> hControlSubscriber("height_control", &hControlCallback);   //int: state, float: depth
+ros::Subscriber<robosub::RControl> rControlSubscriber("rotation_control", &rControlCallback); //int: state, float: rotation
+ros::Subscriber<robosub::MControl> mControlSubscriber("movement_control", &mControlCallback);
 
 ros::Subscriber<ez_async_data::Rotation> rotationSubscriber("current_rotation", &rotationCallback);
 
@@ -189,7 +190,7 @@ float pid_p_pitch=0;
 float pid_d_pitch=0;
 float pid_i_pitch=0;
 /////////////////PID_pitch constants/////////////////
-double kp_pitch=4;//11;//3.55;//3.55
+double kp_pitch=2;//11;//3.55;//3.55
 double kd_pitch=0.7;//0.75;//2.05;//2.05
 double ki_pitch=0.0003;//0.003
 ///////////////////////////////////////////////
@@ -199,7 +200,7 @@ float pid_p_roll=0;
 float pid_d_roll=0;
 float pid_i_roll=0;
 /////////////////PID_roll constants/////////////////
-double kp_roll=4;//11;//3.55;//3.55
+double kp_roll=2;//11;//3.55;//3.55
 double kd_roll=0.7;//0.75;//2.05;//2.05
 double ki_roll=0.0003;//0.003
 ///////////////////////////////////////////////
@@ -209,7 +210,7 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=250;//11;//3.55;//3.55
+double kp_depth=170;//11;//3.55;//3.55
 double kd_depth=1;//0.75;//2.05;//2.05
 double ki_depth=0.0003;//0.003
 ///////////////////////////////////////////////
@@ -300,8 +301,8 @@ void setup() {
 
 
   Wire.begin();
-  Serial.begin(57600);
-  Serial.println("Serial 57600");
+  // Serial.begin(57600);
+  // Serial.println("Serial 57600");
 
   //Initialize ROS variable
   mControlDirection = 0;
@@ -355,7 +356,7 @@ void setup() {
 //  assignedDepth = 0.2;
   //assignedYaw = -191.5;
   //subIsReady = true;
-  assignedYaw = 64.6;
+  // assignedYaw = 64.6;
 //  currentRotation.data = yaw;
 
   hControlStatus.state = 1;
@@ -468,7 +469,7 @@ void rotationCallback(const ez_async_data::Rotation& rotation){
 }
 
 
-void hControlCallback(const auv2018::HControl& hControl) {
+void hControlCallback(const robosub::HControl& hControl) {
   if(reedVal == HIGH){
     return;
   }
@@ -514,11 +515,12 @@ void hControlCallback(const auv2018::HControl& hControl) {
       nh.loginfo("Sub is still running. Command abort.");
   }
   else if(hControl.state == 4){
+    assignedYaw = yaw;
+    assignedDepth = feetDepth_read;
     if(!subIsReady){
       subIsReady = true;
       nh.loginfo("Motors unlocked.");
     }
-    assignedDepth = feetDepth_read;
     //assignedDepth = 0.1;
   }
   else if(hControl.state == 5){
@@ -547,7 +549,7 @@ void hControlCallback(const auv2018::HControl& hControl) {
 }
 
 
-void rControlCallback(const auv2018::RControl& rControl){
+void rControlCallback(const robosub::RControl& rControl){
   if(reedVal == HIGH){
     return;
   }
@@ -652,7 +654,7 @@ void killSwitch(){
 // direction => 0: none, 1: forward, 2: right, 3: backward, 4: left
 // power => 0: none, x: x power add to the motors
 // distance => 0: none, x: x units away from the object
-void mControlCallback(const auv2018::MControl& mControl){
+void mControlCallback(const robosub::MControl& mControl){
   if(reedVal == HIGH){
     return;
   }
@@ -812,7 +814,7 @@ void mControlCallback(const auv2018::MControl& mControl){
 //roll left is negative roll right is positive (roll currently inverted of this)
 //pitch backward is positive pitch forward is negative
 void stabilization(){
-  if(roll == 999){ return; }
+  if(roll == 999 || !subIsReady){ return; }
 
   timePrev = time;  // the previous time is stored before the actual time read
   time = millis();  // actual time read
@@ -945,9 +947,9 @@ void stabilization(){
   prev_error_roll = error_roll;
   prev_error_depth = error_depth;
   
-  char temp[8];
-  dtostrf(pwmThruster_1, 8, 0, temp);
-  nh.loginfo(temp);
+  // char temp[8];
+  // dtostrf(pwmThruster_1, 8, 0, temp);
+  // nh.loginfo(temp);
 
   /*Create the PWM pulses with the calculated width for each pulse*/
   T1.writeMicroseconds(pwmThruster_1);
@@ -1110,22 +1112,43 @@ void rotationControl(){
   }
   // AutoRotation to the assignedYaw with 1 degree error tolerance
   else if(delta > 2){
-    if(yaw + delta > rotationUpperBound){
-      if(yaw - delta == assignedYaw)
+    if(isTurningRight){
+      // nh.loginfo("isTurningRight");
+      rotateRightDynamically();
+    }
+    else if(isTurningLeft){
+      // nh.loginfo("isTurningLeft");
+      rotateLeftDynamically();
+    }
+    else if(yaw + delta > rotationUpperBound){
+      // nh.loginfo("yaw + delta > rotationUpperBound");
+      if(yaw - delta == assignedYaw){
+        // nh.loginfo("aw - delta == assignedYaw");
         rotateLeftDynamically();
-      else
+      }else{
+        // nh.loginfo("aw - delta == assignedYaw else");
         rotateRightDynamically();
+      }
     }
     else if(yaw - delta < rotationLowerBound){
-      if(yaw + delta == assignedYaw)
+      // nh.loginfo("yaw - delta < rotationUpperBound");
+      if(yaw + delta == assignedYaw){
+        // nh.loginfo("yaw + delta == assignedYaw");
         rotateRightDynamically();
-      else
+      }
+      else{
+        // nh.loginfo("yaw + delta == assignedYaw else");
         rotateLeftDynamically();
+      }
     }
-    else if(yaw < assignedYaw)
+    else if(yaw < assignedYaw){
+      // nh.loginfo("yaw < assignedYaw");
       rotateRightDynamically();
-    else
+    }
+    else if(yaw > assignedYaw){
+      // nh.loginfo("yaw < assignedYaw else");
       rotateLeftDynamically();
+    }
   }
   //No rotation
  if(!keepTurningRight && !keepTurningLeft && !rControlMode3 && !rControlMode4 && delta < rotationError){
@@ -1408,17 +1431,17 @@ void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& b
 //    T7.writeMicroseconds(1500 + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 4.5;
-  if(rotatePower > 300) rotatePower = 300;
+  float rotatePower = PWM_Motors_orient * 4.0;
+  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if((mControlMode5 && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     T6.writeMicroseconds(1500 + rotatePower);
     T8.writeMicroseconds(1500 + rotatePower);
   }
   else{
-    T5.writeMicroseconds(1500 + rotatePower);
-    T7.writeMicroseconds(1500 - rotatePower);
+    T5.writeMicroseconds(1500 - rotatePower);
+    T7.writeMicroseconds(1500 + rotatePower);
   }
-  nh.loginfo("rotate left");
+  // nh.loginfo("rotate left");
   //Testing----------------------------
   //yaw += 1;
   //if(yaw > rotationUpperBound) yaw -= 360;
@@ -1426,17 +1449,17 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 4.5;
-  if(rotatePower > 300) rotatePower = 300;
+  float rotatePower = PWM_Motors_orient * 4.0;
+  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if((mControlMode5 && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     T6.writeMicroseconds(1500 - rotatePower);
     T8.writeMicroseconds(1500 - rotatePower);
   }
   else{
-    T5.writeMicroseconds(1500 - rotatePower);
-    T7.writeMicroseconds(1500 + rotatePower);
+    T5.writeMicroseconds(1500 + rotatePower);
+    T7.writeMicroseconds(1500 - rotatePower);
   }
-  nh.loginfo("rotate right");
+  // nh.loginfo("rotate right");
   //Testing----------------------------
   //yaw -= 1;
   //if(yaw < rotationLowerBound) yaw +=360;
