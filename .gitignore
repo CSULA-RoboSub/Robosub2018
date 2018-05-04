@@ -109,3 +109,12 @@ pip-selfcheck.json
 robosub/scripts/scripts/sources_backup.list
 robosub/scripts/config/config.ini
 robosub/scripts/logs/*.txt
+
+# emacs
+*~
+/#*\#
+.\#*
+
+# danny's workspace
+robosub/scripts/modules/sensors/computer_vision/main.py
+robosub/scripts/modules/sensors/computer_vision/gate_testing/
