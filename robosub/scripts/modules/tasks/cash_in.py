@@ -2,19 +2,22 @@ from task import Task
 
 class CashIn(Task):
     
-    def __init__(self):
+    def __init__(self, Houston):
         """ To initialize CashIn """
         super(CashIn, self).__init__()
+
+        self.houston = Houston
         
         self.detectcashin = None
         self.coordinates = []
-        self.is_cash_in_found = False
-        self.is_cash_in_done = False
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
 
         self.not_found_timer = 0
         self.found_timer = 0
 
-    def detect(self):
+    def detect(self, frame):
         print('detect_dice')
         if not self.detectcashin:
             #self.detectcashin = CashInDetector.CashInDetector()
@@ -36,4 +39,10 @@ class CashIn(Task):
         pass
     
     def complete(self):
+        pass
+
+    def bail_task(self):
+        pass
+
+    def restart_task(self):
         pass

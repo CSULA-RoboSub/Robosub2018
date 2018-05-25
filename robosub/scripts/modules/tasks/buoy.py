@@ -3,19 +3,22 @@ from task import Task
 
 class Buoy(Task):
     
-    def __init__(self):
+    def __init__(self, Houston):
         """ To initialize Buoy """
         super(Buoy, self).__init__()
+
+        self.houston = Houston
         
         self.detectbuoy = None
         self.coordinates = []
-        self.is_buoy_found = False
-        self.is_buoy_complete = False
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
 
         self.not_found_timer = 0
         self.found_timer = 0
 
-    def detect(self):
+    def detect(self, frame):
         print('detect_buoy')
         if not self.detectbuoy:
             self.detectbuoy = BuoyDetector.BuoyDetector()
@@ -37,4 +40,10 @@ class Buoy(Task):
         pass
     
     def complete(self):
+        pass
+
+    def bail_task(self):
+        pass
+
+    def restart_task(self):
         pass

@@ -12,3 +12,9 @@ class Task(object):
 
     @abstractmethod
     def complete(self): pass
+
+    @abstractmethod
+    def bail_task(self): pass
+
+    @abstractmethod
+    def restart_task(self): pass

@@ -5,21 +5,24 @@ from modules.control.navigation import Navigation
 
 class Gate(Task):
     
-    def __init__(self):
+    def __init__(self, Houston):
         """ To initialize Gate """
         super(Gate, self).__init__()
         
+        self.houston = Houston
+        
         self.detectgate = None
         self.coordinates = []
-        self.is_gate_found = False
-        self.is_gate_done = False
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
 
         self.not_found_timer = 0
         self.found_timer = 0
         self.gate_circle_loc = 0
     
-    def detect(self,frame):
-        print('detect_gate')
+    def detect(self, frame):
+        #add frame when testing complete
         if not self.detectgate:
             self.detectgate = GateDetector.GateDetector()
 
@@ -69,3 +72,9 @@ class Gate(Task):
             coord_y = 0
         
         return True, [coord_x, coord_y]
+
+    def bail_task(self):
+        print 'bail gate'
+
+    def restart_task(self):
+        print 'restart gate'

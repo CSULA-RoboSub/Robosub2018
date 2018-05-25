@@ -12,6 +12,7 @@ from config.config import Config
 from modules.tasks.gate import Gate
 from modules.tasks.path import Path
 from modules.tasks.dice import Dice
+from modules.tasks.chip import Chip
 from modules.tasks.roulette import Roulette
 from modules.tasks.slots import Slots
 from modules.tasks.pinger_a import PingerA
@@ -21,6 +22,8 @@ from modules.tasks.buoy import Buoy
 from modules.tasks.task import Task
 
 from modules.control.navigation import Navigation
+
+from modules.controller.cv_controller import CVController
 
 # TODO houston will communicate with CV controller through ROS
 # houston will interpet the coordinates and then send it to navigation
@@ -35,29 +38,46 @@ class Houston():
         self.MAX_POWER = 400
         self.MID_POWER = 200
         self.MIN_POWER = 100
+        self.depth = -1
 
         self.coordinates = []
-        self.task_num = 0
 
         # will eventually move variables to task modules
-        self.sway_dir = 'right'
+        self.sway = {0: 'right', 1: 'left'}
         self.sway_counter = 0
         self.task_timer = 300
+        self.last_time = time.time()
 
         # setting class instances of the tasks to none
         # to be used to prevent mutiple instances of same class
-        self.gate = None
-        self.path = None
-        self.roulette = None
-        self.slots = None
-        self.pinger_a = None
-        self.pinger_b = None
-        self.cash_in = None
-        self.buoy = None
+        self.gate = Gate(Houston)
+        self.path_1 = Path(Houston)
+        self.dice = Dice(Houston)
+        self.path_2 = Path(Houston)
+        self.chip_1 = Chip(Houston)        
+        self.chip_2 = Chip(Houston)
+        self.roulette = Roulette(Houston)
+        self.slots = Slots(Houston)
+        self.pinger_a = PingerA(Houston)
+        self.pinger_b = PingerB(Houston)
+        self.cash_in = CashIn(Houston)
+        #self.buoy = Buoy(Houston)
+
+        """
+        self.tasks values listed below
+        'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
+        'roulette', 'pinger_a', 'cash_in'
+        """
+        self.state_num = 0
+        self.states = [self.gate, self.path_1, self.dice, self.chip_1, self.path_2, 
+                        self.slots, self.chip_2, self.pinger_a, self.roulette,
+                        self.pinger_b, self.cash_in]
     
         self.last_reading = []
-        self.horizontal_move = {0: 'forward', -1: 'left', 1: 'right'}
-        self.vertical_movement = {-1: 'down', 1: 'up'}
+        self.mState = {'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5}
+        self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
+        self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
+        #self.rotational_movement = {-1: }
         self.height = 5
 
         # TODO move to CVcontroller
@@ -80,103 +100,58 @@ class Houston():
         self.out = cv2.VideoWriter('video_output/gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
 
     def do_task(self):
-        # when task_num is > 10, there will be no more tasks to complete
-        if self.task_num > 10:
+        #added just to make sure all the motors are off before starting a new task
+        self.navigation.m_nav('off', 'none', 0)
+
+        # when state_num is > 10, there will be no more tasks to complete
+        if self.state_num > 10:
             print 'no more tasks to complete'
+            
+        break_loop = 0
+        self.sway_counter = 0
+        self.state = self.states[self.state_num]
 
-        elif self.tasks[self.task_num] == 'gate':
-            if not self.gate:
-                self.gate = Gate()
-                    
-            while not self.gate.is_gate_done:
-                # TODO must eventually move to CVController
-                _, frame = self.cap.read()
-                self.msg.found, gate_coordinates = self.gate.detect(frame)
+        while not self.state.is_detect_done:
+            _, frame = self.cap.read()
+            self.msg.found, coordinates = self.state.detect(frame)
 
-                # TODO clean up code and move into each task module
-                if self.msg.found:
-                    self.last_reading = gate_coordinates
+            if self.msg.found:
+                self.last_reading = coordinates
+                if (time.time()-self.last_time > 1):
+                    print 'inside 1 second loop'
+
                     self.navigation.m_nav('power', self.horizontal_move[self.last_reading[0]], self.MID_POWER)
-
-                if gate_coordinates[1] == 1 and self.msg.found: 
-                    self.navigation.h_nav('up', self.height, self.MID_POWER)
-                elif gate_coordinates[1] == -1 and self.msg.found:
-                    self.navigation.h_nav('down', self.height, self.MID_POWER)
-
-                if not self.msg.found:
-                    self.navigation.m_nav('power', self.sway_dir, self.MID_POWER)
-                    self.sway_counter += 1
-
-                if self.sway_counter > 60:
-                    self.sway_counter = 0
-                    if self.sway_dir == 'right': self.sway_dir = 'left'
-                    else: self.sway_dir = 'right'
-
-                
-                if self.gate.not_found_timer > self.task_timer and not self.gate.is_gate_found:
-                    self.navigation.m_nav('power', 'forward', self.MID_POWER)
-                    self.gate.is_gate_done = True
-                
-                # TODO must eventually move to CVController
-                self.out.write(frame)
-                cv2.imshow('gate',frame)
-
-                # below code is used to add data to msg to be published by ros
-                # wll be removed eventually since not using master.cpp
-                self.msg.horizontal = gate_coordinates[0]
-                self.msg.vertical = gate_coordinates[1]
-                self.msg.distance = 1.25
-                self.msg.targetType = 1.0
-                #rospy.loginfo(self.msg)
-                self.pub.publish(self.msg)
-                self.r.sleep()
-
-            self.task_num += 1
-
-        # TODO placeholders until testing of gate is complete
-        elif self.tasks[self.task_num] == 'path':
-            '''if not self.path:
-                self.path = Path()
+                    self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], 50, self.MID_POWER)
+                    self.last_time = time.time()
+                    break_loop += 1
+                    if break_loop > 10:
+                        break
             else:
-                print self.path.detect()
-            '''
-            print 'do_task path'
-            self.task_num += 1
+                if (time.time()-self.last_time > 1):
+                    print 'inside else "sway" portion'
 
-        elif self.tasks[self.task_num] == 'dice':
-            print 'do_task dice'
-            self.task_num += 1
+                    self.navigation.m_nav('power', self.sway[self.sway_counter], self.MID_POWER)
+                    self.last_time = time.time()
+                    break_loop += 1
+                    if break_loop % 5 == 0:
+                        self.sway_counter += 1
+                    if break_loop >= 10:
+                        break
+        #self.state.navigate()
 
-        elif self.tasks[self.task_num] == 'chip':
-            print 'do_task chip'
-            self.task_num += 1
+        self.state_num += 1
+                    
+        '''print self.state.detect()
+        self.state.bail_task()
+        self.state.restart_task()
+        self.state_num += 1
+        self.state = self.states[self.state_num]
+        self.state.detect()
+            
+        # TODO must eventually move to CVController
+        self.out.write(frame)
+        cv2.imshow('gate',frame)'''
 
-        elif self.tasks[self.task_num] == 'slots':
-            print 'do_task slots'
-            self.task_num += 1
-
-        elif self.tasks[self.task_num] == 'pinger_a':
-            print 'do_tasks pinger_a'
-            self.task_num += 1
-
-        elif self.tasks[self.task_num] == 'pinger_b':
-            print 'do_task pinger_b'
-            self.task_num += 1
-
-        elif self.tasks[self.task_num] == 'roulette':
-            print 'do_task roulette'
-            self.task_num += 1
-
-        elif self.tasks[self.task_num] == 'cash_in':
-            print 'do_task cash_in'
-            self.task_num += 1
-
-        '''setattr(self, argh, self.get_thing)'''
-
-    # TODO will be used once dynamic class instances are figured out
-    def detect_task(self, task):
-        print 'testing poly'
-        task.detect()
 
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
@@ -185,7 +160,6 @@ class Houston():
 
     def start(self):
         self.get_task()
-
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = True
         self.navigation.start()

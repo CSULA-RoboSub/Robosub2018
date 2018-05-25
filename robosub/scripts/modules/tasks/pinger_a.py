@@ -2,14 +2,17 @@ from task import Task
 
 class PingerA(Task):
     
-    def __init__(self):
+    def __init__(self, Houston):
         """ To initialize Pinger A """
         super(PingerA, self).__init__()
+
+        self.houston = Houston
         
         self.detectpingera = None
         self.coordinates = []
-        self.is_pinger_a_found = False
-        self.is_pinger_a_done = False
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -35,4 +38,10 @@ class PingerA(Task):
         pass
     
     def complete(self):
+        pass
+
+    def bail_task(self):
+        pass
+
+    def restart_task(self):
         pass

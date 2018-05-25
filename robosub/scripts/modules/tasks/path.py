@@ -2,21 +2,23 @@ from task import Task
 
 class Path(Task):
     
-    def __init__(self):
+    def __init__(self, Houston):
         """ To initialize Path """
         super(Path, self).__init__()
+
+        self.houston = Houston
         
         self.detectpath = None
         self.coordinates = []
-        self.is_path_found = False
-        self.is_path_done = False
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
     
         self.not_found_timer = 0
         self.found_timer = 0
 
-    def detect(self):
-        print('detect_dice')
-        if not self.detectpath:
+    def detect(self, frame):
+        '''if not self.detectpath:
             #self.detectpath = PathDetector.PathDetector()
             pass
 
@@ -29,10 +31,24 @@ class Path(Task):
 
         if self.found_timer == 240:
             self.is_gate_found = True
-            self.task_num += 1
+            self.task_num += 1'''
+        print 'detect path'
+        self.navigate()
+        self.complete()
+        self.bail_task()
+        self.restart_task()
+
+        return False, [0,0]
+
 
     def navigate(self):
-        pass
+        print 'navigate path'
     
     def complete(self):
-        pass
+        print 'complete path'
+
+    def bail_task(self):
+        print 'bail task path'
+
+    def restart_task(self):
+        print 'restart task path'

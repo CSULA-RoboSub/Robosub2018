@@ -2,19 +2,22 @@ from task import Task
 
 class Roulette(Task):
     
-    def __init__(self):
+    def __init__(self, Houston):
         """ To initialize Roulette """
         super(Roulette, self).__init__()
 
+        self.houston = Houston
+
         self.detectroulette = None
         self.coordinates = []
-        self.is_roulette_found = False
-        self.is_roulette_done = False
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
 
         self.not_found_timer = 0
         self.found_timer = 0
 
-    def detect(self):
+    def detect(self, frame):
         print('detect_dice')
         if not self.detectroulette:
             #self.detectroulette = RouletteDetector.RouletteDetector()
@@ -35,4 +38,10 @@ class Roulette(Task):
         pass
     
     def complete(self):
+        pass
+
+    def bail_task(self):
+        pass
+
+    def restart_task(self):
         pass
