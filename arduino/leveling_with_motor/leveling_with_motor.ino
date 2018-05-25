@@ -414,7 +414,8 @@ void loop() {
   LcdWriteString(dtostrf(yaw, 5, 2, string));
 
   //read reed switch
-  reedVal = digitalRead(REED);
+  // reedVal = digitalRead(REED);
+  reedVal = LOW;
 
   //Depth
   //Testing----------------------
@@ -438,8 +439,8 @@ void loop() {
     if(reedVal == LOW){
       // heightControl();
       stabilization();
-      rotationControl();
       movementControl();
+      rotationControl();
     }else{
       killSwitch();
     }
