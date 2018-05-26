@@ -68,9 +68,9 @@ class CLI(cmd.Cmd):
          \n[state] or no argument to print current state'
 
         if arg.lower() == 'on' or arg == '1':
-            AUV.motor.toggle_state(1)
+            AUV.motor.toggle_state(4)
         elif arg.lower() == 'off' or arg == '0':
-            AUV.motor.toggle_state(0)
+            AUV.motor.toggle_state(5)
         elif arg.lower() == 'toggle':
             AUV.motor.toggle_state()
         else:
