@@ -23,6 +23,7 @@ from modules.tasks.task import Task
 
 from modules.control.navigation import Navigation
 
+#will need to move CVControll
 from modules.controller.cv_controller import CVController
 
 # TODO houston will communicate with CV controller through ROS
@@ -77,18 +78,15 @@ class Houston():
         self.mState = {'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5}
         self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
         self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
+
+        self.power = 'power'
+        self.move_forward = 'forward'
+        self.depth_change = 50
         #self.rotational_movement = {-1: }
         self.height = 5
 
         # TODO move to CVcontroller
         self.cap = cv2.VideoCapture(0)
-
-        # TODO will use code below for houston and CV controller to communicate
-        '''self.pub_houston = rospy.Publisher('houston_to_cv', Task)
-        rospy.Subscriber('cv_to_houston', CVData, 'cvdata')'''
-
-        # below is code to use rostopic cv_to_master
-        self.pub = rospy.Publisher('cv_to_master', CVIn)
 
         # init_node only needs to be ran once, which is already called in auv.py
         #rospy.init_node('cv_talker', anonymous=True)
@@ -115,31 +113,36 @@ class Houston():
             _, frame = self.cap.read()
             self.msg.found, coordinates = self.state.detect(frame)
 
-            if self.msg.found:
-                self.last_reading = coordinates
-                if (time.time()-self.last_time > 1):
-                    print 'inside 1 second loop'
+            self.last_reading = coordinates
+            if (time.time()-self.last_time > 1):
+                print 'inside 1 second loop'
+                self.last_time = time.time()
 
-                    self.navigation.m_nav('power', self.horizontal_move[self.last_reading[0]], self.MID_POWER)
-                    self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], 50, self.MID_POWER)
-                    self.last_time = time.time()
-                    break_loop += 1
-                    if break_loop > 10:
-                        break
-            else:
-                if (time.time()-self.last_time > 1):
-                    print 'inside else "sway" portion'
+                if self.msg.found:
+                    if self.last_reading == [0,0]:
+                        self.navigation.m_nav(self.power, self.move_forward, self.MID_POWER)
+                    else:
+                        self.navigation.m_nav(self.power, self.horizontal_move[self.last_reading[0]], self.MID_POWER)
+                        self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], self.depth_change, self.MID_POWER)
+                else:
+                    self.navigation.m_nav(self.power, self.sway[self.sway_counter], self.MID_POWER)
+                
+                """break_loop used for temp breaking of loop"""
+                break_loop += 1
+                if break_loop % 5 == 0:
+                    self.sway_counter += 1
+                if break_loop >= 10:
+                    break
 
-                    self.navigation.m_nav('power', self.sway[self.sway_counter], self.MID_POWER)
-                    self.last_time = time.time()
-                    break_loop += 1
-                    if break_loop % 5 == 0:
-                        self.sway_counter += 1
-                    if break_loop >= 10:
-                        break
+        if self.state.is_detect_done:
+            pass
+
         #self.state.navigate()
-
-        self.state_num += 1
+        '''
+        self.state_num will be changed to change the state/task
+        keeping commented for now until gate can complete successfully
+        '''
+        #self.state_num += 1
                     
         '''print self.state.detect()
         self.state.bail_task()
