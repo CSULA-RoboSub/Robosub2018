@@ -14,6 +14,7 @@ class Buoy(Task):
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
+        self.is_done = False
 
         self.not_found_timer = 0
         self.found_timer = 0
