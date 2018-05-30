@@ -44,6 +44,7 @@ class Houston():
         self.multiplier = 40
         self.r_multiplier = 18
         self.rotation = int(10) * self.r_multiplier
+        self.power = int(10) * self.multiplier
 
         self.coordinates = []
 
@@ -82,7 +83,7 @@ class Houston():
         self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
         self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
 
-        self.power = 'power'
+
         self.move_forward = 'forward'
         self.depth_change = 50
         #self.rotational_movement = {-1: }
@@ -124,12 +125,12 @@ class Houston():
 
                 if self.msg.found:
                     if self.last_reading == [0,0]:
-                        self.navigation.m_nav(self.power, self.move_forward, self.MAX_POWER)
+                        self.navigation.m_nav('power', self.move_forward, self.power)
                     else:
-                        self.navigation.m_nav(self.power, self.horizontal_move[self.last_reading[0]], self.MAX_POWER)
-                        self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], self.depth_change, self.MAX_POWER)
+                        self.navigation.m_nav('power', self.horizontal_move[self.last_reading[0]], self.power)
+                        self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], self.depth_change, self.power)
                 else:
-                        self.navigation.r_nav(self.rotation_direction, self.rotation, self.MAX_POWER)
+                        self.navigation.r_nav(self.rotation_direction, self.rotation, self.power)
 
                 self.navigation.ros_sleep(1)
                 
