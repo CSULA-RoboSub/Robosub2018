@@ -48,7 +48,8 @@ class Gate(Task):
         #self.navigation.m_nav('power', 'forward', power)
     
     def complete(self):
-        if (self.gate_circle_loc < 2*math.pi):
+        #code below is not needed anymore
+        '''if (self.gate_circle_loc < 2*math.pi):
             self.gate_circle_loc += math.pi/100
             x = math.sin(self.gate_circle_loc)
             y = math.cos(self.gate_circle_loc)
@@ -75,6 +76,8 @@ class Gate(Task):
             coord_y = 0
         
         return True, [coord_x, coord_y]
+        '''
+        pass
 
     def bail_task(self):
         print 'bail gate'

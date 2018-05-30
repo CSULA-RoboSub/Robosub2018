@@ -119,7 +119,7 @@ class Houston():
 
             self.last_reading = coordinates
             if (time.time()-self.last_time > 1):
-                print 'inside 1 second loop'
+                print 'inside {} second loop'.format(break_loop)
                 self.last_time = time.time()
 
                 if self.msg.found:
@@ -135,13 +135,11 @@ class Houston():
                 
                 """break_loop used for temp breaking of loop"""
                 break_loop += 1
-                if break_loop % 5 == 0:
-                    self.sway_counter += 1
-                if break_loop >= 10:
+                if break_loop >= 15:
                     break
 
         if self.state.is_detect_done:
-            pass
+            self.state_num += 1
 
         #self.state.navigate()
         '''
