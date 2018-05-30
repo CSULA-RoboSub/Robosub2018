@@ -40,12 +40,15 @@ class Houston():
         self.MID_POWER = 200
         self.MIN_POWER = 100
         self.depth = -1
+        self.rotation_direction = 'right'
+        self.multiplier = 40
+        self.r_multiplier = 18
+        self.rotation = int(10) * self.r_multiplier
 
         self.coordinates = []
 
         # will eventually move variables to task modules
         self.sway = {0: 'right', 1: 'left'}
-        self.sway_counter = 0
         self.task_timer = 300
         self.last_time = time.time()
 
@@ -100,13 +103,14 @@ class Houston():
     def do_task(self):
         #added just to make sure all the motors are off before starting a new task
         self.navigation.m_nav('off', 'none', 0)
+        self.navigation.r_nav('staying', 0, 0)
+        self.navigation.h_nav('staying', 0, 0)
 
         # when state_num is > 10, there will be no more tasks to complete
         if self.state_num > 10:
             print 'no more tasks to complete'
             
         break_loop = 0
-        self.sway_counter = 0
         self.state = self.states[self.state_num]
 
         while not self.state.is_detect_done:
@@ -120,12 +124,14 @@ class Houston():
 
                 if self.msg.found:
                     if self.last_reading == [0,0]:
-                        self.navigation.m_nav(self.power, self.move_forward, self.MID_POWER)
+                        self.navigation.m_nav(self.power, self.move_forward, self.MAX_POWER)
                     else:
-                        self.navigation.m_nav(self.power, self.horizontal_move[self.last_reading[0]], self.MID_POWER)
-                        self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], self.depth_change, self.MID_POWER)
+                        self.navigation.m_nav(self.power, self.horizontal_move[self.last_reading[0]], self.MAX_POWER)
+                        self.navigation.h_nav(self.vertical_movement[self.last_reading[1]], self.depth_change, self.MAX_POWER)
                 else:
-                    self.navigation.m_nav(self.power, self.sway[self.sway_counter], self.MID_POWER)
+                        self.navigation.r_nav(self.rotation_direction, self.rotation, self.MAX_POWER)
+
+                self.navigation.ros_sleep(1)
                 
                 """break_loop used for temp breaking of loop"""
                 break_loop += 1

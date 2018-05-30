@@ -18,6 +18,8 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
 
+        self.rotation_direction = 'right'
+
         self.not_found_timer = 0
         self.found_timer = 0
         self.gate_circle_loc = 0
