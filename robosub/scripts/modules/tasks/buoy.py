@@ -37,7 +37,7 @@ class Buoy(Task):
 
         return found, gate_coordinates
     
-    def navigate(self):
+    def navigate(self, navigation, found, coordinates, power, rotation):
         pass
     
     def complete(self):
@@ -48,3 +48,9 @@ class Buoy(Task):
 
     def restart_task(self):
         pass
+
+    def start(self):
+        self.navigation.start()
+    
+    def stop(self):
+        self.navigation.stop()

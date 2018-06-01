@@ -35,8 +35,7 @@ class CashIn(Task):
             self.is_gate_found = True
             self.task_num += 1
 
-    
-    def navigate(self):
+    def navigate(self, navigation, found, coordinates, power, rotation):
         pass
     
     def complete(self):
@@ -47,3 +46,9 @@ class CashIn(Task):
 
     def restart_task(self):
         pass
+
+    def start(self):
+        self.navigation.start()
+    
+    def stop(self):
+        self.navigation.stop()

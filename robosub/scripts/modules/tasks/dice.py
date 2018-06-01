@@ -31,7 +31,7 @@ class Dice(Task):
 
         return found, coordinates
 
-    def navigate(self):
+    def navigate(self, navigation, found, coordinates, power, rotation):
         pass
     
     def complete(self):
@@ -42,3 +42,9 @@ class Dice(Task):
 
     def restart_task(self):
         pass
+
+    def start(self):
+        self.navigation.start()
+    
+    def stop(self):
+        self.navigation.stop()

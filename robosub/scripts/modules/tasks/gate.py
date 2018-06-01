@@ -1,7 +1,6 @@
 from modules.sensors.computer_vision import GateDetector
 from task import Task
-
-from modules.control.navigation import Navigation
+from modules.controller.cv_controller import CVController
 
 class Gate(Task):
     
@@ -12,7 +11,6 @@ class Gate(Task):
         self.houston = Houston
         
         self.detectgate = None
-        self.coordinates = []
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
@@ -23,6 +21,16 @@ class Gate(Task):
         self.not_found_timer = 0
         self.found_timer = 0
         self.gate_circle_loc = 0
+
+        self.mState = {'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5}
+        self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
+        self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
+
+        self.move_forward = 'forward'
+        self.depth_change = 5
+
+        self.depth = -1
+        self.rotation_direction = 'right'
     
     def detect(self, frame):
         #add frame when testing complete
@@ -30,22 +38,24 @@ class Gate(Task):
             self.detectgate = GateDetector.GateDetector()
 
         found, gate_coordinates = self.detectgate.detect(frame)
-        ''' add 'and found is True' when gate circle works '''
-        if gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
-            if not found:
-                self.not_found_timer += 1
-            else:
-                self.found_timer += 1
-
-        if self.found_timer == 240:
-            self.is_gate_found = True
-
         return found, gate_coordinates
     
-    def navigate(self, found, coordinates):
-        #TODO must implement way for AUV to navigate to complete task
-        print 'we have now made it to the navigation section of the task'
-        #self.navigation.m_nav('power', 'forward', power)
+    def navigate(self, navigation, found, coordinates, power, rotation):
+        if found:
+            if coordinates == [0,0]:
+                navigation.m_nav('power', 'none', 0)
+                navigation.m_nav('power', self.move_forward, power)
+            else:
+                navigation.m_nav('power', 'none', 0)
+                navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
+
+                navigation.h_nav('staying', 0, 0)
+                navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+        else:
+            navigation.r_nav('staying', 0, 0)
+            navigation.r_nav(self.rotation_direction, rotation, power)
+        
+        navigation.ros_sleep(0.01)
     
     def complete(self):
         #code below is not needed anymore
