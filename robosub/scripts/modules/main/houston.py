@@ -44,7 +44,7 @@ class Houston():
 
         self.multiplier = 10
 
-        self.rotation = int(9) * self.multiplier
+        self.rotation = int(3) * self.multiplier
         self.power = int(20) * self.multiplier
 
         # setting class instances of the tasks to none
