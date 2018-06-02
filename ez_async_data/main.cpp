@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
 	cout << "current_rotation topic start" << endl;
 
-	ros::Rate loop_rate(100); //for delay use
+	ros::Rate loop_rate(60); //for delay use
 	//for (int i = 0; i < 1000000; i++)
 //-------------------------------
 	//std_msgs::Float32 yaw;

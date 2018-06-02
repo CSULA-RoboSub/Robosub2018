@@ -44,7 +44,7 @@ class Motor():
         self.h_control.state = state
 
         self.pub.publish(self.h_control)
-        rospy.sleep(.01)
+        # rospy.sleep(.01)
 
         print('\nmotor state published %d' % state)
 

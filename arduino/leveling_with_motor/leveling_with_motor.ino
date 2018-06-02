@@ -457,7 +457,7 @@ void loop() {
 //  Serial.pr/intln("Serial print test");
   nh.spinOnce();
 
-  delay(10);
+  // delay(10);
 }
 
 

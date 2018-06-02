@@ -138,7 +138,7 @@ class Keyboard():
             self.navigation.h_nav('staying', 0, 0)
             self.navigation.h_nav('down', height, power)
 
-        self.navigation.ros_sleep(0.01)
+        # self.navigation.ros_sleep(0.01)
 
     def start(self):
         """Allows keyboard navigation when killswitch is plugged in"""
