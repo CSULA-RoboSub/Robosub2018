@@ -1,29 +1,36 @@
 import rospy
-from std_msgs.msg import Int8
+from robosub.msg import HControl
 
 
 class Motor():
     """Controls motors"""
 
-    def __init__(self, state=0):
+    def __init__(self, state=5):
         self.is_killswitch_on = False
 
-        self.pub = rospy.Publisher('motor_state', Int8, queue_size=10)
+        self.pub = rospy.Publisher('height_control', HControl, queue_size=100)
 
         self.state = state
+
+        self.h_control = HControl()
+        self.h_control.state = self.state
+        self.h_control.depth = 0
+        self.h_control.power = 0
 
     def get_state(self):
         return self.state
 
     def toggle_state(self, arg=None):
         """Toggles the state of the motors (1 == on, 0 == off, empty == toggle)"""
+        if arg != 4 and arg != 5:
+            return
 
         # Toggles the state if there is no argument passed
         if arg is None:
-            if self.state == 0:
-                self.state = 1
+            if self.state == 5:
+                self.state = 4
             else:
-                self.state = 0
+                self.state = 5
         else:
             self.state = arg
 
@@ -34,9 +41,10 @@ class Motor():
 
     def pub_motor_state(self, state):
         """ Private method used to publish given motor state"""
+        self.h_control.state = state
 
-        self.pub.publish(state)
-        rospy.sleep(.1)
+        self.pub.publish(self.h_control)
+        rospy.sleep(.01)
 
         print('\nmotor state published %d' % state)
 
