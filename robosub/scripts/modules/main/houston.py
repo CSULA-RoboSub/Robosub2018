@@ -85,10 +85,6 @@ class Houston():
         self.r = rospy.Rate(30) #30hz
         self.msg = CVIn()
 
-        # TODO must eventually move to CVController
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('video_output/gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
-
     def do_task(self):
         # when state_num is > 10, there will be no more tasks to complete
         if self.state_num > 10:
@@ -97,11 +93,20 @@ class Houston():
         break_loop = 0
         self.state = self.states[self.state_num]
 
+        # TODO must eventually move to CVController
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.out = cv2.VideoWriter('video_output/' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
+
         while not self.state.is_detect_done:
             _, frame = self.cap.read()
             self.msg.found, coordinates = self.state.detect(frame)
 
             self.last_reading = coordinates
+
+            # TODO must eventually move to CVController
+            self.out.write(frame)
+            #cv2.imshow('gate',frame)
+
             if (time.time()-self.last_time > 1):
                 print 'inside {} second loop'.format(break_loop)
                 self.last_time = time.time()
@@ -115,11 +120,6 @@ class Houston():
 
         if self.state.is_detect_done:
             self.state_num += 1
-
-        # TODO must eventually move to CVController
-        '''self.out.write(frame)
-        cv2.imshow('gate',frame)'''
-
 
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
