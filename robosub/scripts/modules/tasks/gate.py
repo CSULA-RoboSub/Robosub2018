@@ -23,6 +23,9 @@ class Gate(Task):
         self.gate_circle_loc = 0
 
         self.mState = {'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5}
+        
+        #NOTE sub currently strafes in opposite direction
+        #need to switch left and right when testing
         self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
         self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
 

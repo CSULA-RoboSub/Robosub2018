@@ -105,21 +105,30 @@ class Houston():
 
             # TODO must eventually move to CVController
             self.out.write(frame)
-            #cv2.imshow('gate',frame)
+            cv2.imshow('gate',frame)
+            key = cv2.waitKey(1) & 0xFF
+
+            # if the `q` key is pressed, break from the loop
+            if key == ord("q"):
+                break
 
             if (time.time()-self.last_time > 1):
-                print 'inside {} second loop'.format(break_loop)
                 self.last_time = time.time()
 
                 self.state.navigate(self.navigation, self.msg.found, self.last_reading, self.power, self.rotation)
                 
                 """break_loop used for temp breaking of loop"""
+                print 'press q to quit task or wait 15 secs'
                 break_loop += 1
                 if break_loop >= 15:
                     break
 
         if self.state.is_detect_done:
             self.state_num += 1
+        
+        #TODO will be used to release the cap(videocapture) if needed
+        # must initialize cap again if we plan to use this
+        #cap.release()
 
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
