@@ -398,6 +398,8 @@ void setup() {
 
   time = millis(); 
 //  nh.loginfo("Data is ready.");
+
+  delay(1000);
   nh.loginfo("Sub is staying. Waiting to receive data from master...\n");
 
 }
@@ -457,7 +459,7 @@ void loop() {
 //  Serial.pr/intln("Serial print test");
   nh.spinOnce();
 
-  // delay(10);
+  delay(1);
 }
 
 
