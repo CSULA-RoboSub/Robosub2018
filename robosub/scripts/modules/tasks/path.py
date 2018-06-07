@@ -42,7 +42,7 @@ class Path(Task):
         return False, [0,0]
 
 
-    def navigate(self):
+    def navigate(self, navigation, found, coordinates, power, rotation):
         print 'navigate path'
     
     def complete(self):
@@ -53,3 +53,9 @@ class Path(Task):
 
     def restart_task(self):
         print 'restart task path'
+
+    def start(self):
+        self.navigation.start()
+    
+    def stop(self):
+        self.navigation.stop()
