@@ -406,8 +406,8 @@ void setup() {
 
 void loop() {
 
-//  gettingRawData();
-    sensor.read();
+  //  gettingRawData();
+  sensor.read();
 
   //Set the display outputs for roll, pitch, and yaw
   LcdXY(40, 0);
@@ -435,7 +435,7 @@ void loop() {
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   // DEBUG
-//  assignedYaw = yaw;
+  // assignedYaw = yaw;
   
   /////////////////////////////////////////////////////////////////////////////////////////////
   
@@ -455,11 +455,8 @@ void loop() {
   currentDepthPublisher.publish(&currentDepth);
 //  currentRotation.data = yaw;
 //  currentRotationPublisher.publish(&currentRotation);
-  
-//  Serial.pr/intln("Serial print test");
   nh.spinOnce();
-
-  delay(1);
+  // delay(1);
 }
 
 
@@ -1091,10 +1088,19 @@ void rotationControl(){
     }
   }
   else if(keepTurningLeft){
-    //Turn on left rotation motor with fixed power
-    T5.writeMicroseconds(1500 + fixedPower);
-    T7.writeMicroseconds(1500 - fixedPower);
+    // //Turn on left rotation motor with fixed power
+    // T5.writeMicroseconds(1500 + fixedPower);
+    // T7.writeMicroseconds(1500 - fixedPower);
+    if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+      T6.writeMicroseconds(1500 + fixedPower);
+      T8.writeMicroseconds(1500 + fixedPower);
+    }
+    else{
+      T5.writeMicroseconds(1500 - fixedPower);
+      T7.writeMicroseconds(1500 + fixedPower);
+    }
     assignedYaw = yaw;
+
     //Testing----------------------------
 //    rotationTimer += 0.01;
 //    if(rotationTimer > rotationTime)
@@ -1105,8 +1111,16 @@ void rotationControl(){
   }
   else if(keepTurningRight){
     //Turn on right rotation motor with fixed power
-    T5.writeMicroseconds(1500 - fixedPower);
-    T7.writeMicroseconds(1500 + fixedPower);
+    // T5.writeMicroseconds(1500 - fixedPower);
+    // T7.writeMicroseconds(1500 + fixedPower);
+    if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+      T6.writeMicroseconds(1500 - fixedPower);
+      T8.writeMicroseconds(1500 - fixedPower);
+    }
+    else{
+      T5.writeMicroseconds(1500 + fixedPower);
+      T7.writeMicroseconds(1500 - fixedPower);
+    }
     assignedYaw = yaw;
     //Testing----------------------------
 //    rotationTimer += 0.01;
@@ -1441,7 +1455,7 @@ void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& b
 void rotateLeftDynamically(){
   float rotatePower = PWM_Motors_orient * 4.0;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
-  if((mControlMode5 && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+  if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     T6.writeMicroseconds(1500 + rotatePower);
     T8.writeMicroseconds(1500 + rotatePower);
   }
@@ -1459,7 +1473,7 @@ void rotateLeftDynamically(){
 void rotateRightDynamically(){
   float rotatePower = PWM_Motors_orient * 4.0;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
-  if((mControlMode5 && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+  if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     T6.writeMicroseconds(1500 - rotatePower);
     T8.writeMicroseconds(1500 - rotatePower);
   }

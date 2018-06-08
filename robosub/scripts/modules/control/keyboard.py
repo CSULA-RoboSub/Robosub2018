@@ -68,7 +68,7 @@ class Keyboard():
                         power = int(char) * self.multiplier
                         rotation = int(char) * self.r_multiplier
 
-                    print('power: %d rotation: %.2f degrees' % (power, rotation))
+                    # print('power: %d rotation: %.2f degrees' % (power, rotation))
                 elif char == 'c':
                     while not response.isdigit() or int(response) < 0 or int(response) > 400:
                         response = raw_input('\nEnter a custom power value [0-400]: ')

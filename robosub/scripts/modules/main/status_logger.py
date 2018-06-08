@@ -51,7 +51,7 @@ class StatusLogger():
                 % (hStates[data.state], data.depth, data.power)
             )
 
-            print(log)
+            # print(log)
             self.file.write(log + '\n')
 
     def printRControl(self, data):
@@ -71,7 +71,7 @@ class StatusLogger():
                 % (rStates[data.state], data.rotation, data.power)
             )
 
-            print(log)
+            # print(log)
             self.file.write(log + '\n')
 
     def printMControl(self, data):
@@ -100,7 +100,7 @@ class StatusLogger():
                 % (mStates[data.state], directions[data.mDirection], data.power, data.distance, data.runningTime)
             )
 
-            print(log)
+            # print(log)
             self.file.write(log + '\n')
 
     def start(self):
