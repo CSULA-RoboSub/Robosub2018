@@ -99,12 +99,13 @@ class Houston():
 
         while not self.state.is_detect_done:
             _, frame = self.cap.read()
+            self.out.write(frame)
             self.msg.found, coordinates = self.state.detect(frame)
 
             self.last_reading = coordinates
 
             # TODO must eventually move to CVController
-            self.out.write(frame)
+            #self.out.write(frame)
             cv2.imshow('gate',frame)
             key = cv2.waitKey(1) & 0xFF
 
@@ -120,7 +121,7 @@ class Houston():
                 """break_loop used for temp breaking of loop"""
                 print 'press q to quit task or wait 15 secs'
                 break_loop += 1
-                if break_loop >= 15:
+                if break_loop >= 30:
                     break
 
         if self.state.is_detect_done:
