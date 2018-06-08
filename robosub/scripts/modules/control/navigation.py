@@ -229,7 +229,7 @@ class Navigation():
 
         self.is_killswitch_on = False
 
-    def ros_sleep(self, time = None):
+    def ros_sleep(self, time = 0.1):
         if time:
             rospy.sleep(time)
         else:

@@ -180,7 +180,9 @@ const float base_thrust = 1500;
 // int base_thrust_3 = 1500;
 // int base_thrust_4 = 1500;
 
-float elapsedTime, time, timePrev;
+//time variables
+unsigned long elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
+const unsigned int loopInterval = 10;
 
 //the variable error will store the difference between the real_value_angle form IMU and desired_angle of 0 degrees. 
 // float PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
@@ -378,6 +380,7 @@ void setup() {
   mControlStatus.distance = 0;
   mControlStatus.runningTime = 0;
 
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(hControlSubscriber);
   nh.subscribe(rControlSubscriber);
@@ -396,7 +399,9 @@ void setup() {
   sensor.init();
   sensor.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
 
-  time = millis(); 
+  timeCur = millis();
+  loopTime = timeCur;
+  loopTimePrev = loopTime;
 //  nh.loginfo("Data is ready.");
 
   delay(1000);
@@ -405,58 +410,66 @@ void setup() {
 }
 
 void loop() {
-
+  nh.spinOnce();
+  loopTime = millis();  // actual time read
   //  gettingRawData();
-  sensor.read();
 
-  //Set the display outputs for roll, pitch, and yaw
-  LcdXY(40, 0);
-  LcdWriteString(dtostrf(roll, 5, 2, string));
-  LcdXY(40, 2);
-  LcdWriteString(dtostrf(pitch, 5, 2, string));
-  LcdXY(40, 4);
-  LcdWriteString(dtostrf(yaw, 5, 2, string));
+  if((loopTime-loopTimePrev) > loopInterval) {
+    sensor.read();
 
-  //read reed switch
-  // reedVal = digitalRead(REED);
-  reedVal = LOW;
+    //Set the display outputs for roll, pitch, and yaw
+    LcdXY(40, 0);
+    LcdWriteString(dtostrf(roll, 5, 2, string));
+    LcdXY(40, 2);
+    LcdWriteString(dtostrf(pitch, 5, 2, string));
+    LcdXY(40, 4);
+    LcdWriteString(dtostrf(yaw, 5, 2, string));
 
-  //Depth
-  //Testing----------------------
-  feetDepth_read =  sensor.depth() * 3.28 + 0.23;                                   //1 meter = 3.28 feet
-  // dutyCycl_depth = (abs(assignedDepth - feetDepth_read)/ 13.0);              //function to get a percentage of assigned height to the feet read
-  // PWM_Motors_Depth = dutyCycl_depth * 400;                                   //PWM for motors are between 1500 - 1900; difference is 400
+    //read reed switch
+    // reedVal = digitalRead(REED);
+    reedVal = LOW;
 
-  //Rotation
-  //duty cycle and PWM calculation for orientation
-  dutyCycl_orient = degreeToTurn() / 180.0;
-  PWM_Motors_orient = dutyCycl_orient * 400; //Maximum is 200
+    //Depth
+    //Testing----------------------
+    feetDepth_read =  sensor.depth() * 3.28 + 0.23;                                   //1 meter = 3.28 feet
+    // dutyCycl_depth = (abs(assignedDepth - feetDepth_read)/ 13.0);              //function to get a percentage of assigned height to the feet read
+    // PWM_Motors_Depth = dutyCycl_depth * 400;                                   //PWM for motors are between 1500 - 1900; difference is 400
+
+    //Rotation
+    //duty cycle and PWM calculation for orientation
+    dutyCycl_orient = degreeToTurn() / 180.0;
+    PWM_Motors_orient = dutyCycl_orient * 400; //Maximum is 200
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  // DEBUG
-  // assignedYaw = yaw;
-  
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  
-  if(subIsReady){
-    if(reedVal == LOW){
-      // heightControl();
-      stabilization();
-      movementControl();
-      rotationControl();
-    }else{
-      killSwitch();
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // DEBUG
+    // assignedYaw = yaw;
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    
+    if(subIsReady){
+      if(reedVal == LOW){
+        // heightControl();
+        nh.spinOnce();
+        stabilization();
+        nh.spinOnce();
+        movementControl();
+        nh.spinOnce();
+        rotationControl();
+        nh.spinOnce();
+      }else{
+        killSwitch();
+      }
     }
-  }
 
-  //Update and publish current data to master
-  currentDepth.data = feetDepth_read;
-  currentDepthPublisher.publish(&currentDepth);
+    //Update and publish current data to master
+    currentDepth.data = feetDepth_read;
+    currentDepthPublisher.publish(&currentDepth);
+    nh.spinOnce();
+  }
 //  currentRotation.data = yaw;
 //  currentRotationPublisher.publish(&currentRotation);
-  nh.spinOnce();
-  // delay(1);
+  // delay(10);
 }
 
 
@@ -827,9 +840,9 @@ void mControlCallback(const robosub::MControl& mControl){
 void stabilization(){
   if(!subIsReady){ return; }
 
-  timePrev = time;  // the previous time is stored before the actual time read
-  time = millis();  // actual time read
-  elapsedTime = (time - timePrev) /1500;      //1500; 
+  timePrev = timeCur;  // the previous time is stored before the actual time read
+  timeCur = loopTime;  // actual time read
+  elapsedTime = (timeCur - timePrev) /1500;      //1500; 
   
   /*///////////////////////////P I Ds///////////////////////////////////*/
   
