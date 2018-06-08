@@ -46,19 +46,17 @@ class Gate(Task):
     def navigate(self, navigation, found, coordinates, power, rotation):
         if found:
             if coordinates == [0,0]:
-                navigation.m_nav('power', 'none', 0)
+                navigation.cancel_m_nav()
                 navigation.m_nav('power', self.move_forward, power)
             else:
-                navigation.m_nav('power', 'none', 0)
+                navigation.cancel_m_nav()
                 navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
 
-                navigation.h_nav('staying', 0, 0)
+                navigation.cancel_h_nav()
                 navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
         else:
-            navigation.r_nav('staying', 0, 0)
+            navigation.cancel_r_nav()
             navigation.r_nav(self.rotation_direction, rotation, power)
-        
-        navigation.ros_sleep(0.01)
     
     def complete(self):
         #code below is not needed anymore

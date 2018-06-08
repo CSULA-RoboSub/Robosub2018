@@ -136,6 +136,15 @@ class Navigation():
         elif self.mState == self.mStates['motor_time']:
             self.runningTime = value
 
+    def cancel_m_nav(self):
+        self.m_nav('off', 'none', 0)
+
+    def cancel_h_nav(self):
+        self.h_nav('staying', 0, 120)
+
+    def cancel_r_nav(self):
+        self.r_nav('staying', 0, 0)
+
     def h_nav(self, hState=None, depth=None, hPower=None):
         """
         Start horizontal navigation given hState and depth when killswitch is on.

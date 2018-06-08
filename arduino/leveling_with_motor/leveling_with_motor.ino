@@ -221,7 +221,7 @@ double ki_depth=0.0003;//0.003
 float desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hoover
-float threshold = 0.5;
+float threshold = 0.1;
 ///////////////////////////////////////////////
 
 //stabilization function
@@ -497,11 +497,20 @@ void hControlCallback(const robosub::HControl& hControl) {
   }
   else if(hControl.state == 1){
     if(isGoingUp || isGoingDown){
+      assignedDepth = feetDepth_read;
       isGoingUp = false;
       isGoingDown = false;
       nh.loginfo("Height control is now cancelled\n");
     }
-    assignedDepth = feetDepth_read;
+    // nh.loginfo();
+    // char assignedDepthChar[6];
+    // dtostrf(assignedDepth, 4, 2, assignedDepthChar);
+    // char feetDepth_readChar[6];
+    // dtostrf(feetDepth_read, 4, 2, feetDepth_readChar);
+    // nh.loginfo("assignedDepth:");
+    // nh.loginfo(assignedDepthChar);
+    // nh.loginfo("feetDepth_read:");
+    // nh.loginfo(feetDepth_readChar);
   }
   else if(hControl.state == 2){
     if(!isGoingUp && !isGoingDown){
@@ -816,7 +825,7 @@ void mControlCallback(const robosub::MControl& mControl){
 //roll left is negative roll right is positive (roll currently inverted of this)
 //pitch backward is positive pitch forward is negative
 void stabilization(){
-  if(roll == 999 || !subIsReady){ return; }
+  if(!subIsReady){ return; }
 
   timePrev = time;  // the previous time is stored before the actual time read
   time = millis();  // actual time read
@@ -926,7 +935,7 @@ void stabilization(){
     pwmThruster_4 = base_thrust + PID_pitch + PID_roll;
 
     hControlStatus.state = 1;
-    hControlStatus.depth = 0;
+    hControlStatus.depth = feetDepth_read;
     hControlStatus.power = hControlPower;
     hControlPublisher.publish(&hControlStatus);
   }
@@ -1091,7 +1100,7 @@ void rotationControl(){
     // //Turn on left rotation motor with fixed power
     // T5.writeMicroseconds(1500 + fixedPower);
     // T7.writeMicroseconds(1500 - fixedPower);
-    if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+    if( ((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
       T6.writeMicroseconds(1500 + fixedPower);
       T8.writeMicroseconds(1500 + fixedPower);
     }
