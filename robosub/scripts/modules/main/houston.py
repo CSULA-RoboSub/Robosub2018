@@ -126,6 +126,10 @@ class Houston():
 
         if self.state.is_detect_done:
             self.state_num += 1
+
+        self.navigation.h_nav('staying', 0, 0)
+        self.navigation.r_nav('staying', 0, 0)
+        self.navigation.m_nav('power', 'none', 0)
         
         #TODO will be used to release the cap(videocapture) if needed
         # must initialize cap again if we plan to use this
