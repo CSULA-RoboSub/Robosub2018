@@ -93,6 +93,8 @@ const float rotationUpperBound = 179;
 const float rotationLowerBound = -179;
 const float topDepth = 0.5;
 const float bottomDepth = 12;
+const float motorMax = 1700;
+const float motorMin = 1300;
 int mControlDirection;
 float mControlPower;
 float rControlPower;
@@ -396,6 +398,8 @@ void setup() {
 
   time = millis(); 
 //  nh.loginfo("Data is ready.");
+
+  delay(1000);
   nh.loginfo("Sub is staying. Waiting to receive data from master...\n");
 
 }
@@ -455,7 +459,7 @@ void loop() {
 //  Serial.pr/intln("Serial print test");
   nh.spinOnce();
 
-  delay(10);
+  delay(1);
 }
 
 
@@ -932,17 +936,17 @@ void stabilization(){
 
   ///////////Thruster power buffer//////////////
   //Thruster_1
-  if(pwmThruster_1 < 1100){pwmThruster_1= 1100;}
-  if(pwmThruster_1 > 1900){pwmThruster_1=1900;}
+  if(pwmThruster_1 < motorMin){pwmThruster_1= motorMin;}
+  if(pwmThruster_1 > motorMax){pwmThruster_1=motorMax;}
   //Thruster_2
-  if(pwmThruster_2 < 1100){pwmThruster_2= 1100;}
-  if(pwmThruster_2 > 1900){pwmThruster_2=1900;}
+  if(pwmThruster_2 < motorMin){pwmThruster_2= motorMin;}
+  if(pwmThruster_2 > motorMax){pwmThruster_2=motorMax;}
   //Thruster_3
-  if(pwmThruster_3 < 1100){pwmThruster_3= 1100;}
-  if(pwmThruster_3 > 1900){pwmThruster_3=1900;}
+  if(pwmThruster_3 < motorMin){pwmThruster_3= motorMin;}
+  if(pwmThruster_3 > motorMax){pwmThruster_3=motorMax;}
   //Thruster_4
-  if(pwmThruster_4 < 1100){pwmThruster_4= 1100;}
-  if(pwmThruster_4 > 1900){pwmThruster_4=1900;}
+  if(pwmThruster_4 < motorMin){pwmThruster_4= motorMin;}
+  if(pwmThruster_4 > motorMax){pwmThruster_4=motorMax;}
           
   prev_error_pitch = error_pitch;
   prev_error_roll = error_roll;
@@ -1031,12 +1035,13 @@ void rotationControl(){
   float delta = degreeToTurn();
   float rotationError = 3;
   int fixedPower = rControlPower;
+  if(fixedPower > rotatePowerMax) fixedPower = rotatePowerMax;
 
   //boundry from -245 to 245
   if(rControlMode4){
     if(frontCamHorizontalDistance != 999){
       float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
-      if(mode3Power > 300) mode3Power = 300;
+      if(mode3Power > 200) mode3Power = 200;
       if(frontCamHorizontalDistance > 0){
         T5.writeMicroseconds(1500 - mode3Power);
         T7.writeMicroseconds(1500 + mode3Power);
@@ -1057,7 +1062,7 @@ void rotationControl(){
     
     if(frontCamHorizontalDistance != 999){
       float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
-      if(mode3Power > 300) mode3Power = 300;
+      if(mode3Power > 200) mode3Power = 200;
 //      char rChar[11];
 //      dtostrf(rotationTimer, 4, 2, rChar);
 //      nh.loginfo(rChar);
@@ -1174,32 +1179,34 @@ void movementControl(){
   if(reedVal == HIGH){
     return;
   }
+  float mControlPowerTemp = mControlPower;
+  if(mControlPowerTemp > 200) mControlPowerTemp = 200;
 
   if(mControlMode1){
     if(keepMovingForward){
-      T6.writeMicroseconds(1500 + mControlPower);
-      T8.writeMicroseconds(1500 - mControlPower);
+      T6.writeMicroseconds(1500 + mControlPowerTemp);
+      T8.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionY += 0.05;
       //nh.loginfo("moving forward...");
     }
     else if(keepMovingRight){
-      T5.writeMicroseconds(1500 - mControlPower);
-      T7.writeMicroseconds(1500 - mControlPower);
+      T5.writeMicroseconds(1500 + mControlPowerTemp);
+      T7.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionX += 0.05;
       //nh.loginfo("moving right...");
     }
     else if(keepMovingBackward){
-      T6.writeMicroseconds(1500 - mControlPower);
-      T8.writeMicroseconds(1500 + mControlPower);
+      T6.writeMicroseconds(1500 - mControlPowerTemp);
+      T8.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionY -= 0.05;
       //nh.loginfo("moving backward...");
     }
     else if(keepMovingLeft){
-      T5.writeMicroseconds(1500 + mControlPower);
-      T7.writeMicroseconds(1500 + mControlPower);
+      T5.writeMicroseconds(1500 - mControlPowerTemp);
+      T7.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionX -= 0.05;
       //nh.loginfo("moving left...");
@@ -1342,32 +1349,32 @@ void movementControl(){
   else if(mControlMode5){
     //forward
     if(mControlDirection == 1){
-      T6.writeMicroseconds(1500 + mControlPower + 10);
-      T8.writeMicroseconds(1500 - mControlPower);
+      T6.writeMicroseconds(1500 + mControlPowerTemp);
+      T8.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionY += 0.05;
       nh.loginfo("moving forward...");
     }
     //right
     else if(mControlDirection == 2){
-      T5.writeMicroseconds(1500 - mControlPower);
-      T7.writeMicroseconds(1500 - mControlPower);
+      T5.writeMicroseconds(1500 + mControlPowerTemp);
+      T7.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionX += 0.05;
       nh.loginfo("moving right...");
     }
     //backward
     else if(mControlDirection == 3){
-      T6.writeMicroseconds(1500 - mControlPower);
-      T8.writeMicroseconds(1500 + mControlPower);
+      T6.writeMicroseconds(1500 - mControlPowerTemp);
+      T8.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionY -= 0.05;
       nh.loginfo("moving backward...");
     }
     //left
     else if(mControlDirection == 4){
-      T5.writeMicroseconds(1500 + mControlPower);
-      T7.writeMicroseconds(1500 + mControlPower);
+      T5.writeMicroseconds(1500 - mControlPowerTemp);
+      T7.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionX -= 0.05;
       nh.loginfo("moving left...");
