@@ -258,7 +258,7 @@ float motorPowerRangeProtection(float power){
 }
 
 void mVerticalCallback(const hardware_interface::MotorVertical& mVertical){
-   nh.loginfo("adjust vertical power");
+   // nh.loginfo("adjust vertical power");
   t1Power = motorPowerRangeProtection(mVertical.t1);
   t2Power = motorPowerRangeProtection(mVertical.t2);
   t3Power = motorPowerRangeProtection(mVertical.t3);
@@ -266,7 +266,7 @@ void mVerticalCallback(const hardware_interface::MotorVertical& mVertical){
 }
 
 void mHorizontalCallback(const hardware_interface::MotorHorizontal& mHorizontal){
-   nh.loginfo("adjust horizontal power");
+   // nh.loginfo("adjust horizontal power");
   t5Power = motorPowerRangeProtection(mHorizontal.t5);
   t6Power = motorPowerRangeProtection(mHorizontal.t6);
   t7Power = motorPowerRangeProtection(mHorizontal.t7);
