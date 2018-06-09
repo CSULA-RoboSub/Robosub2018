@@ -121,7 +121,7 @@ const float base_thrust = 1500;
 
 //time variables
 double elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
-const int loopInterval = 16;
+const int loopInterval = 20;
 
 //the variable error will store the difference between the real_value_angle form IMU and desired_angle of 0 degrees. 
 // float PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
@@ -184,7 +184,6 @@ void publishMVertical(const float t1, const float t2, const float t3, const floa
   if(t4 > 0)
     mVertical.t4 = t4;
 
-  mVerticalPublisher.publish(mVertical);
 }
 //pass in -1 to ignore that motor
 void publishMHorizontal(const float t5, const float t6, const float t7, const float t8){
@@ -197,6 +196,10 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
   if(t8 > 0)
     mHorizontal.t8 = t8;
 
+}
+
+void publishMotors(){
+  mVerticalPublisher.publish(mVertical);
   mHorizontalPublisher.publish(mHorizontal);
 }
 
@@ -1080,6 +1083,7 @@ void loop() {
       ros::spinOnce();
       rotationControl();
       ros::spinOnce();
+      publishMotors();
     }
   }
 }
