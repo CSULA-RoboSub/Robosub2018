@@ -101,12 +101,12 @@ float rControlPower;
 float mControlDistance;
 float mControlRunningTime;
 float mControlMode5Timer;
-float frontCamForwardDistance;
-float frontCamHorizontalDistance;
-float frontCamVerticalDistance;
-float bottomCamForwardDistance;
-float bottomCamHorizontalDistance;
-float bottomCamVerticalDistance;
+// float frontCamForwardDistance;
+// float frontCamHorizontalDistance;
+// float frontCamVerticalDistance;
+// float bottomCamForwardDistance;
+// float bottomCamHorizontalDistance;
+// float bottomCamVerticalDistance;
 float centerTimer;
 float rotationTimer;
 float rotationTime;
@@ -155,8 +155,8 @@ void mControlCallback(const robosub::MControl& mControl);
 
 void rotationCallback(const ez_async_data::Rotation& rotation);
 
-void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance);
-void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance);
+// void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance);
+// void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance);
 
 ros::Subscriber<robosub::HControl> hControlSubscriber("height_control", &hControlCallback);   //int: state, float: depth
 ros::Subscriber<robosub::RControl> rControlSubscriber("rotation_control", &rControlCallback); //int: state, float: rotation
@@ -164,8 +164,8 @@ ros::Subscriber<robosub::MControl> mControlSubscriber("movement_control", &mCont
 
 ros::Subscriber<ez_async_data::Rotation> rotationSubscriber("current_rotation", &rotationCallback);
 
-ros::Subscriber<auv_cal_state_la_2017::FrontCamDistance> frontCamDistanceSubscriber("front_cam_distance", &frontCamDistanceCallback);
-ros::Subscriber<auv_cal_state_la_2017::BottomCamDistance> bottomCamDistanceSubscriber("bottom_cam_distance", &bottomCamDistanceCallback);
+//ros::Subscriber<auv_cal_state_la_2017::FrontCamDistance> frontCamDistanceSubscriber("front_cam_distance", &frontCamDistanceCallback);
+//ros::Subscriber<auv_cal_state_la_2017::BottomCamDistance> bottomCamDistanceSubscriber("bottom_cam_distance", &bottomCamDistanceCallback);
 
 //depth control variables
 // int pwm_submerge = 200;
@@ -316,12 +316,12 @@ void setup() {
   mControlDistance = 0;
   mControlRunningTime = 0;
   mControlMode5Timer = 0;
-  frontCamForwardDistance = 0;
-  frontCamHorizontalDistance = 0;
-  frontCamVerticalDistance = 0;
-  bottomCamForwardDistance = 0;
-  bottomCamHorizontalDistance = 0;
-  bottomCamVerticalDistance = 0;
+  // frontCamForwardDistance = 0;
+  // frontCamHorizontalDistance = 0;
+  // frontCamVerticalDistance = 0;
+  // bottomCamForwardDistance = 0;
+  // bottomCamHorizontalDistance = 0;
+  // bottomCamVerticalDistance = 0;
   centerTimer = 0;
   rotationTimer = 0;
   rotationTime = 10;
@@ -386,8 +386,8 @@ void setup() {
   nh.subscribe(rControlSubscriber);
   nh.subscribe(mControlSubscriber);
   nh.subscribe(rotationSubscriber);
-  nh.subscribe(frontCamDistanceSubscriber);
-  nh.subscribe(bottomCamDistanceSubscriber);
+  // nh.subscribe(frontCamDistanceSubscriber);
+  // nh.subscribe(bottomCamDistanceSubscriber);
   nh.advertise(hControlPublisher);
   nh.advertise(rControlPublisher);
   nh.advertise(mControlPublisher);
@@ -1057,59 +1057,59 @@ void rotationControl(){
   if(fixedPower > rotatePowerMax) fixedPower = rotatePowerMax;
 
   //boundry from -245 to 245
-  if(rControlMode4){
-    if(frontCamHorizontalDistance != 999){
-      float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
-      if(mode3Power > 200) mode3Power = 200;
-      if(frontCamHorizontalDistance > 0){
-        T5.writeMicroseconds(1500 - mode3Power);
-        T7.writeMicroseconds(1500 + mode3Power);
-        nh.loginfo("turn right");
-      }
-      else if(frontCamHorizontalDistance < 0){
-        T5.writeMicroseconds(1500 + mode3Power);
-        T7.writeMicroseconds(1500 - mode3Power);
-        nh.loginfo("turn left");
-      }
-      assignedYaw = yaw;
-    }
-    else{
-      nh.loginfo("Invalid frontCamHorizontalDistance value.");
-    }
-  }
-  if(rControlMode3){
+//   if(rControlMode4){
+//     if(frontCamHorizontalDistance != 999){
+//       float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
+//       if(mode3Power > 200) mode3Power = 200;
+//       if(frontCamHorizontalDistance > 0){
+//         T5.writeMicroseconds(1500 - mode3Power);
+//         T7.writeMicroseconds(1500 + mode3Power);
+//         nh.loginfo("turn right");
+//       }
+//       else if(frontCamHorizontalDistance < 0){
+//         T5.writeMicroseconds(1500 + mode3Power);
+//         T7.writeMicroseconds(1500 - mode3Power);
+//         nh.loginfo("turn left");
+//       }
+//       assignedYaw = yaw;
+//     }
+//     else{
+//       nh.loginfo("Invalid frontCamHorizontalDistance value.");
+//     }
+//   }
+//   if(rControlMode3){
     
-    if(frontCamHorizontalDistance != 999){
-      float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
-      if(mode3Power > 200) mode3Power = 200;
-//      char rChar[11];
-//      dtostrf(rotationTimer, 4, 2, rChar);
-//      nh.loginfo(rChar);
-      if(frontCamHorizontalDistance > 0){
-        T5.writeMicroseconds(1500 - mode3Power);
-        T7.writeMicroseconds(1500 + mode3Power);
-        nh.loginfo("turn right");
-      }
-      else if(frontCamHorizontalDistance < 0){
-        T5.writeMicroseconds(1500 + mode3Power);
-        T7.writeMicroseconds(1500 - mode3Power);
-        nh.loginfo("turn left");
-      }
-      if(frontCamHorizontalDistance < 30 && frontCamHorizontalDistance > -30){
-        rotationTimer += 0.05;
-        if(rotationTimer >= rotationTime){
-          nh.loginfo("Times up");
-          rControlMode3 = false;
-        }
-      }
-      else rotationTimer = 0;
-      assignedYaw = yaw;
-    }
-    else{
-      nh.loginfo("Invalid frontCamHorizontalDistance value.");
-    }
-  }
-  else if(keepTurningLeft){
+//     if(frontCamHorizontalDistance != 999){
+//       float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
+//       if(mode3Power > 200) mode3Power = 200;
+// //      char rChar[11];
+// //      dtostrf(rotationTimer, 4, 2, rChar);
+// //      nh.loginfo(rChar);
+//       if(frontCamHorizontalDistance > 0){
+//         T5.writeMicroseconds(1500 - mode3Power);
+//         T7.writeMicroseconds(1500 + mode3Power);
+//         nh.loginfo("turn right");
+//       }
+//       else if(frontCamHorizontalDistance < 0){
+//         T5.writeMicroseconds(1500 + mode3Power);
+//         T7.writeMicroseconds(1500 - mode3Power);
+//         nh.loginfo("turn left");
+//       }
+//       if(frontCamHorizontalDistance < 30 && frontCamHorizontalDistance > -30){
+//         rotationTimer += 0.05;
+//         if(rotationTimer >= rotationTime){
+//           nh.loginfo("Times up");
+//           rControlMode3 = false;
+//         }
+//       }
+//       else rotationTimer = 0;
+//       assignedYaw = yaw;
+//     }
+//     else{
+//       nh.loginfo("Invalid frontCamHorizontalDistance value.");
+//     }
+//   }
+  if(keepTurningLeft){
     // //Turn on left rotation motor with fixed power
     // T5.writeMicroseconds(1500 + fixedPower);
     // T7.writeMicroseconds(1500 - fixedPower);
@@ -1262,126 +1262,126 @@ void movementControl(){
 //      nh.loginfo("Mode 1 finished.\n");
 //    }
   }
-  else if(mControlMode2){
-    float error = 0.5;
-    float distanceToReach = frontCamForwardDistance - mControlDistance;
-    if(distanceToReach > 0){
-      //Turn on the front motors with a proportional speed to the distanceToReach
-      //Greater the distanceToReach, greater the power
+  // else if(mControlMode2){
+  //   float error = 0.5;
+  //   float distanceToReach = frontCamForwardDistance - mControlDistance;
+  //   if(distanceToReach > 0){
+  //     //Turn on the front motors with a proportional speed to the distanceToReach
+  //     //Greater the distanceToReach, greater the power
 
-      //Testing-----------------------------
-      //positionY += 0.01;
-    }else if(distanceToReach < 0){
-      //Turn on the back motors with a proportional speed to the distanceToReach
-      //Smaller the distanceToReach, greater the power
+  //     //Testing-----------------------------
+  //     //positionY += 0.01;
+  //   }else if(distanceToReach < 0){
+  //     //Turn on the back motors with a proportional speed to the distanceToReach
+  //     //Smaller the distanceToReach, greater the power
 
-      //Testing-----------------------------
-      //positionY -= 0.01;
-    }
-    //Timer
-    if(distanceToReach > error){
-      centerTimer = 0;
-    }
-    else if(distanceToReach < error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.01;
-      if(centerTimer >= 5){
-        mControlMode2 = false;
-        nh.loginfo("Target distance reached.\n");
-      }
-    }
+  //     //Testing-----------------------------
+  //     //positionY -= 0.01;
+  //   }
+  //   //Timer
+  //   if(distanceToReach > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(distanceToReach < error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.01;
+  //     if(centerTimer >= 5){
+  //       mControlMode2 = false;
+  //       nh.loginfo("Target distance reached.\n");
+  //     }
+  //   }
 
-  }
-  else if(mControlMode3){
-    float error = 0.5;
-    if(frontCamHorizontalDistance > 0){
-      //Turn on the right motors with a proportional speed to the frontCamHorizontalDistance
-      //Greater the frontCamHorizontalDistance, greater the power
+  // }
+  // else if(mControlMode3){
+  //   float error = 0.5;
+  //   if(frontCamHorizontalDistance > 0){
+  //     //Turn on the right motors with a proportional speed to the frontCamHorizontalDistance
+  //     //Greater the frontCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX += 0.1;
-    }
-    else if(frontCamHorizontalDistance < 0){
-      //Turn on the left motors with a proportional speed to the frontCamHorizontalDistance
-      //Smaller the frontCamHorizontalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX += 0.1;
+  //   }
+  //   else if(frontCamHorizontalDistance < 0){
+  //     //Turn on the left motors with a proportional speed to the frontCamHorizontalDistance
+  //     //Smaller the frontCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX -= 0.1;
-    }
-    //Timer
-    if(frontCamHorizontalDistance > error){
-      centerTimer = 0;
-    }
-    else if(frontCamHorizontalDistance < -error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.05;
-      if(centerTimer >= 5){
-        mControlMode3 = false;
-        nh.loginfo("Target center reached.\n");
-      }
-    }
-  }
-  else if(mControlMode4){
-    float error = 0.5;
-    if(bottomCamHorizontalDistance > 0){
-      //Turn on the right motors with a proportional speed to the bottomCamHorizontalDistance
-      //Greater the bottomCamHorizontalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX -= 0.1;
+  //   }
+  //   //Timer
+  //   if(frontCamHorizontalDistance > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(frontCamHorizontalDistance < -error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.05;
+  //     if(centerTimer >= 5){
+  //       mControlMode3 = false;
+  //       nh.loginfo("Target center reached.\n");
+  //     }
+  //   }
+  // }
+  // else if(mControlMode4){
+  //   float error = 0.5;
+  //   if(bottomCamHorizontalDistance > 0){
+  //     //Turn on the right motors with a proportional speed to the bottomCamHorizontalDistance
+  //     //Greater the bottomCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX += 0.1;
-    }
-    else if(bottomCamHorizontalDistance < 0){
-      //Turn on the left motors with a proportional speed to the bottomCamHorizontalDistance
-      //Smaller the bottomCamHorizontalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX += 0.1;
+  //   }
+  //   else if(bottomCamHorizontalDistance < 0){
+  //     //Turn on the left motors with a proportional speed to the bottomCamHorizontalDistance
+  //     //Smaller the bottomCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX -= 0.1;
-    }
-    if(bottomCamHorizontalDistance > error){
-      centerTimer = 0;
-    }
-    else if(bottomCamHorizontalDistance < -error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.05;
-      if(centerTimer >= 5){
-        mControlMode4 = false;
-        nh.loginfo("Target center reached.\n");
-      }
-    }
-    if(bottomCamVerticalDistance > 0){
-      //Turn on the front motors with a proportional speed to the bottomCamVerticalDistance
-      //Greater the bottomCamVerticalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX -= 0.1;
+  //   }
+  //   if(bottomCamHorizontalDistance > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(bottomCamHorizontalDistance < -error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.05;
+  //     if(centerTimer >= 5){
+  //       mControlMode4 = false;
+  //       nh.loginfo("Target center reached.\n");
+  //     }
+  //   }
+  //   if(bottomCamVerticalDistance > 0){
+  //     //Turn on the front motors with a proportional speed to the bottomCamVerticalDistance
+  //     //Greater the bottomCamVerticalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionY += 0.1;
-    }
-    else if(bottomCamVerticalDistance < 0){
-      //Turn on the back motors with a proportional speed to the bottomCamVerticalDistance
-      //Smaller the bottomCamVerticalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionY += 0.1;
+  //   }
+  //   else if(bottomCamVerticalDistance < 0){
+  //     //Turn on the back motors with a proportional speed to the bottomCamVerticalDistance
+  //     //Smaller the bottomCamVerticalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionT -= 0.1;
-    }
-    if(bottomCamVerticalDistance > error){
-      centerTimer = 0;
-    }
-    else if(bottomCamVerticalDistance < -error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.05;
-      if(centerTimer >= 5){
-        mControlMode4 = false;
-        nh.loginfo("Target center reached.\n");
-      }
-    }
-  }
+  //     //Testing-----------------------------
+  //     //positionT -= 0.1;
+  //   }
+  //   if(bottomCamVerticalDistance > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(bottomCamVerticalDistance < -error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.05;
+  //     if(centerTimer >= 5){
+  //       mControlMode4 = false;
+  //       nh.loginfo("Target center reached.\n");
+  //     }
+  //   }
+  // }
   else if(mControlMode5){
     //forward
     if(mControlDirection == 1){
@@ -1447,18 +1447,18 @@ void movementControl(){
 }
 
 
-void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance){
-  frontCamForwardDistance = frontCamDistance.frontCamForwardDistance;
-  frontCamHorizontalDistance = frontCamDistance.frontCamHorizontalDistance;
-  frontCamVerticalDistance = frontCamDistance.frontCamVerticalDistance;
-}
+// void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance){
+//   frontCamForwardDistance = frontCamDistance.frontCamForwardDistance;
+//   frontCamHorizontalDistance = frontCamDistance.frontCamHorizontalDistance;
+//   frontCamVerticalDistance = frontCamDistance.frontCamVerticalDistance;
+// }
 
 
-void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance){
-  bottomCamForwardDistance = bottomCamDistance.bottomCamForwardDistance;
-  bottomCamHorizontalDistance = bottomCamDistance.bottomCamHorizontalDistance;
-  bottomCamVerticalDistance = bottomCamDistance.bottomCamVerticalDistance;
-}
+// void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance){
+//   bottomCamForwardDistance = bottomCamDistance.bottomCamForwardDistance;
+//   bottomCamHorizontalDistance = bottomCamDistance.bottomCamHorizontalDistance;
+//   bottomCamVerticalDistance = bottomCamDistance.bottomCamVerticalDistance;
+// }
 
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&
