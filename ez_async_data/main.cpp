@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
 	cout << "current_rotation topic start" << endl;
 
-	ros::Rate loop_rate(25); //for delay use
+	ros::Rate loop_rate(30); //for delay use
 	ez_async_data::Rotation ypr;
 	while(ros::ok())
 	{
