@@ -226,10 +226,6 @@ float desired_angle = 0; //This is the angle in which we whant the
 float threshold = 0.1;
 ///////////////////////////////////////////////
 
-//stabilization function
-void stabilization();
-// void heightControl();
-
 void setup() {
 
   //For servo motors on Pelican, pins 2-5 are for motors 1-4. PWM on these motors are 1100-1499 (counter
@@ -418,12 +414,12 @@ void loop() {
     sensor.read();
 
     //Set the display outputs for roll, pitch, and yaw
-    LcdXY(40, 0);
-    LcdWriteString(dtostrf(roll, 5, 2, string));
-    LcdXY(40, 2);
-    LcdWriteString(dtostrf(pitch, 5, 2, string));
-    LcdXY(40, 4);
-    LcdWriteString(dtostrf(yaw, 5, 2, string));
+    // LcdXY(40, 0);
+    // LcdWriteString(dtostrf(roll, 5, 2, string));
+    // LcdXY(40, 2);
+    // LcdWriteString(dtostrf(pitch, 5, 2, string));
+    // LcdXY(40, 4);
+    // LcdWriteString(dtostrf(yaw, 5, 2, string));
 
     //read reed switch
     // reedVal = digitalRead(REED);
@@ -451,7 +447,7 @@ void loop() {
       if(reedVal == LOW){
         // heightControl();
         nh.spinOnce();
-        stabilization();
+        heightControl();
         nh.spinOnce();
         movementControl();
         nh.spinOnce();
@@ -464,8 +460,8 @@ void loop() {
 
     //Update and publish current data to master
     currentDepth.data = feetDepth_read;
-    currentDepthPublisher.publish(&currentDepth);
-    nh.spinOnce();
+    // currentDepthPublisher.publish(&currentDepth);
+    // nh.spinOnce();
   }
 //  currentRotation.data = yaw;
 //  currentRotationPublisher.publish(&currentRotation);
@@ -474,13 +470,13 @@ void loop() {
 
 
 void rotationCallback(const ez_async_data::Rotation& rotation){
-  if(firstIMUReading){
-    assignedYaw = rotation.yaw;
-    firstIMUReading = false;
-  }
   yaw = rotation.yaw;
   roll = -rotation.roll;
   pitch = -(rotation.pitch + 2.56);
+  if(firstIMUReading){
+    firstIMUReading = false;
+    assignedYaw = rotation.yaw;
+  }
 }
 
 
@@ -490,9 +486,9 @@ void hControlCallback(const robosub::HControl& hControl) {
   }
   int hState = hControl.state;
   float hDepth = hControl.depth;
-  char depthChar[6];
   float depth = hControl.depth;
-  dtostrf(depth, 4, 2, depthChar);
+  // char depthChar[6];
+  // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
 
   if(hControl.state == 0){
@@ -503,8 +499,8 @@ void hControlCallback(const robosub::HControl& hControl) {
         assignedDepth = assignedDepth + depth;
       isGoingDown = true;
       nh.loginfo("Going down...");
-      nh.loginfo(depthChar);
-      nh.loginfo("ft...(-1 means infinite)\n");
+      // nh.loginfo(depthChar);
+      // nh.loginfo("ft...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still running. Command abort.");
   }
@@ -533,8 +529,8 @@ void hControlCallback(const robosub::HControl& hControl) {
         assignedDepth = assignedDepth - depth;
       isGoingUp = true;
       nh.loginfo("Going up...");
-      nh.loginfo(depthChar);
-      nh.loginfo("ft...(-1 means infinite)\n");
+      // nh.loginfo(depthChar);
+      // nh.loginfo("ft...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still running. Command abort.");
   }
@@ -578,9 +574,9 @@ void rControlCallback(const robosub::RControl& rControl){
     return;
   }
 
-  char rotationChar[11];
   float rotation = rControl.rotation;
-  dtostrf(rotation, 4, 2, rotationChar);
+  // char rotationChar[11];
+  // dtostrf(rotation, 4, 2, rotationChar);
   rControlPower = rControl.power;
 
   if(rControl.state == 0){
@@ -598,8 +594,8 @@ void rControlCallback(const robosub::RControl& rControl){
       }
       isTurningLeft = true;
       nh.loginfo("Turning left...");
-      nh.loginfo(rotationChar);
-      nh.loginfo("degree...(-1 means infinite)\n");
+      // nh.loginfo(rotationChar);
+      // nh.loginfo("degree...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still rotating. Command abort.");
   }
@@ -630,8 +626,8 @@ void rControlCallback(const robosub::RControl& rControl){
       }
       isTurningRight = true;
       nh.loginfo("Turning right...");
-      nh.loginfo(rotationChar);
-      nh.loginfo("degree...(-1 means infinite)\n");
+      // nh.loginfo(rotationChar);
+      // nh.loginfo("degree...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still rotating.Command abort.");
   }
@@ -682,16 +678,17 @@ void mControlCallback(const robosub::MControl& mControl){
   if(reedVal == HIGH){
     return;
   }
-  String directionStr;
-  char powerChar[11];
-  char distanceChar[11];
-  char timeChar[11];
   float power = mControl.power;
   float distance = mControl.distance;
   float mode5Time = mControl.runningTime;
-  dtostrf(power, 4, 2, powerChar);
-  dtostrf(distance, 4, 2, distanceChar);
-  dtostrf(mode5Time, 4, 2, timeChar);
+
+  String directionStr;
+  // char powerChar[11];
+  // char distanceChar[11];
+  // char timeChar[11];
+  // dtostrf(power, 4, 2, powerChar);
+  // dtostrf(distance, 4, 2, distanceChar);
+  // dtostrf(mode5Time, 4, 2, timeChar);
 
 
   if(mControl.state == 0){
@@ -742,8 +739,8 @@ void mControlCallback(const robosub::MControl& mControl){
 
       directionStr = "Moving " + directionStr + " with power...";
       nh.loginfo(directionStr.c_str());
-      nh.loginfo(powerChar);
-      nh.loginfo("...\n");
+      // nh.loginfo(powerChar);
+      // nh.loginfo("...\n");
 
       //Testing -----------------------------------------------------------
       movementTimer = 0;
@@ -760,8 +757,8 @@ void mControlCallback(const robosub::MControl& mControl){
       nh.loginfo("Invalid direction with state 2. Please check the program and try again.\n");
     else{
       nh.loginfo("Adjusting distance to...");
-      nh.loginfo(distanceChar);
-      nh.loginfo("away from the target.../n");
+      // nh.loginfo(distanceChar);
+      // nh.loginfo("away from the target.../n");
 
       mControlMode2 = true;
       mControlPower = 0;
@@ -813,10 +810,10 @@ void mControlCallback(const robosub::MControl& mControl){
 
       directionStr = "Moving " + directionStr + " with power...";
       nh.loginfo(directionStr.c_str());
-      nh.loginfo(powerChar);
-      nh.loginfo("for...");
-      nh.loginfo(timeChar);
-      nh.loginfo("seconds...\n");
+      // nh.loginfo(powerChar);
+      // nh.loginfo("for...");
+      // nh.loginfo(timeChar);
+      // nh.loginfo("seconds...\n");
 
       mControlMode5 = true;
       mControlMode5Timer = 0;
@@ -837,11 +834,11 @@ void mControlCallback(const robosub::MControl& mControl){
 
 //roll left is negative roll right is positive (roll currently inverted of this)
 //pitch backward is positive pitch forward is negative
-void stabilization(){
+void heightControl(){
   if(!subIsReady){ return; }
 
   timePrev = timeCur;  // the previous time is stored before the actual time read
-  timeCur = loopTime;  // actual time read
+  timeCur = millis();  // actual time read
   elapsedTime = (timeCur - timePrev) /1500;      //1500; 
   
   /*///////////////////////////P I Ds///////////////////////////////////*/
@@ -886,25 +883,6 @@ void stabilization(){
   if(PID_depth < -hControlPower){PID_depth = -hControlPower;}
   //positive for emerge
   if(PID_depth > hControlPower){PID_depth = hControlPower;}
-
-  //   //Stabilization sum
-  // pwmThruster_1 = base_thrust_1 - PID_pitch - PID_roll;
-  // pwmThruster_2 = base_thrust_2 + PID_pitch - PID_roll;
-  // pwmThruster_3 = base_thrust_3 + PID_pitch + PID_roll;
-  // pwmThruster_4 = base_thrust_4 - PID_pitch + PID_roll;
-  
-  // //Thruster_1
-  // if(pwmThruster_1 < 1100){pwmThruster_1 = 1100;}
-  // if(pwmThruster_1 > 1900){pwmThruster_1 = 1900;}
-  // //Thruster_2
-  // if(pwmThruster_2 < 1100){pwmThruster_2 = 1100;}
-  // if(pwmThruster_2 > 1900){pwmThruster_2 = 1900;}
-  // //Thruster_3
-  // if(pwmThruster_3 < 1100){pwmThruster_3 = 1100;}
-  // if(pwmThruster_3 > 1900){pwmThruster_3 = 1900;}
-  // //Thruster_4
-  // if(pwmThruster_4 < 1100){pwmThruster_4 = 1100;}
-  // if(pwmThruster_4 > 1900){pwmThruster_4 = 1900;}
   
   //Emerging and submerging thruster pwm requirments:
   /*Submerging: pwmThruster_1 > 1500 

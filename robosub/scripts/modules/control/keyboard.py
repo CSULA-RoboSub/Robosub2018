@@ -111,44 +111,32 @@ class Keyboard():
 
         if char == '`':
             self.navigation.cancel_h_nav()
-            self.navigation.ros_sleep()
             self.navigation.cancel_r_nav()
-            self.navigation.ros_sleep()
             self.navigation.cancel_m_nav()
         elif char == 'w':
             self.navigation.cancel_m_nav()
-            self.navigation.ros_sleep()
             self.navigation.m_nav('power', 'forward', power)
         elif char == 'a':
             self.navigation.cancel_r_nav()
-            self.navigation.ros_sleep()
             self.navigation.r_nav('left', rotation, power)
         elif char == 's':
             self.navigation.cancel_m_nav()
-            self.navigation.ros_sleep()
             self.navigation.m_nav('power', 'backward', power)
         elif char == 'd':
             self.navigation.cancel_r_nav()
-            self.navigation.ros_sleep()
             self.navigation.r_nav('right', rotation, power)
         elif char == 'q':
             self.navigation.cancel_m_nav()
-            self.navigation.ros_sleep()
             self.navigation.m_nav('power', 'left', power)
         elif char == 'e':
             self.navigation.cancel_m_nav()
-            self.navigation.ros_sleep()
             self.navigation.m_nav('power', 'right', power)
         elif char == 'r':
             self.navigation.cancel_h_nav()
-            self.navigation.ros_sleep()
             self.navigation.h_nav('up', height, 120)
         elif char == 'f':
             self.navigation.cancel_h_nav()
-            self.navigation.ros_sleep()
             self.navigation.h_nav('down', height, 120)
-
-        self.navigation.ros_sleep()
 
     def start(self):
         """Allows keyboard navigation when killswitch is plugged in"""

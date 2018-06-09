@@ -110,9 +110,6 @@ class Houston():
 
             # if the `q` key is pressed, break from the loop
             if key == ord("q"):
-                self.navigation.cancel_h_nav()
-                self.navigation.cancel_r_nav()
-                self.navigation.cancel_m_nav()
                 break
 
             if (time.time()-self.last_time > 1):

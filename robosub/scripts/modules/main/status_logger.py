@@ -43,7 +43,9 @@ class StatusLogger():
             hStates = {
                 0: 'down',
                 1: 'staying',
-                2: 'up'
+                2: 'up',
+                4: 'unlock',
+                5: 'lock'
             }
 
             log = (

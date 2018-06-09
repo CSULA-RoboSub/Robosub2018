@@ -26,7 +26,9 @@ class Navigation():
         self.hStates = {
             'down': 0,
             'staying': 1,
-            'up': 2
+            'up': 2,
+            'unlock': 4,
+            'lock': 5
         }
         self.hState = None  # state
 
@@ -163,6 +165,7 @@ class Navigation():
             self.h_control.power = self.hPower
 
             self.pub_h_nav.publish(self.h_control)
+            # self.ros_sleep()
             # rospy.sleep(.1)
 
             # print('state: %d depth: %.2f power: %d' % (self.hState, self.depth, self.hPower))
@@ -185,6 +188,7 @@ class Navigation():
             self.r_control.power = self.rPower
 
             self.pub_r_nav.publish(self.r_control)
+            # self.ros_sleep()
             # rospy.sleep(.1)
 
             # print('state: %d rotation: %.2f power: %d' % (self.rState, self.rotation, self.rPower))
@@ -212,6 +216,7 @@ class Navigation():
             self.m_control.runningTime = self.runningTime
 
             self.pub_m_nav.publish(self.m_control)
+            # self.ros_sleep()
             # rospy.sleep(.1)
 
             # print(
@@ -229,7 +234,7 @@ class Navigation():
 
         self.is_killswitch_on = False
 
-    def ros_sleep(self, time = 0.1):
+    def ros_sleep(self, time = 0.05):
         if time:
             rospy.sleep(time)
         else:
