@@ -11,7 +11,7 @@ ros::Publisher hStatusPublisher("hydrophone_status", &hStatus);
 
 void resetStatus();
 
-const int numHydrophone = 3;
+const int numHydrophone = 4;
 bool readStatus[4];
 uint16_t times1[4];
 uint16_t times2[4];
@@ -23,6 +23,7 @@ unsigned long timer;
 unsigned long init_timer;
 
 void setup() {
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.advertise(hStatusPublisher);
 
@@ -41,6 +42,7 @@ void setup() {
     times4[i] = 0;
   }
 
+  delay(1000);
   nh.loginfo("setup complete.");
 }
 

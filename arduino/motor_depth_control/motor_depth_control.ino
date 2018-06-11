@@ -285,14 +285,14 @@ void writeMotors(){
 }
 //reed switch helper function
 void killSwitch(){
-  T1.writeMicroseconds(1500);
-  T2.writeMicroseconds(1500);
-  T3.writeMicroseconds(1500);
-  T4.writeMicroseconds(1500);
-  T5.writeMicroseconds(1500);
-  T6.writeMicroseconds(1500);
-  T7.writeMicroseconds(1500);
-  T8.writeMicroseconds(1500);
+  T1.writeMicroseconds(motorBase);
+  T2.writeMicroseconds(motorBase);
+  T3.writeMicroseconds(motorBase);
+  T4.writeMicroseconds(motorBase);
+  T5.writeMicroseconds(motorBase);
+  T6.writeMicroseconds(motorBase);
+  T7.writeMicroseconds(motorBase);
+  T8.writeMicroseconds(motorBase);
 }
 
 void LcdWriteString(char *characters){
