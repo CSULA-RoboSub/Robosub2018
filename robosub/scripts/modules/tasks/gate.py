@@ -30,7 +30,7 @@ class Gate(Task):
         self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
 
         self.move_forward = 'forward'
-        self.depth_change = 5
+        self.depth_change = 1
 
         self.depth = -1
         self.rotation_direction = 'right'
