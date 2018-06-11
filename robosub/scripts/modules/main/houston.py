@@ -111,6 +111,9 @@ class Houston():
 
             # if the `q` key is pressed, break from the loop
             if key == ord("q"):
+                self.navigation.h_nav('staying', 0, 0)
+                self.navigation.r_nav('staying', 0, 0)
+                self.navigation.m_nav('power', 'none', 0)
                 break
 
             if (time.time()-self.last_time > 1):
@@ -119,7 +122,7 @@ class Houston():
                 self.state.navigate(self.navigation, self.msg.found, self.last_reading, self.power, self.rotation)
                 
                 """break_loop used for temp breaking of loop"""
-                print 'press q to quit task or wait 15 secs'
+                print 'press q to quit task or wait 30 secs'
                 break_loop += 1
                 if break_loop >= 30:
                     break
