@@ -567,15 +567,15 @@ void heightControl(){
   pid_p_roll = kp_roll*error_roll;
   pid_p_depth = kp_depth*error_depth;
   
-  if(-1 < error_pitch < 1){
+  if(-1 < error_pitch && error_pitch < 1){
     pid_i_pitch = pid_i_pitch+(ki_pitch*error_pitch);  
   }
   
-  if(-1 < error_roll < 1){
+  if(-1 < error_roll && error_roll < 1){
     pid_i_roll = pid_i_roll+(ki_roll*error_roll);
   } 
 
-  if(-0.5 < error_depth < 0.5)
+  if(-0.5 < error_depth && error_depth < 0.5)
   {
     pid_i_depth = pid_i_depth+(ki_depth*error_depth);
   } 
