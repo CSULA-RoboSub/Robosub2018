@@ -110,35 +110,33 @@ class Keyboard():
         """Navigates robosub with given character input and power"""
 
         if char == '`':
-            self.navigation.h_nav('staying', 0, 0)
-            self.navigation.r_nav('staying', 0, 0)
-            self.navigation.m_nav('power', 'none', 0)
+            self.navigation.cancel_h_nav()
+            self.navigation.cancel_r_nav()
+            self.navigation.cancel_m_nav()
         elif char == 'w':
-            self.navigation.m_nav('power', 'none', 0)
+            self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'forward', power)
         elif char == 'a':
-            self.navigation.r_nav('staying', 0, 0)
+            self.navigation.cancel_r_nav()
             self.navigation.r_nav('left', rotation, power)
         elif char == 's':
-            self.navigation.m_nav('power', 'none', 0)
+            self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'backward', power)
         elif char == 'd':
-            self.navigation.r_nav('staying', 0, 0)
+            self.navigation.cancel_r_nav()
             self.navigation.r_nav('right', rotation, power)
         elif char == 'q':
-            self.navigation.m_nav('power', 'none', 0)
+            self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'left', power)
         elif char == 'e':
-            self.navigation.m_nav('power', 'none', 0)
+            self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'right', power)
         elif char == 'r':
-            self.navigation.h_nav('staying', 0, 0)
-            self.navigation.h_nav('up', height, power)
+            self.navigation.cancel_h_nav()
+            self.navigation.h_nav('up', height, 120)
         elif char == 'f':
-            self.navigation.h_nav('staying', 0, 0)
-            self.navigation.h_nav('down', height, power)
-
-        self.navigation.ros_sleep(0.01)
+            self.navigation.cancel_h_nav()
+            self.navigation.h_nav('down', height, 120)
 
     def start(self):
         """Allows keyboard navigation when killswitch is plugged in"""

@@ -105,15 +105,14 @@ class Houston():
             self.last_reading = coordinates
 
             # TODO must eventually move to CVController
-            #self.out.write(frame)
             cv2.imshow('gate',frame)
             key = cv2.waitKey(1) & 0xFF
 
             # if the `q` key is pressed, break from the loop
             if key == ord("q"):
-                self.navigation.h_nav('staying', 0, 0)
-                self.navigation.r_nav('staying', 0, 0)
-                self.navigation.m_nav('power', 'none', 0)
+                self.navigation.cancel_h_nav()
+                self.navigation.cancel_r_nav()
+                self.navigation.cancel_m_nav()
                 break
 
             if (time.time()-self.last_time > 1):
@@ -130,9 +129,9 @@ class Houston():
         if self.state.is_detect_done:
             self.state_num += 1
 
-        self.navigation.h_nav('staying', 0, 0)
-        self.navigation.r_nav('staying', 0, 0)
-        self.navigation.m_nav('power', 'none', 0)
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_r_nav()
+        self.navigation.cancel_m_nav()
         
         #TODO will be used to release the cap(videocapture) if needed
         # must initialize cap again if we plan to use this
