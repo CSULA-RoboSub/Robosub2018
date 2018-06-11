@@ -454,7 +454,7 @@ void mControlCallback(const robosub::MControl& mControl){
       }
 
       directionStr = "Moving " + directionStr + " with power...";
-      ROS_INFO(directionStr.c_str());
+      ROS_INFO("%s", directionStr.c_str());
       // ROS_INFO(powerChar);
       // ROS_INFO("...\n");
 
@@ -525,7 +525,7 @@ void mControlCallback(const robosub::MControl& mControl){
       }
 
       directionStr = "Moving " + directionStr + " with power...";
-      ROS_INFO(directionStr.c_str());
+      ROS_INFO("%s", directionStr.c_str());
       // ROS_INFO(powerChar);
       // ROS_INFO("for...");
       // ROS_INFO(timeChar);
