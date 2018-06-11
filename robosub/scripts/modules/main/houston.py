@@ -26,6 +26,9 @@ from modules.control.navigation import Navigation
 #will need to move CVControll
 from modules.controller.cv_controller import CVController
 
+from collections import Counter
+from itertools import combinations
+
 # TODO houston will communicate with CV controller through ROS
 # houston will interpet the coordinates and then send it to navigation
 class Houston():
@@ -37,6 +40,7 @@ class Houston():
         self.navigation = Navigation()
         self.config = Config()
         self.coordinates = []
+        self.counts = Counter()
 
         # will eventually move variables to task modules
         self.task_timer = 300
@@ -45,7 +49,7 @@ class Houston():
         self.multiplier = 10
 
         self.rotation = int(3) * self.multiplier
-        self.power = int(20) * self.multiplier
+        self.power = int(12) * self.multiplier
 
         # setting class instances of the tasks to none
         # to be used to prevent mutiple instances of same class
@@ -102,23 +106,32 @@ class Houston():
             self.out.write(frame)
             self.msg.found, coordinates = self.state.detect(frame)
 
-            self.last_reading = coordinates
+            self.last_reading.append(coordinates)
 
             # TODO must eventually move to CVController
-            cv2.imshow('gate',frame)
+            cv2.imshow(self.tasks[self.state_num],frame)
             key = cv2.waitKey(1) & 0xFF
 
             # if the `q` key is pressed, break from the loop
             if key == ord("q"):
+                self.navigation.cancel_h_nav()
+                self.navigation.cancel_r_nav()
+                self.navigation.cancel_m_nav()
                 break
 
+            # will run through whenever at least 1 second has passed
             if (time.time()-self.last_time > 1):
-                self.last_time = time.time()
-
-                self.state.navigate(self.navigation, self.msg.found, self.last_reading, self.power, self.rotation)
+                most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
+                self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                 
                 """break_loop used for temp breaking of loop"""
-                print 'press q to quit task or wait 15 secs'
+                print 'press q to quit task or wait 30 secs'
+                print(self.counts.most_common(1))
+
+                self.counts = Counter()
+                self.last_reading = []
+                self.last_time = time.time()
+
                 break_loop += 1
                 if break_loop >= 30:
                     break
@@ -133,6 +146,16 @@ class Houston():
         #TODO will be used to release the cap(videocapture) if needed
         # must initialize cap again if we plan to use this
         #cap.release()
+    
+    # created to get most frequent coordinates from detect methods
+    # once most frequent coordinates are found, sub will navigate to it
+    # rather than just going to last coordinates
+    def get_most_occur_coordinates(self, last, counts):
+        for sublist in last:
+            counts.update(combinations(sublist, 2))
+        for key, count in counts.most_common(1):
+            most_occur = key
+        return most_occur
 
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
