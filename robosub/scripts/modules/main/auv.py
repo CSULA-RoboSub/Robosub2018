@@ -8,6 +8,8 @@ from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
 from modules.main.status_logger import StatusLogger
 
+from houston import Houston
+
 
 class AUV():
     """AUV Master, automates tasks"""
@@ -28,7 +30,7 @@ class AUV():
         self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard()  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
-        # TODO self.cv = CV() # initialize CV() class
+        self.houston = Houston() # initialize Houston() class
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -55,6 +57,7 @@ class AUV():
         self.navigation.start()
         self.keyboard.start()
         self.status_logger.start()
+        self.houston.start()
         # self.cv.start(self.tasks)
 
     def stop(self):
@@ -64,3 +67,7 @@ class AUV():
         self.navigation.stop()
         self.keyboard.stop()
         self.status_logger.stop()
+        self.houston.stop()
+
+    def perform_tasks(self):
+        self.houston.do_task()

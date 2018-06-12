@@ -26,7 +26,9 @@ class Navigation():
         self.hStates = {
             'down': 0,
             'staying': 1,
-            'up': 2
+            'up': 2,
+            'unlock': 4,
+            'lock': 5
         }
         self.hState = None  # state
 
@@ -107,12 +109,12 @@ class Navigation():
 
         self.rPower = rPower
 
-    def set_m_nav(self, mState, mDirection, value):
+    def set_m_nav(self, mState, mDirection, power, value=0.0):
         """
         mState -- 'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5
         mDirection -- 'none': 0, 'forward': 1, 'right': 2, 'backward': 3, 'left': 4
+        power -- none: 0, motor power: x
         value -- based on mState
-            (1)power: none: 0, motor power: x
             (2)distance: distance away from the object: x
             (5)runningTime: time for the motor to turn on
         """
@@ -127,16 +129,23 @@ class Navigation():
         else:
             self.mDirection = self.directions[mDirection]
 
-        self.mPower = 0.0
+        self.mPower = power
         self.distance = 0.0
         self.runningTime = 0.0
 
-        if self.mState == self.mStates['power']:
-            self.mPower = value
-        elif self.mState == self.mStates['distance']:
+        if self.mState == self.mStates['distance']:
             self.distance = value
         elif self.mState == self.mStates['motor_time']:
             self.runningTime = value
+
+    def cancel_m_nav(self):
+        self.m_nav('off', 'none', 0)
+
+    def cancel_h_nav(self):
+        self.h_nav('staying', 0, 120)
+
+    def cancel_r_nav(self):
+        self.r_nav('staying', 0, 0)
 
     def h_nav(self, hState=None, depth=None, hPower=None):
         """
@@ -156,7 +165,8 @@ class Navigation():
             self.h_control.power = self.hPower
 
             self.pub_h_nav.publish(self.h_control)
-            rospy.sleep(.1)
+            # self.ros_sleep()
+            # rospy.sleep(.1)
 
             # print('state: %d depth: %.2f power: %d' % (self.hState, self.depth, self.hPower))
 
@@ -178,25 +188,26 @@ class Navigation():
             self.r_control.power = self.rPower
 
             self.pub_r_nav.publish(self.r_control)
-            rospy.sleep(.1)
+            # self.ros_sleep()
+            # rospy.sleep(.1)
 
             # print('state: %d rotation: %.2f power: %d' % (self.rState, self.rotation, self.rPower))
 
-    def m_nav(self, mState=None, mDirection=None, value=None):
+    def m_nav(self, mState=None, mDirection=None, power=None, value=None):
         """
         Start movement navigation given mState, mDirection, and power/distance/runningTime when killswitch is on.
         mState -- 'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5
         mDirection -- 'none': 0, 'forward': 1, 'right': 2, 'backward': 3, 'left': 4
+        power -- none: 0, motor power: x
         value -- based on mState
-            (1)power: none: 0, motor power: x
             (2)distance: distance away from the object: x
             (5)runningTime: time for the motor to turn on
         """
 
         if self.is_killswitch_on:
 
-            if mState is not None or mDirection is not None or value is not None:
-                self.set_m_nav(mState, mDirection, value)
+            if mState is not None or mDirection is not None or power is not None:
+                self.set_m_nav(mState, mDirection, power, value)
 
             self.m_control.state = self.mState
             self.m_control.mDirection = self.mDirection
@@ -205,7 +216,8 @@ class Navigation():
             self.m_control.runningTime = self.runningTime
 
             self.pub_m_nav.publish(self.m_control)
-            rospy.sleep(.1)
+            # self.ros_sleep()
+            # rospy.sleep(.1)
 
             # print(
             #     'state: %d direction: %d power: %.2f distance: %.2f runningTime: %.2f'
@@ -221,3 +233,12 @@ class Navigation():
         """Stops navigation when killswitch is unplugged"""
 
         self.is_killswitch_on = False
+
+    def ros_sleep(self, time = 0.05):
+        if time:
+            rospy.sleep(time)
+        else:
+            rospy.sleep()
+
+    def ros_rate(self, hz = 100):
+        rospy.Rate(hz)
