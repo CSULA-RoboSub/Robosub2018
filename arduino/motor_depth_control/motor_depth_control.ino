@@ -214,6 +214,7 @@ void loop() {
   //  gettingRawData();
 
   if((loopTime-loopTimePrev) > loopInterval) {
+    loopTimePrev = loopTime;
     sensor.read();
 
     //Set the display outputs for roll, pitch, and yaw
