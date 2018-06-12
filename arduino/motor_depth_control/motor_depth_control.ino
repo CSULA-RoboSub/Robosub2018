@@ -274,6 +274,7 @@ void mHorizontalCallback(const hardware_interface::MotorHorizontal& mHorizontal)
 }
 
 void writeMotors(){
+  nh.loginfo("writeMotors")
   T1.writeMicroseconds(t1Power);
   T2.writeMicroseconds(t2Power);
   T3.writeMicroseconds(t3Power);
