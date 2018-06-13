@@ -61,17 +61,17 @@ class Houston():
 
         # setting class instances of the tasks to none
         # to be used to prevent mutiple instances of same class
-        self.gate = Gate(Houston)
-        self.path_1 = Path(Houston)
-        self.dice = Dice(Houston)
-        self.path_2 = Path(Houston)
-        self.chip_1 = Chip(Houston)        
-        self.chip_2 = Chip(Houston)
-        self.roulette = Roulette(Houston)
-        self.slots = Slots(Houston)
-        self.pinger_a = PingerA(Houston)
-        self.pinger_b = PingerB(Houston)
-        self.cash_in = CashIn(Houston)
+        self.gate = Gate(self)
+        self.path_1 = Path(self)
+        self.dice = Dice(self)
+        self.path_2 = Path(self)
+        self.chip_1 = Chip(self)        
+        self.chip_2 = Chip(self)
+        self.roulette = Roulette(self)
+        self.slots = Slots(self)
+        self.pinger_a = PingerA(self)
+        self.pinger_b = PingerB(self)
+        self.cash_in = CashIn(self)
         #self.buoy = Buoy(Houston)
 
         """
@@ -153,7 +153,7 @@ class Houston():
                     break
 
                 # will run through whenever at least 1 second has passed
-                if (time.time()-self.last_time > 1):
+                '''if (time.time()-self.last_time > 1):
                     most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
                     self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
@@ -168,6 +168,10 @@ class Houston():
                     break_loop += 1
                     if break_loop >= 30:
                         break
+                '''
+                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+                print 'press q on video window to quit task'
+                print(coordinates)
 
         if self.state.is_detect_done:
             self.state_num += 1

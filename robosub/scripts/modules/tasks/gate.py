@@ -28,12 +28,15 @@ class Gate(Task):
         #need to switch left and right when testing
         self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
         self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
+        self.rotation_movement = {-1: 'left', 0: 'staying', 1: 'right'}
 
         self.move_forward = 'forward'
         self.depth_change = 1
 
         self.depth = -1
         self.rotation_direction = 'right'
+
+        self.rotation_angle = 15
     
     def detect(self, frame):
         #add frame when testing complete
@@ -45,6 +48,7 @@ class Gate(Task):
     
     def navigate(self, navigation, found, coordinates, power, rotation):
         if found:
+            '''
             if coordinates == [0,0]:
                 navigation.cancel_m_nav()
                 navigation.m_nav('power', self.move_forward, power)
@@ -54,6 +58,16 @@ class Gate(Task):
 
                 navigation.cancel_h_nav()
                 navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+            '''
+            navigation.cancel_h_nav()
+            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+
+            navigation.cancel_r_nav()
+            navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
+
+            navigation.cancel_m_nav()
+            navigation.m_nav('power', self.move_forward, power)
+
         else:
             navigation.cancel_r_nav()
             navigation.r_nav(self.rotation_direction, rotation, power)
