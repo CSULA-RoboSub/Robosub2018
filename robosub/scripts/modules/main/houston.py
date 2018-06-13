@@ -92,8 +92,6 @@ class Houston():
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
 
-        
-
         # init_node only needs to be ran once, which is already called in auv.py
         #rospy.init_node('cv_talker', anonymous=True)
         self.r = rospy.Rate(30) #30hz
