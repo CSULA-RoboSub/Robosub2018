@@ -121,3 +121,6 @@ robosub/scripts/modules/sensors/computer_vision/gate_testing/
 
 # video output folder
 video_output/
+
+#ignore cv models
+*.pkl

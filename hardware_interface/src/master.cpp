@@ -1063,6 +1063,7 @@ void loop() {
   //  gettingRawData();
 
   if((loopTime-loopTimePrev) > loopInterval) {
+    loopTimePrev = loopTime;
     //Rotation
     //duty cycle and PWM calculation for orientation
     dutyCycl_orient = degreeToTurn() / 180.0;

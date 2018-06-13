@@ -1,6 +1,14 @@
 import rospy
 import cv2
+import sys
 import time
+
+import gi
+
+gi.require_version("Tcam", "0.1")
+gi.require_version("Gst", "1.0")
+
+from gi.repository import Tcam, Gst, GLib
 
 from robosub.msg import CVIn
 from robosub.msg import CVOut
@@ -82,12 +90,16 @@ class Houston():
         self.height = 5
 
         # TODO move to CVcontroller
-        self.cap = cv2.VideoCapture(0)
+        # self.cap = cv2.VideoCapture(0)
+
+        
 
         # init_node only needs to be ran once, which is already called in auv.py
         #rospy.init_node('cv_talker', anonymous=True)
         self.r = rospy.Rate(30) #30hz
         self.msg = CVIn()
+        self.sample = None
+        self.pipeline = None
 
     def do_task(self):
         # when state_num is > 10, there will be no more tasks to complete
@@ -97,48 +109,72 @@ class Houston():
         break_loop = 0
         self.state = self.states[self.state_num]
 
+        self.setupPipline()
         # TODO must eventually move to CVController
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.out = cv2.VideoWriter('video_output/' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
 
         while not self.state.is_detect_done:
-            _, frame = self.cap.read()
-            self.out.write(frame)
-            self.msg.found, coordinates = self.state.detect(frame)
+            # _, frame = self.cap.read()
+            #if a sample exists run cv
+            if self.sample:
+                buf = sample.get_buffer()
 
-            self.last_reading.append(coordinates)
+                caps = sample.get_caps()
+                width = caps[0].get_value("width")
+                height = caps[0].get_value("height")
 
-            # TODO must eventually move to CVController
-            cv2.imshow(self.tasks[self.state_num],frame)
-            key = cv2.waitKey(1) & 0xFF
+                try:
+                    res, mapinfo = buf.map(Gst.MapFlags.READ)
+                    # actual image buffer and size
+                    # data = mapinfo.data
+                    # size = mapinfo.size
 
-            # if the `q` key is pressed, break from the loop
-            if key == ord("q"):
-                self.navigation.cancel_h_nav()
-                self.navigation.cancel_r_nav()
-                self.navigation.cancel_m_nav()
-                break
+                    # Create a numpy array from the data
+                    img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+                    # Give the array the correct dimensions of the video image
+                    frame = img_array.reshape((height, width))
 
-            # will run through whenever at least 1 second has passed
-            if (time.time()-self.last_time > 1):
-                most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
-                self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
-                
-                """break_loop used for temp breaking of loop"""
-                print 'press q to quit task or wait 30 secs'
-                print(self.counts.most_common(1))
+                finally:
+                    buf.unmap(mapinfo)
 
-                self.counts = Counter()
-                self.last_reading = []
-                self.last_time = time.time()
+                self.out.write(frame)
+                self.msg.found, coordinates = self.state.detect(frame)
 
-                break_loop += 1
-                if break_loop >= 30:
+                self.last_reading.append(coordinates)
+
+                # TODO must eventually move to CVController
+                cv2.imshow(self.tasks[self.state_num],frame)
+                key = cv2.waitKey(1) & 0xFF
+
+                # if the `q` key is pressed, break from the loop
+                if key == ord("q"):
+                    self.navigation.cancel_h_nav()
+                    self.navigation.cancel_r_nav()
+                    self.navigation.cancel_m_nav()
                     break
+
+                # will run through whenever at least 1 second has passed
+                if (time.time()-self.last_time > 1):
+                    most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
+                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
+                    
+                    """break_loop used for temp breaking of loop"""
+                    print 'press q to quit task or wait 30 secs'
+                    print(self.counts.most_common(1))
+
+                    self.counts = Counter()
+                    self.last_reading = []
+                    self.last_time = time.time()
+
+                    break_loop += 1
+                    if break_loop >= 30:
+                        break
 
         if self.state.is_detect_done:
             self.state_num += 1
 
+        self.closePipline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
@@ -172,3 +208,120 @@ class Houston():
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
         self.navigation.stop()
+
+    def setupPipline(self):
+        Gst.init(sys.argv)  # init gstreamer
+
+        # We create a source element to retrieve a device list through it
+        source = Gst.ElementFactory.make("tcambin")
+
+        # retrieve all available serial numbers
+        serials = source.get_device_serials()
+
+        # create a list to have an easy index <-> serial association
+        # device_list = []
+
+        # for s in serials:
+        #     device_list.append(s)
+        
+        serial = serials[0]
+
+        if serial is not None:
+            source.set_property("serial", serial)
+
+        # Define the format of the video buffers that will get passed to opencv
+        TARGET_FORMAT = "video/x-raw,width=640,height=480,format=GRAY8"
+
+        # Ask the user for the format that should be used for capturing
+        fmt =  self.select_format(source.get_by_name("tcambin-source")) #----------------------- replace
+        
+        # If the user selected a bayer format, we change it to BGRx so that the
+        # tcambin will decode the bayer pattern to a color image
+        if fmt.get_name() == "video/x-bayer":
+            fmt.set_name("video/x-raw")
+            fmt.set_value("format", "BGRx")
+        # Use a capsfilter to determine the video format of the camera source
+        capsfilter = Gst.ElementFactory.make("capsfilter")
+        capsfilter.set_property("caps", Gst.Caps.from_string(fmt.to_string()))
+        # Add a small queue. Everything behind this queue will run in a separate
+        # thread.
+        queue = Gst.ElementFactory.make("queue")
+        queue.set_property("leaky", True)
+        queue.set_property("max-size-buffers", 2)
+        # Add a videoconvert and a videoscale element to convert the format of the
+        # camera to the target format for opencv
+        convert = Gst.ElementFactory.make("videoconvert")
+        scale = Gst.ElementFactory.make("videoscale")
+        # Add an appsink. This element will receive the converted video buffers and
+        # pass them to opencv
+        output = Gst.ElementFactory.make("appsink")
+        output.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
+        output.set_property("emit-signals", True)
+        self.pipeline = Gst.Pipeline.new()
+
+        # Add all elements
+        self.pipeline.add(source)
+        self.pipeline.add(capsfilter)
+        self.pipeline.add(queue)
+        self.pipeline.add(convert)
+        self.pipeline.add(scale)
+        self.pipeline.add(output)
+
+        # Link the elements
+        source.link(capsfilter)
+        capsfilter.link(queue)
+        queue.link(convert)
+        convert.link(scale)
+        scale.link(output)
+
+        output.connect("new-sample", self.callback)
+        self.pipeline.set_state(Gst.State.PLAYING)
+
+    def closePipline(self):
+        self.pipeline.set_state(Gst.State.NULL)
+        self.pipeline = None
+        self.sample = None
+
+    def callback(self, sink):
+        self.sample = sink.emit("pull-sample")
+        
+        return Gst.FlowReturn.OK
+
+    def list_formats(self, source):
+        """Returns a list of all video formats supported by a video source."""
+
+        # source needs to be at least in READY state to be able to read formats
+        old_state = source.get_state(10 * Gst.SECOND)
+        if old_state.state == Gst.State.NULL:
+            source.set_state(Gst.State.READY)
+
+        caps = source.pads[0].query_caps()
+
+        # create a list of all structures contained in the caps
+        ret = [caps.get_structure(i) for i in range(caps.get_size())]
+
+        # cleanup
+        source.set_state(old_state.state)
+
+        return ret
+
+    def select_format(self, source):
+        """Helper function that prompts the user to select a video format.
+
+        Returns: Gst.Structure of format
+        """
+        formats = list_formats(source)
+        fmt = formats[3]
+        frame_rates = get_frame_rate_list(fmt)
+        rate = frame_rates[1]
+
+        # work around older GI implementations that lack proper Gst.Fraction/Gst.ValueList support
+        if type(rate) == Gst.Fraction:
+            fmt.set_value("framerate", rate)
+        else:
+            numerator, denominator = rate.split("/")
+            fmt.set_value("framerate", Gst.Fraction(int(numerator), int(denominator)))
+
+        # fmt is a Gst.Structure but Caps can only be generated from a string,
+        # so a to_string conversion is needed
+        return fmt
