@@ -48,6 +48,8 @@ class Gate(Task):
     
     def navigate(self, navigation, found, coordinates, power, rotation):
         if found:
+            #if not self.is_found:
+            #    self.is_found = True
             '''
             if coordinates == [0,0]:
                 navigation.cancel_m_nav()
@@ -69,6 +71,15 @@ class Gate(Task):
             navigation.m_nav('power', self.move_forward, power)
 
         else:
+            '''should be executed when gate is no longer found but was previously detected.
+            can indicate that the sub is now at the gate and does not have view of the gate
+            anymore. it should proceed forward if that is the case'''
+            #if self.is_found:
+            #    navigation.cancel_m_nav()
+            #    navigation.m_nav('power', self.move_forward, power)
+            #    time.sleep(4)
+            #else:
+
             navigation.cancel_r_nav()
             navigation.r_nav(self.rotation_direction, rotation, power)
     
