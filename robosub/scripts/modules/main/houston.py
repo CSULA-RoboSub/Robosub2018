@@ -90,7 +90,7 @@ class Houston():
         self.height = 5
 
         # TODO move to CVcontroller
-        self.cap = cv2.VideoCapture(0)
+        # self.cap = cv2.VideoCapture(0)
 
         
 
