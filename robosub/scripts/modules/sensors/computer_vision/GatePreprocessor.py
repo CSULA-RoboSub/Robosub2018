@@ -46,7 +46,7 @@ class GatePreprocessor:
         
         imgray = self.color_subtract(frame) # new test method
         
-        flag, binary_image = cv2.threshold(imgray, 127, 255, cv2.THRESH_TOZERO)
+        flag, binary_image = cv2.threshold(imgray, 127, 255, cv2.THRESH_TOZERO_INV)
         im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # filter the contours based on size

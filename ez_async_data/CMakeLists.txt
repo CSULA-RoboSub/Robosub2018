@@ -40,7 +40,7 @@ include_directories(
 )
 
 set(SOURCE_FILES
-    main.cpp)
+    src/main.cpp)
 
 add_executable(ez_async_data ${SOURCE_FILES})
 
