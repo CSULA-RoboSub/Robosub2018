@@ -163,34 +163,35 @@ class Houston():
                 #     cv2.imshow(self.tasks[self.state_num],frame)
                 # except Exception as e:
                 #     print(e)
-                key = cv2.waitKey(1) & 0xFF
+                #key = cv2.waitKey(1) & 0xFF
 
                 # if the `q` key is pressed, break from the loop
-                if key == ord("q"):
-                    self.navigation.cancel_h_nav()
-                    self.navigation.cancel_r_nav()
-                    self.navigation.cancel_m_nav()
-                    break
+                #if key == ord("q"):
+                #    self.navigation.cancel_h_nav()
+                #    self.navigation.cancel_r_nav()
+                #    self.navigation.cancel_m_nav()
+                #    break
 
                 # will run through whenever at least 1 second has passed
-                '''if (time.time()-self.last_time > 1):
-                    most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
-                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
+                if (time.time()-self.last_time > 1):
+                    #most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
+                    #self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
                     """break_loop used for temp breaking of loop"""
-                    print 'press q to quit task or wait 30 secs'
-                    print(self.counts.most_common(1))
+                    #print 'press q to quit task or wait 30 secs'
+                    #print(self.counts.most_common(1))
 
-                    self.counts = Counter()
-                    self.last_reading = []
+                    #self.counts = Counter()
+                    #self.last_reading = []
                     self.last_time = time.time()
 
                     break_loop += 1
                     if break_loop >= 30:
                         break
-                '''
+                
                 self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
-                print 'press q on video window to quit task'
+                print 'task will stop in 30 secs'
+                print 'current count: {}'.format(break_loop)
                 print(coordinates)
 
         print("exit loop")
