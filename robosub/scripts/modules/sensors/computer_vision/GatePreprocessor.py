@@ -8,7 +8,7 @@ class GatePreprocessor:
     def __init__(self):
         self.lower = np.array([0, 50, 50], 'uint8') # lower color value
         self.upper = np.array([130, 250, 255], 'uint8') # upper color value
-        self.min_cont_size = 20 # min contours size
+        self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
 
