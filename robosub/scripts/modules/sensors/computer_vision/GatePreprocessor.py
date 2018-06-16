@@ -40,11 +40,13 @@ class GatePreprocessor:
     # returns ROI
     def get_interest_regions(self, frame):
         height, width, lines = frame.shape
+
+        blur = cv2.bilateralFilter(frame, 9, 100, 100)
         
-        #pimage, mask = self.preprocess(frame)
-        #imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
+        pimage, mask = self.preprocess(blur)
+        imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
         
-        imgray = self.color_subtract(frame) # new test method
+        #imgray = self.color_subtract(frame) # new test method - instead of color filter preproces
         
         flag, binary_image = cv2.threshold(imgray, 127, 255, cv2.THRESH_TOZERO_INV)
         im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
