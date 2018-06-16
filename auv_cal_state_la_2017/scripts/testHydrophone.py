@@ -12,7 +12,7 @@ def hStatusCallback(data):
     freq1 = 1.0/((abs(data.times1[0]-data.times1[1])+abs(data.times1[1]-data.times1[2])+abs(data.times1[2]-data.times1[3]))/3.0)
     freq2 = 1.0/((abs(data.times2[0]-data.times2[1])+abs(data.times2[1]-data.times2[2])+abs(data.times2[2]-data.times2[3]))/3.0)
     freq3 = 1.0/((abs(data.times3[0]-data.times3[1])+abs(data.times3[1]-data.times3[2])+abs(data.times3[2]-data.times3[3]))/3.0)
-    # freq4 = 1.0/((abs(data.times4[0]-data.times4[1])+abs(data.times4[1]-data.times4[2])+abs(data.times4[2]-data.times4[3]))/3.0)
+    freq4 = 1.0/((abs(data.times4[0]-data.times4[1])+abs(data.times4[1]-data.times4[2])+abs(data.times4[2]-data.times4[3]))/3.0)
 
     rx = (abs(data.times1[0]-data.times2[0])+abs(data.times1[1]-data.times2[1])+abs(data.times1[2]-data.times2[2])+abs(data.times1[3]-data.times2[3]))/4.0
     ry = (abs(data.times2[0]-data.times3[0])+abs(data.times2[1]-data.times3[1])+abs(data.times2[2]-data.times3[2])+abs(data.times2[3]-data.times3[3]))/4.0

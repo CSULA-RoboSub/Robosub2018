@@ -4,6 +4,10 @@ import sys
 import time
 
 import gi
+import threading
+
+from threading import Thread
+import numpy as np
 
 gi.require_version("Tcam", "0.1")
 gi.require_version("Gst", "1.0")
@@ -61,17 +65,17 @@ class Houston():
 
         # setting class instances of the tasks to none
         # to be used to prevent mutiple instances of same class
-        self.gate = Gate(Houston)
-        self.path_1 = Path(Houston)
-        self.dice = Dice(Houston)
-        self.path_2 = Path(Houston)
-        self.chip_1 = Chip(Houston)        
-        self.chip_2 = Chip(Houston)
-        self.roulette = Roulette(Houston)
-        self.slots = Slots(Houston)
-        self.pinger_a = PingerA(Houston)
-        self.pinger_b = PingerB(Houston)
-        self.cash_in = CashIn(Houston)
+        self.gate = Gate(self)
+        self.path_1 = Path(self)
+        self.dice = Dice(self)
+        self.path_2 = Path(self)
+        self.chip_1 = Chip(self)        
+        self.chip_2 = Chip(self)
+        self.roulette = Roulette(self)
+        self.slots = Slots(self)
+        self.pinger_a = PingerA(self)
+        self.pinger_b = PingerB(self)
+        self.cash_in = CashIn(self)
         #self.buoy = Buoy(Houston)
 
         """
@@ -98,30 +102,42 @@ class Houston():
         self.msg = CVIn()
         self.sample = None
         self.pipeline = None
+        self.loop = GLib.MainLoop()
+        self.thread = None
 
     def do_task(self):
+        
+        # self.thread=Thread(target=self.do_gate)
+        # self.thread.start()
+
+        self.do_gate()
+        # self.start_loop()
+
+    def do_gate(self):
         # when state_num is > 10, there will be no more tasks to complete
         if self.state_num > 10:
             print 'no more tasks to complete'
             
         break_loop = 0
         self.state = self.states[self.state_num]
-
+        print("setup pipeline")
         self.setupPipline()
+        self.thread=Thread(target=self.start_loop)
+        self.thread.start()
         # TODO must eventually move to CVController
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('video_output/' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
+        self.out = cv2.VideoWriter('video_output/' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
 
         while not self.state.is_detect_done:
             # _, frame = self.cap.read()
             #if a sample exists run cv
             if self.sample:
-                buf = sample.get_buffer()
+                # print("have sample")
+                buf = self.sample.get_buffer()
 
-                caps = sample.get_caps()
+                caps = self.sample.get_caps()
                 width = caps[0].get_value("width")
                 height = caps[0].get_value("height")
-
                 try:
                     res, mapinfo = buf.map(Gst.MapFlags.READ)
                     # actual image buffer and size
@@ -130,9 +146,10 @@ class Houston():
 
                     # Create a numpy array from the data
                     img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
-                    # Give the array the correct dimensions of the video image
-                    frame = img_array.reshape((height, width))
 
+                    # Give the array the correct dimensions of the video image
+                    frame = img_array.reshape((height, width, 3))
+                    # print(type(frame))
                 finally:
                     buf.unmap(mapinfo)
 
@@ -142,33 +159,42 @@ class Houston():
                 self.last_reading.append(coordinates)
 
                 # TODO must eventually move to CVController
-                cv2.imshow(self.tasks[self.state_num],frame)
-                key = cv2.waitKey(1) & 0xFF
+                # try:
+                #     cv2.imshow(self.tasks[self.state_num],frame)
+                # except Exception as e:
+                #     print(e)
+                #key = cv2.waitKey(1) & 0xFF
 
                 # if the `q` key is pressed, break from the loop
-                if key == ord("q"):
-                    self.navigation.cancel_h_nav()
-                    self.navigation.cancel_r_nav()
-                    self.navigation.cancel_m_nav()
-                    break
+                #if key == ord("q"):
+                #    self.navigation.cancel_h_nav()
+                #    self.navigation.cancel_r_nav()
+                #    self.navigation.cancel_m_nav()
+                #    break
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 1):
-                    most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
-                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
+                    #most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
+                    #self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
                     """break_loop used for temp breaking of loop"""
-                    print 'press q to quit task or wait 30 secs'
-                    print(self.counts.most_common(1))
+                    #print 'press q to quit task or wait 30 secs'
+                    #print(self.counts.most_common(1))
 
-                    self.counts = Counter()
-                    self.last_reading = []
+                    #self.counts = Counter()
+                    #self.last_reading = []
                     self.last_time = time.time()
 
                     break_loop += 1
                     if break_loop >= 30:
                         break
+                
+                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+                print 'task will stop in 30 secs'
+                print 'current count: {}'.format(break_loop)
+                print(coordinates)
 
+        print("exit loop")
         if self.state.is_detect_done:
             self.state_num += 1
 
@@ -223,12 +249,13 @@ class Houston():
         #     device_list.append(s)
         
         serial = serials[0]
-
+        print(serial)
         if serial is not None:
             source.set_property("serial", serial)
 
         # Define the format of the video buffers that will get passed to opencv
-        TARGET_FORMAT = "video/x-raw,width=640,height=480,format=GRAY8"
+        # TARGET_FORMAT = "video/x-raw,width=640,height=480,format=GRAY8"
+        TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
 
         # Ask the user for the format that should be used for capturing
         fmt =  self.select_format(source.get_by_name("tcambin-source")) #----------------------- replace
@@ -272,15 +299,26 @@ class Houston():
         convert.link(scale)
         scale.link(output)
 
+        # display_pipeline = Gst.parse_launch("appsrc name=src ! videoconvert ! ximagesink")
+        # display_input = display_pipeline.get_by_name("src")
+        # display_input.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.connect("new-sample", self.callback)
-        self.pipeline.set_state(Gst.State.PLAYING)
+        # display_pipeline.set_state(Gst.State.PLAYING)  
 
+        self.pipeline.set_state(Gst.State.PLAYING)
+        print("done setting up pipeline")
     def closePipline(self):
+        self.out.release()
         self.pipeline.set_state(Gst.State.NULL)
         self.pipeline = None
         self.sample = None
+        cv2.destroyAllWindows()
+        # 
+        self.loop.quit()
 
+        print("closed pipeline")
     def callback(self, sink):
+        # print("in callback")
         self.sample = sink.emit("pull-sample")
         
         return Gst.FlowReturn.OK
@@ -308,10 +346,12 @@ class Houston():
 
         Returns: Gst.Structure of format
         """
-        formats = list_formats(source)
+        formats = self.list_formats(source)
         fmt = formats[3]
-        frame_rates = get_frame_rate_list(fmt)
+        print(fmt)
+        frame_rates = self.get_frame_rate_list(fmt)
         rate = frame_rates[1]
+        print(rate)
 
         # work around older GI implementations that lack proper Gst.Fraction/Gst.ValueList support
         if type(rate) == Gst.Fraction:
@@ -323,3 +363,25 @@ class Houston():
         # fmt is a Gst.Structure but Caps can only be generated from a string,
         # so a to_string conversion is needed
         return fmt
+    def get_frame_rate_list(self, fmt):
+        """Get the list of supported frame rates for a video format.
+        This function works arround an issue with older versions of GI that does not
+        support the GstValueList type"""
+        try:
+            rates = fmt.get_value("framerate")
+        except TypeError:
+            import re
+            # Workaround for missing GstValueList support in GI
+            substr = fmt.to_string()[fmt.to_string().find("framerate="):]
+            # try for frame rate lists
+            _unused_field, values, _unsued_remain = re.split("{|}", substr, maxsplit=3)
+            rates = [x.strip() for x in values.split(",")]
+        return rates
+    def start_loop(self):
+        print("start loop")
+
+        # try:
+        self.loop.run()
+        # except KeyboardInterrupt:
+        #     print("Ctrl-C pressed, terminating")
+
