@@ -11,6 +11,8 @@ class GatePreprocessor:
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
+        self.morph_ops = False # testing
+        self.kernel = np.ones( (5, 5), np.uint8) # basic filter
 
 
     # color filtering
@@ -50,8 +52,16 @@ class GatePreprocessor:
         
         #imgray = self.color_subtract(frame) # new test method - instead of color filter preproces
         
-        flag, binary_image = cv2.threshold(imgray, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        flag, binary_image = cv2.threshold(imgray, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        if(self.morph_ops):
+            erode_frame = cv2.erode(binary_image, self.kernel, iterations=1) # fade/trim
+            open_frame = cv2.morphologyEx(erode_frame, cv2.MORPH_OPEN, self.kernel) # remove specs
+            close_frame = cv2.morphologyEx(open_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=1) # make chubby
+
+        #im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        im, contours, ret = cv2.findContours(dilate_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # filter the contours based on size
         new_contours_list = []
