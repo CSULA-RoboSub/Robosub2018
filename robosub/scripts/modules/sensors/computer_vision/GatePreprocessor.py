@@ -6,8 +6,8 @@ import numpy as np
 class GatePreprocessor:
 
     def __init__(self):
-        self.lower = np.array([0, 50, 50], 'uint8') # lower color value
-        self.upper = np.array([130, 250, 255], 'uint8') # upper color value
+        self.lower = np.array([0, 100, 100], 'uint8') # lower color value
+        self.upper = np.array([60, 255, 255], 'uint8') # upper color value
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
@@ -41,9 +41,11 @@ class GatePreprocessor:
     def get_interest_regions(self, frame):
         height, width, lines = frame.shape
 
-        blur = cv2.bilateralFilter(frame, 9, 100, 100)
+        blur = cv2.bilateralFilter(frame, 9, 100, 100) # blur
+
+        frame_hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV) # to HSV colorspace
         
-        pimage, mask = self.preprocess(blur)
+        pimage, mask = self.preprocess(frame_hsv)
         imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
         
         #imgray = self.color_subtract(frame) # new test method - instead of color filter preproces
