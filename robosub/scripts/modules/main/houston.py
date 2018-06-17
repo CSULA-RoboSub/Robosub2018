@@ -58,10 +58,8 @@ class Houston():
         self.task_timer = 300
         self.last_time = time.time()
 
-        self.multiplier = 10
-
-        self.rotation = int(3) * self.multiplier
-        self.power = int(12) * self.multiplier
+        self.rotation = 15
+        self.power = 120
 
         # setting class instances of the tasks to none
         # to be used to prevent mutiple instances of same class
@@ -126,7 +124,8 @@ class Houston():
         self.thread.start()
         # TODO must eventually move to CVController
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('video_output/' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
+	self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
 
         while not self.state.is_detect_done:
             # _, frame = self.cap.read()
@@ -152,9 +151,10 @@ class Houston():
                     # print(type(frame))
                 finally:
                     buf.unmap(mapinfo)
-
-                self.out.write(frame)
+                
+                self.outraw.write(frame)
                 self.msg.found, coordinates = self.state.detect(frame)
+                self.outprocessed.write(frame)
 
                 self.last_reading.append(coordinates)
 
@@ -308,7 +308,8 @@ class Houston():
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
     def closePipline(self):
-        self.out.release()
+        self.outraw.release()
+        self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
         self.pipeline = None
         self.sample = None

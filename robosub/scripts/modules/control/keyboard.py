@@ -133,10 +133,10 @@ class Keyboard():
             self.navigation.m_nav('power', 'right', power)
         elif char == 'r':
             self.navigation.cancel_h_nav()
-            self.navigation.h_nav('up', height, 120)
+            self.navigation.h_nav('up', height, 100)
         elif char == 'f':
             self.navigation.cancel_h_nav()
-            self.navigation.h_nav('down', height, 120)
+            self.navigation.h_nav('down', height, 100)
 
     def start(self):
         """Allows keyboard navigation when killswitch is plugged in"""

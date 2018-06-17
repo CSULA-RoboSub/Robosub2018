@@ -62,7 +62,7 @@ class Gate(Task):
                 navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
             '''
             navigation.cancel_h_nav()
-            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, 100)
 
             navigation.cancel_r_nav()
             navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
@@ -81,7 +81,9 @@ class Gate(Task):
             #else:
 
             navigation.cancel_r_nav()
-            navigation.r_nav(self.rotation_direction, rotation, power)
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+            navigation.r_nav(self.rotation_direction, rotation, 74)
     
     def complete(self):
         #code below is not needed anymore
