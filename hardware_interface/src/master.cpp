@@ -206,7 +206,7 @@ void publishMotors(){
 void rotationCallback(const ez_async_data::Rotation& rotation){
   yaw = rotation.yaw;
   roll = -rotation.roll;
-  pitch = -(rotation.pitch + 2.56);
+  pitch = -rotation.pitch;
   if(firstIMUReading){
     firstIMUReading = false;
     assignedYaw = rotation.yaw;
@@ -915,6 +915,8 @@ void movementControl(){
 //  }
 void rotateLeftDynamically(){
   float rotatePower = PWM_Motors_orient * 4.0;
+
+  if(rotatePower > rControlPower) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     // T6.writeMicroseconds(1500 + rotatePower);
@@ -935,6 +937,8 @@ void rotateLeftDynamically(){
 
 void rotateRightDynamically(){
   float rotatePower = PWM_Motors_orient * 4.0;
+
+  if(rotatePower > rControlPower) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     // T6.writeMicroseconds(1500 - rotatePower);

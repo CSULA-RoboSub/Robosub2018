@@ -95,7 +95,7 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
-        min_prob = .9
+        min_prob = .1
         
         for box in roi:
             x, y, w, h = box

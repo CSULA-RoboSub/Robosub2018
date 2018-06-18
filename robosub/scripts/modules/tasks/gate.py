@@ -28,12 +28,15 @@ class Gate(Task):
         #need to switch left and right when testing
         self.horizontal_move = {0: 'none', -1: 'left', 1: 'right'}
         self.vertical_movement = {-1: 'down', 0: 'staying', 1: 'up'}
+        self.rotation_movement = {-1: 'left', 0: 'staying', 1: 'right'}
 
         self.move_forward = 'forward'
         self.depth_change = 1
 
         self.depth = -1
         self.rotation_direction = 'right'
+
+        self.rotation_angle = 15
     
     def detect(self, frame):
         #add frame when testing complete
@@ -45,6 +48,9 @@ class Gate(Task):
     
     def navigate(self, navigation, found, coordinates, power, rotation):
         if found:
+            #if not self.is_found:
+            #    self.is_found = True
+            '''
             if coordinates == [0,0]:
                 navigation.cancel_m_nav()
                 navigation.m_nav('power', self.move_forward, power)
@@ -54,9 +60,30 @@ class Gate(Task):
 
                 navigation.cancel_h_nav()
                 navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
-        else:
+            '''
+            navigation.cancel_h_nav()
+            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, 100)
+
             navigation.cancel_r_nav()
-            navigation.r_nav(self.rotation_direction, rotation, power)
+            navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
+
+            navigation.cancel_m_nav()
+            navigation.m_nav('power', self.move_forward, power)
+
+        else:
+            '''should be executed when gate is no longer found but was previously detected.
+            can indicate that the sub is now at the gate and does not have view of the gate
+            anymore. it should proceed forward if that is the case'''
+            #if self.is_found:
+            #    navigation.cancel_m_nav()
+            #    navigation.m_nav('power', self.move_forward, power)
+            #    time.sleep(4)
+            #else:
+
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+            navigation.r_nav(self.rotation_direction, rotation, 50)
     
     def complete(self):
         #code below is not needed anymore
