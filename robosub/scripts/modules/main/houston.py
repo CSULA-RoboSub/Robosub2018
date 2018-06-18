@@ -124,7 +124,7 @@ class Houston():
         self.thread.start()
         # TODO must eventually move to CVController
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-	self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
+        self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
 
         while not self.state.is_detect_done:

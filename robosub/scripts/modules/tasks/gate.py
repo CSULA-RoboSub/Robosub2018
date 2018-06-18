@@ -83,7 +83,7 @@ class Gate(Task):
             navigation.cancel_r_nav()
             navigation.cancel_m_nav()
             navigation.cancel_h_nav()
-            navigation.r_nav(self.rotation_direction, rotation, 74)
+            navigation.r_nav(self.rotation_direction, rotation, 50)
     
     def complete(self):
         #code below is not needed anymore

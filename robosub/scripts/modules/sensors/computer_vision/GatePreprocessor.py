@@ -6,12 +6,12 @@ import numpy as np
 class GatePreprocessor:
 
     def __init__(self):
-        self.lower = np.array([0, 100, 100], 'uint8') # lower color value
-        self.upper = np.array([60, 255, 255], 'uint8') # upper color value
+        self.lower = np.array([0, 100, 50], 'uint8') # lower color value
+        self.upper = np.array([10, 255, 255], 'uint8') # upper color value
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
-        self.morph_ops = False # testing
+        self.morph_ops = True # testing
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
 
 
