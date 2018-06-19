@@ -194,7 +194,7 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
   if(t7 > 0)
     mHorizontal.t7 = t7;
   if(t8 > 0)
-    mHorizontal.t8 = t8;
+    mHorizontal.t8 = t8 -12;
 
 }
 

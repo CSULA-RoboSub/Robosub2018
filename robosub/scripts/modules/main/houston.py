@@ -126,7 +126,7 @@ class Houston():
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
-
+        self.foundcoord = None
         while not self.state.is_detect_done:
             # _, frame = self.cap.read()
             #if a sample exists run cv
@@ -155,7 +155,7 @@ class Houston():
                     self.outprocessed.write(frame)
 
                     self.show_img(frame)
-                    self.last_reading.append(coordinates)
+                    # self.last_reading.append(coordinates)
                 finally:
                     buf.unmap(mapinfo)
 
@@ -186,11 +186,19 @@ class Houston():
                     #self.last_reading = []
                     self.last_time = time.time()
 
+                    if self.msg.found:
+                        self.foundcoord = coordinates
                     break_loop += 1
-                    if break_loop >= 30:
+                    if break_loop >= 40:
                         break
-                
-                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+
+                if self.foundcoord:
+                    self.state.navigate(self.navigation, True, [0,0], self.power, 0)
+                    
+                else:
+                    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+
+
                 print 'task will stop in 30 secs'
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)
@@ -199,6 +207,7 @@ class Houston():
         if self.state.is_detect_done:
             self.state_num += 1
 
+        self.foundcoord = None
         self.closePipline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
@@ -238,7 +247,7 @@ class Houston():
     def show_img(self, img):
         bytebuffer = img.tobytes()
         self.display_buffers.append(bytebuffer)
-        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda self, x: self.display_buffers.pop(0))
+        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
         self.display_input.emit("push-buffer", new_buf)
 
     def setupPipline(self):
@@ -325,6 +334,7 @@ class Houston():
         self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
         self.display_buffers = []
+        self.last_reading = []
         self.display_input = None
         self.pipeline = None
         self.sample = None
