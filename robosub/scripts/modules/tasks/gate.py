@@ -37,7 +37,15 @@ class Gate(Task):
         self.rotation_direction = 'right'
 
         self.rotation_angle = 15
-    
+    def reset(self):
+        self.detectgate = None
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
+        self.is_done = False
+        self.not_found_timer = 0
+        self.found_timer = 0
+        self.gate_circle_loc = 0
     def detect(self, frame):
         #add frame when testing complete
         if not self.detectgate:

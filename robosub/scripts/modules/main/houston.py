@@ -111,8 +111,13 @@ class Houston():
         
         # self.thread=Thread(target=self.do_gate)
         # self.thread.start()
-
-        self.do_gate()
+        try:
+            self.do_gate()
+        except KeyboardInterrupt:
+            print('keyboard interrupt on cv')
+            self.state.is_detect_done = True
+        
+        self.state.reset()
         # self.start_loop()
 
     def do_gate(self):
@@ -161,6 +166,9 @@ class Houston():
 
                     self.show_img(frame)
                     # self.last_reading.append(coordinates)
+                except KeyboardInterrupt:
+                    self.state.is_detect_done = True
+                    # raise
                 finally:
                     buf.unmap(mapinfo)
                     
@@ -175,15 +183,15 @@ class Houston():
                 #     cv2.imshow(self.tasks[self.state_num],frame)
                 # except Exception as e:
                 #     print(e)
-                cv2.imshow('kill window', self.img)
-                key = cv2.waitKey(1) & 0xFF
+                # cv2.imshow('kill window', self.img)
+                # key = cv2.waitKey(1) & 0xFF
 
                 # if the `q` key is pressed, break from the loop
-                if key == ord("q"):
-                    self.navigation.cancel_h_nav()
-                    self.navigation.cancel_r_nav()
-                    self.navigation.cancel_m_nav()
-                    break
+                # if key == ord("q"):
+                #     self.navigation.cancel_h_nav()
+                #     self.navigation.cancel_r_nav()
+                #     self.navigation.cancel_m_nav()
+                #     break
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 1):# and not self.msg.found):
@@ -218,7 +226,7 @@ class Houston():
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
-        
+        self.state.reset()
         #TODO will be used to release the cap(videocapture) if needed
         # must initialize cap again if we plan to use this
         #cap.release()
