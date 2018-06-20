@@ -86,10 +86,11 @@ class Houston():
                         self.slots, self.chip_2, self.pinger_a, self.roulette,
                         self.pinger_b, self.cash_in]
     
-        self.last_reading = []
+        self.queue_direction = []
 
         #self.rotational_movement = {-1: }
-        self.height = 5
+        self.height = 1
+        self.break_timer = 30
 
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
@@ -102,6 +103,9 @@ class Houston():
         self.pipeline = None
         self.loop = GLib.MainLoop()
         self.thread = None
+
+        self.img = cv2.imread('blank.png',0)
+
 
     def do_task(self):
         
@@ -127,7 +131,7 @@ class Houston():
         self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
 
-        while not self.state.is_detect_done:
+        while not self.state.is_detect_done and not break_loop > self.break_timer:
             # _, frame = self.cap.read()
             #if a sample exists run cv
             if self.sample:
@@ -156,41 +160,41 @@ class Houston():
                 self.msg.found, coordinates = self.state.detect(frame)
                 self.outprocessed.write(frame)
 
-                self.last_reading.append(coordinates)
+                self.queue_direction.append(coordinates)
 
                 # TODO must eventually move to CVController
                 # try:
                 #     cv2.imshow(self.tasks[self.state_num],frame)
                 # except Exception as e:
                 #     print(e)
-                #key = cv2.waitKey(1) & 0xFF
+                cv2.imshow('kill window', self.img)
+                key = cv2.waitKey(1) & 0xFF
 
                 # if the `q` key is pressed, break from the loop
-                #if key == ord("q"):
-                #    self.navigation.cancel_h_nav()
-                #    self.navigation.cancel_r_nav()
-                #    self.navigation.cancel_m_nav()
-                #    break
+                if key == ord("q"):
+                    self.navigation.cancel_h_nav()
+                    self.navigation.cancel_r_nav()
+                    self.navigation.cancel_m_nav()
+                    break
 
                 # will run through whenever at least 1 second has passed
-                if (time.time()-self.last_time > 1):
-                    #most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
-                    #self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
+                if (time.time()-self.last_time > 1):# and not self.msg.found):
+                    most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
                     """break_loop used for temp breaking of loop"""
                     #print 'press q to quit task or wait 30 secs'
-                    #print(self.counts.most_common(1))
+                    print(self.counts.most_common(1))
 
-                    #self.counts = Counter()
-                    #self.last_reading = []
+                    self.counts = Counter()
+                    self.queue_direction = []
                     self.last_time = time.time()
 
                     break_loop += 1
-                    if break_loop >= 30:
-                        break
+                #else:
+                #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 
-                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
-                print 'task will stop in 30 secs'
+                print 'task will stop in 30 secs or press q on 2nd window to quit'
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)
 
