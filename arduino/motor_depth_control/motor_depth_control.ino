@@ -62,13 +62,6 @@ char string[8];
 float assignedDepth;
 float feetDepth_read;
 
-//initializations for IMU
-float pitch, yaw, roll, heading;
-bool firstIMUReading;
-float deltat = 0.0f;        // integration interval for both filter schemes
-uint32_t lastUpdate = 0;    // used to calculate integration interval
-uint32_t Now = 0;           // used to calculate integration interval
-
 int reedVal = HIGH;  //reed switch value
 
 ros::NodeHandle nh;
@@ -120,9 +113,6 @@ void setup() {
 
   //Reed switch pin
   pinMode(REED, INPUT);
-
-  //initialize firstIMUReading to true to set initial assignedYaw
-  firstIMUReading = true;
 
   //Initialization of LCD 
   LcdWriteCmd(0x21);                    //LCD extended commands
@@ -275,7 +265,7 @@ void mHorizontalCallback(const hardware_interface::MotorHorizontal& mHorizontal)
 }
 
 void writeMotors(){
-  nh.loginfo("writeMotors")
+  // nh.loginfo("writeMotors");
   T1.writeMicroseconds(t1Power);
   T2.writeMicroseconds(t2Power);
   T3.writeMicroseconds(t3Power);
@@ -283,7 +273,12 @@ void writeMotors(){
   T5.writeMicroseconds(t5Power);
   T6.writeMicroseconds(t6Power);
   T7.writeMicroseconds(t7Power);
-  T8.writeMicroseconds(t8Power);  
+
+  //offset to fix uneven thrust
+  if(t8Power == motorBase)
+    T8.writeMicroseconds(t8Power);  
+  else
+    T8.writeMicroseconds(t8Power-11);
 }
 //reed switch helper function
 void killSwitch(){
