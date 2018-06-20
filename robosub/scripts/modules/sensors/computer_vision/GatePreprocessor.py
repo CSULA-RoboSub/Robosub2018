@@ -6,7 +6,7 @@ import numpy as np
 class GatePreprocessor:
 
     def __init__(self):
-        self.lower = np.array([0, 150, 0], 'uint8') # lower color value
+        self.lower = np.array([0, 100, 50], 'uint8') # lower color value
         self.upper = np.array([10, 255, 255], 'uint8') # upper color value
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
@@ -55,8 +55,8 @@ class GatePreprocessor:
         flag, binary_image = cv2.threshold(imgray, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         if(self.morph_ops):
-            #erode_frame = cv2.erode(binary_image, self.kernel, iterations=1) # fade/trim
-            open_frame = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, self.kernel) # remove specs
+            erode_frame = cv2.erode(binary_image, self.kernel, iterations=1) # fade/trim
+            open_frame = cv2.morphologyEx(erode_frame, cv2.MORPH_OPEN, self.kernel) # remove specs
             close_frame = cv2.morphologyEx(open_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
             dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=1) # make chubby
 
