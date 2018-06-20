@@ -22,7 +22,7 @@ class RunDVL:
 		# ROS publisher setup
 		pub = rospy.Publisher('dvl_pub', DVL)
 		rospy.init_node('dvl_node', anonymous=True)
-		rospy.Subscriber('current_rotation', Rotation, self.rCallBack)
+		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size=0)
 
 		msg = DVL()
 
