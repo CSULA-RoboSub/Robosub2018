@@ -47,7 +47,7 @@ class GatePreprocessor:
 
         frame_hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV) # to HSV colorspace
         
-        pimage, mask = self.preprocess(frame_hsv)
+        pimage, ask = self.preprocess(frame_hsv)
         imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
         
         #imgray = self.color_subtract(frame) # new test method - instead of color filter preproces

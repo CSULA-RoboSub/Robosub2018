@@ -32,6 +32,7 @@ from modules.tasks.pinger_b import PingerB
 from modules.tasks.cash_in import CashIn
 from modules.tasks.buoy import Buoy
 from modules.tasks.task import Task
+from modules.tasks.qualify import Qualify
 
 from modules.control.navigation import Navigation
 
@@ -57,6 +58,7 @@ class Houston():
         # will eventually move variables to task modules
         self.task_timer = 300
         self.last_time = time.time()
+        self.task_timelimit = 5000
 
         self.rotation = 15
         self.power = 120
@@ -74,6 +76,7 @@ class Houston():
         self.pinger_a = PingerA(self)
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
+        self.qualify = Qualify(self)
         #self.buoy = Buoy(Houston)
 
         """
@@ -107,11 +110,13 @@ class Houston():
         
         # self.thread=Thread(target=self.do_gate)
         # self.thread.start()
-
         self.do_gate()
+        #self.do_qualify()
         # self.start_loop()
 
     def do_gate(self):
+
+
         # when state_num is > 10, there will be no more tasks to complete
         if self.state_num > 10:
             print 'no more tasks to complete'
@@ -119,24 +124,21 @@ class Houston():
         break_loop = 0
         self.state = self.states[self.state_num]
         print("setup pipeline")
-        self.setupPipline()
-        self.thread=Thread(target=self.start_loop)
+        self.setup_pipeline()
+        self.thread = Thread(target=self.start_loop)
         self.thread.start()
         # TODO must eventually move to CVController
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
 
-        while not self.state.is_detect_done:
-            # _, frame = self.cap.read()
-            #if a sample exists run cv
+        while not self.state.is_done:
             if self.sample:
-                # print("have sample")
                 buf = self.sample.get_buffer()
-
                 caps = self.sample.get_caps()
                 width = caps[0].get_value("width")
                 height = caps[0].get_value("height")
+
                 try:
                     res, mapinfo = buf.map(Gst.MapFlags.READ)
                     # actual image buffer and size
@@ -173,7 +175,9 @@ class Houston():
                 #    break
 
                 # will run through whenever at least 1 second has passed
-                if (time.time()-self.last_time > 1):
+
+                if (not self.msg.found):
+                    gate_search()
                     #most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
                     #self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
@@ -188,8 +192,8 @@ class Houston():
                     break_loop += 1
                     if break_loop >= 30:
                         break
-                
-                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+                if()
+                    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 print 'task will stop in 30 secs'
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)
@@ -198,7 +202,7 @@ class Houston():
         if self.state.is_detect_done:
             self.state_num += 1
 
-        self.closePipline()
+        self.close_pipeline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
@@ -208,11 +212,55 @@ class Houston():
         #cap.release()
     
     # created to get most frequent coordinates from detect methods
-    # once most frequent coordinates are found, sub will navigate to it
+    # once most frequent coordinates are found, sub` will navigate to it
     # rather than just going to last coordinates
+    '''
+        Qualification task
+    '''
+    def do_qualify(self):
+        self.setup_pipeline()
+        self.thread = Thread(target=self.start_loop)
+        self.thread.start()
+        start_time = time.time()
+        navi = self.navigation
+        pow = self.power
+        rot = self.rotation
+        prev_detected = False
+
+        while not self.qualify.is_done:
+            if self.sample:
+                buf = self.sample.get_buffer()
+                caps = self.sample.get_caps()
+                width = caps[0].get_value("width")
+                height = caps[0].get_value("height")
+
+                try:
+                    res, mapinfo = buf.map(Gst.MapFlags.READ)
+                    img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+                    frame = img_array.reshape((height, width, 3))
+                finally:
+                    buf.unmap(mapinfo)
+
+                found, coords = self.qualify.detect(frame)
+
+                if not found:
+                    found, coords = self.qualify.search(frame, navi, prev_detected
+                                                        , rot, pow)
+                else:
+                    prev_detected = True
+                    self.qualify.navigate(navi,found,coords,pow,rot)
+
+            if time.time() - start_time > self.task_timelimit:
+                print ("task timed out")
+                break
+
+
+
+
     def get_most_occur_coordinates(self, last, counts):
         for sublist in last:
             counts.update(combinations(sublist, 2))
+
         for key, count in counts.most_common(1):
             most_occur = key
         return most_occur
@@ -233,7 +281,7 @@ class Houston():
         #self.is_killswitch_on = False
         self.navigation.stop()
 
-    def setupPipline(self):
+    def setup_pipeline(self):
         Gst.init(sys.argv)  # init gstreamer
 
         # We create a source element to retrieve a device list through it
@@ -307,7 +355,8 @@ class Houston():
 
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
-    def closePipline(self):
+
+    def close_pipeline(self):
         self.outraw.release()
         self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
@@ -364,7 +413,8 @@ class Houston():
         # fmt is a Gst.Structure but Caps can only be generated from a string,
         # so a to_string conversion is needed
         return fmt
-    def get_frame_rate_list(self, fmt):
+
+    def get_framerate_list(self, fmt):
         """Get the list of supported frame rates for a video format.
         This function works arround an issue with older versions of GI that does not
         support the GstValueList type"""
@@ -378,6 +428,7 @@ class Houston():
             _unused_field, values, _unsued_remain = re.split("{|}", substr, maxsplit=3)
             rates = [x.strip() for x in values.split(",")]
         return rates
+
     def start_loop(self):
         print("start loop")
 

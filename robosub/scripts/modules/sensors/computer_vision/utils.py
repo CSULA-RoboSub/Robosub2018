@@ -33,8 +33,8 @@ colors = {"green": (0, 255, 0), "black": (0, 0, 0), "magenta": (255, 0, 255),  "
 
 def get_directions(center, x, y, w, h):
     directions = [0,0]
-    w_pad = w / 3
-    h_pad = h / 3
+    w_pad = w / 7
+    h_pad = h / 7
     cx = center[0]
     cy = center[1]
     if cx < x + w_pad:

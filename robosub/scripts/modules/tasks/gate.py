@@ -10,17 +10,18 @@ class Gate(Task):
         
         self.houston = Houston
         
-        self.detectgate = None
+        self.detect = None
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
+        self.been_found = False # Checks if the gate has been previously found or not.
 
         self.rotation_direction = 'right'
 
         self.not_found_timer = 0
         self.found_timer = 0
-        self.gate_circle_loc = 0
+        self.circle_loc = 0
 
         self.mState = {'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5}
         
@@ -35,18 +36,18 @@ class Gate(Task):
 
         self.depth = -1
         self.rotation_direction = 'right'
-
         self.rotation_angle = 15
     
-    def detect(self, frame):
+    def detect(self,frame):
         #add frame when testing complete
-        if not self.detectgate:
-            self.detectgate = GateDetector.GateDetector()
+        if not self.detect:
+            self.detect = GateDetector.GateDetector()
 
-        found, gate_coordinates = self.detectgate.detect(frame)
+        found, gate_coordinates = self.detect.detect(frame)
         return found, gate_coordinates
     
     def navigate(self, navigation, found, coordinates, power, rotation):
+
         if found:
             #if not self.is_found:
             #    self.is_found = True
@@ -61,16 +62,23 @@ class Gate(Task):
                 navigation.cancel_h_nav()
                 navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
             '''
+
+            '''
+                for test run we should shut off the depth changes and stay at a fixed depth and worry only about what
+                we see horizontally.
+            '''
             navigation.cancel_h_nav()
-            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, 100)
+            #navigation.h_nav(self.vertical_movement[coordinates[1]]''', self.depth_change, 100)
+            navigation.h_nav(0, self.depth_change, 100)
 
             navigation.cancel_r_nav()
             navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
 
             navigation.cancel_m_nav()
             navigation.m_nav('power', self.move_forward, power)
+            
+        elif found == False and self.been_found == True:
 
-        else:
             '''should be executed when gate is no longer found but was previously detected.
             can indicate that the sub is now at the gate and does not have view of the gate
             anymore. it should proceed forward if that is the case'''
@@ -84,13 +92,24 @@ class Gate(Task):
             navigation.cancel_m_nav()
             navigation.cancel_h_nav()
             navigation.r_nav(self.rotation_direction, rotation, 50)
-    
+        else:
+            '''
+                This is what will execute if the gate was never found to begin with.
+            '''
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+            navigation.r_nav(self.rotation_direction, rotation, 50)
+
+    #def pole_search(self,navigation, found, coordinates, power, rotation):
+
+
     def complete(self):
         #code below is not needed anymore
-        '''if (self.gate_circle_loc < 2*math.pi):
-            self.gate_circle_loc += math.pi/100
-            x = math.sin(self.gate_circle_loc)
-            y = math.cos(self.gate_circle_loc)
+        '''if (self.circle_loc < 2*math.pi):
+            self.circle_loc += math.pi/100
+            x = math.sin(self.circle_loc)
+            y = math.cos(self.circle_loc)
             lower_bound = -.33
             upper_bound = .33
 
