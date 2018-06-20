@@ -20,10 +20,7 @@ float feetDepth_read;
 
 //initializations for IMU
 float pitch, yaw, roll, heading;
-bool firstIMUReading;
-float deltat = 0.0f;        // integration interval for both filter schemes
-uint32_t lastUpdate = 0;    // used to calculate integration interval
-uint32_t Now = 0;           // used to calculate integration interval
+// bool firstIMUReading;
 
 int i;
 int PWM_Motors_orient;
@@ -39,8 +36,8 @@ float assignedYaw;
 //Initialize ROS node
 //const float rotationUpperBound = 166.2;
 //const float rotationLowerBound = -193.8;
-const float rotationUpperBound = 179;
-const float rotationLowerBound = -179;
+const float rotationUpperBound = 179.99;
+const float rotationLowerBound = -179.99;
 const float topDepth = 0.5;
 const float bottomDepth = 12;
 const float motorMax = 1700;
@@ -114,14 +111,14 @@ float hControlPower;
 const float base_thrust = 1500;
 
 //base thrust variables to be offset by base_thrust
-// int base_thrust_1 = 1500;
-// int base_thrust_2 = 1500;
-// int base_thrust_3 = 1500;
-// int base_thrust_4 = 1500;
+// int base_thrust_1 = base_thrust;
+// int base_thrust_2 = base_thrust;
+// int base_thrust_3 = base_thrust;
+// int base_thrust_4 = base_thrust;
 
 //time variables
 double elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
-const int loopInterval = 20;
+const int loopInterval = 14;
 
 //the variable error will store the difference between the real_value_angle form IMU and desired_angle of 0 degrees. 
 // float PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
@@ -158,7 +155,7 @@ double kd_depth=1;//0.75;//2.05;//2.05
 double ki_depth=0.0003;//0.003
 ///////////////////////////////////////////////
 
-//double thrust=1500; //initial value of thrust to the thrusters
+//double thrust=base_thrust; //initial value of thrust to the thrusters
 float desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hoover
@@ -169,6 +166,7 @@ float degreeToTurn();
 void rotateRightDynamically();
 void rotateLeftDynamically();
 
+//returns time in milliseconds
 double millis(){
   return ros::WallTime::now().toNSec()*1e-6;
 }
@@ -194,7 +192,7 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
   if(t7 > 0)
     mHorizontal.t7 = t7;
   if(t8 > 0)
-    mHorizontal.t8 = t8 -12;
+    mHorizontal.t8 = t8;
 
 }
 
@@ -207,10 +205,6 @@ void rotationCallback(const ez_async_data::Rotation& rotation){
   yaw = rotation.yaw;
   roll = -rotation.roll;
   pitch = -rotation.pitch;
-  if(firstIMUReading){
-    firstIMUReading = false;
-    assignedYaw = rotation.yaw;
-  }
 }
 
 
@@ -243,10 +237,6 @@ void hControlCallback(const robosub::HControl& hControl) {
       ROS_INFO("Height control is now cancelled\n");
     }
     // ROS_INFO();
-    // char assignedDepthChar[6];
-    // dtostrf(assignedDepth, 4, 2, assignedDepthChar);
-    // char feetDepth_readChar[6];
-    // dtostrf(feetDepth_read, 4, 2, feetDepth_readChar);
     // ROS_INFO("assignedDepth:");
     // ROS_INFO(assignedDepthChar);
     // ROS_INFO("feetDepth_read:");
@@ -283,16 +273,16 @@ void hControlCallback(const robosub::HControl& hControl) {
     assignedDepth = feetDepth_read;
 //    assignedDepth = 0.2;
     subIsReady = false;
-    // T1.writeMicroseconds(1500);
-    // T2.writeMicroseconds(1500);
-    // T3.writeMicroseconds(1500);
-    // T4.writeMicroseconds(1500);
-    // T5.writeMicroseconds(1500);
-    // T6.writeMicroseconds(1500);
-    // T7.writeMicroseconds(1500);
-    // T8.writeMicroseconds(1500);
-    publishMVertical(1500,1500,1500,1500);
-    publishMHorizontal(1500,1500,1500,1500);
+    // T1.writeMicroseconds(base_thrust);
+    // T2.writeMicroseconds(base_thrust);
+    // T3.writeMicroseconds(base_thrust);
+    // T4.writeMicroseconds(base_thrust);
+    // T5.writeMicroseconds(base_thrust);
+    // T6.writeMicroseconds(base_thrust);
+    // T7.writeMicroseconds(base_thrust);
+    // T8.writeMicroseconds(base_thrust);
+    publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
+    publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
   }
   hControlStatus.state = hState;
   hControlStatus.depth = hDepth;
@@ -337,9 +327,9 @@ void rControlCallback(const robosub::RControl& rControl){
       keepTurningLeft = false;
       rControlMode3 = false;
       rControlMode4 = false;
+      assignedYaw = yaw;
       ROS_INFO("Rotation control is now cancelled\n");
     }
-    assignedYaw = yaw;
   }
   else if(rControl.state == 2){
     if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
@@ -408,11 +398,11 @@ void mControlCallback(const robosub::MControl& mControl){
 
   if(mControl.state == 0){
     if(mControlMode1 || mControlMode2|| mControlMode3 || mControlMode4 || mControlMode5){
-      // T6.writeMicroseconds(1500);
-      // T8.writeMicroseconds(1500);
-      // T5.writeMicroseconds(1500);
-      // T7.writeMicroseconds(1500);
-      publishMHorizontal(1500,1500,1500,1500);
+      // T6.writeMicroseconds(base_thrust);
+      // T8.writeMicroseconds(base_thrust);
+      // T5.writeMicroseconds(base_thrust);
+      // T7.writeMicroseconds(base_thrust);
+      publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
       mControlMode1 = false;
       mControlMode2 = false;
       mControlMode3 = false;
@@ -555,7 +545,7 @@ void heightControl(){
 
   timePrev = timeCur;  // the previous time is stored before the actual time read
   timeCur = millis();  // actual time read
-  elapsedTime = (timeCur - timePrev) /1500;      //1500; 
+  elapsedTime = (timeCur - timePrev) /base_thrust;      //base_thrust; 
   
   /*///////////////////////////P I Ds///////////////////////////////////*/
   
@@ -601,15 +591,15 @@ void heightControl(){
   if(PID_depth > hControlPower){PID_depth = hControlPower;}
   
   //Emerging and submerging thruster pwm requirments:
-  /*Submerging: pwmThruster_1 > 1500 
-                pwmThruster_2 < 1500
-                pwmThruster_3 > 1500 
-                pwmThruster_4 < 1500
+  /*Submerging: pwmThruster_1 > base_thrust 
+                pwmThruster_2 < base_thrust
+                pwmThruster_3 > base_thrust 
+                pwmThruster_4 < base_thrust
 
-    Emerging:   pwmThruster_1 < 1500 
-                pwmThruster_2 > 1500
-                pwmThruster_3 < 1500 
-                pwmThruster_4 > 1500         
+    Emerging:   pwmThruster_1 < base_thrust 
+                pwmThruster_2 > base_thrust
+                pwmThruster_3 < base_thrust 
+                pwmThruster_4 > base_thrust         
   */
 
   //emerging                                           
@@ -687,17 +677,17 @@ void rotationControl(){
 
   if(keepTurningLeft){
     // //Turn on left rotation motor with fixed power
-    // T5.writeMicroseconds(1500 + fixedPower);
-    // T7.writeMicroseconds(1500 - fixedPower);
+    // T5.writeMicroseconds(base_thrust + fixedPower);
+    // T7.writeMicroseconds(base_thrust - fixedPower);
     if( ((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-      // T6.writeMicroseconds(1500 + fixedPower);
-      // T8.writeMicroseconds(1500 + fixedPower);
-      publishMHorizontal(-1, 1500 + fixedPower, -1, 1500 + fixedPower);
+      // T6.writeMicroseconds(base_thrust + fixedPower);
+      // T8.writeMicroseconds(base_thrust + fixedPower);
+      publishMHorizontal(-1, base_thrust + fixedPower, -1, base_thrust + fixedPower);
     }
     else{
-      // T5.writeMicroseconds(1500 - fixedPower);
-      // T7.writeMicroseconds(1500 + fixedPower);
-      publishMHorizontal(1500 - fixedPower, -1, 1500 + fixedPower, -1);
+      // T5.writeMicroseconds(base_thrust - fixedPower);
+      // T7.writeMicroseconds(base_thrust + fixedPower);
+      publishMHorizontal(base_thrust - fixedPower, -1, base_thrust + fixedPower, -1);
     }
     assignedYaw = yaw;
 
@@ -711,17 +701,17 @@ void rotationControl(){
   }
   else if(keepTurningRight){
     //Turn on right rotation motor with fixed power
-    // T5.writeMicroseconds(1500 - fixedPower);
-    // T7.writeMicroseconds(1500 + fixedPower);
+    // T5.writeMicroseconds(base_thrust - fixedPower);
+    // T7.writeMicroseconds(base_thrust + fixedPower);
     if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-      // T6.writeMicroseconds(1500 - fixedPower);
-      // T8.writeMicroseconds(1500 - fixedPower);
-      publishMHorizontal(-1, 1500 - fixedPower, -1, 1500 - fixedPower);
+      // T6.writeMicroseconds(base_thrust - fixedPower);
+      // T8.writeMicroseconds(base_thrust - fixedPower);
+      publishMHorizontal(-1, base_thrust - fixedPower, -1, base_thrust - fixedPower);
     }
     else{
-      // T5.writeMicroseconds(1500 + fixedPower);
-      // T7.writeMicroseconds(1500 - fixedPower);
-      publishMHorizontal(1500 + fixedPower, -1, 1500 - fixedPower, -1);
+      // T5.writeMicroseconds(base_thrust + fixedPower);
+      // T7.writeMicroseconds(base_thrust - fixedPower);
+      publishMHorizontal(base_thrust + fixedPower, -1, base_thrust - fixedPower, -1);
     }
     assignedYaw = yaw;
     //Testing----------------------------
@@ -732,8 +722,8 @@ void rotationControl(){
 //    if(yaw < rotationLowerBound)
 //      yaw +=360;
   }
-  // AutoRotation to the assignedYaw with 1 degree error tolerance
-  else if(delta > 2){
+  // AutoRotation to the assignedYaw
+  else if(delta > 0.3){
     if(isTurningRight){
       // ROS_INFO("isTurningRight");
       rotateRightDynamically();
@@ -779,9 +769,19 @@ void rotationControl(){
       isTurningLeft = false;
       ROS_INFO("Assigned rotation reached.\n");
     }
-    // T5.writeMicroseconds(1500);
-    // T7.writeMicroseconds(1500);
-    publishMHorizontal(1500, -1, 1500, -1);
+    // T5.writeMicroseconds(base_thrust);
+    // T7.writeMicroseconds(base_thrust);
+    // publishMHorizontal(base_thrust, -1, base_thrust, -1);
+    if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+    // T6.writeMicroseconds(base_thrust + rotatePower);
+    // T8.writeMicroseconds(base_thrust + rotatePower);
+      publishMHorizontal(-1, base_thrust, -1, base_thrust);
+    }
+    else{
+      // T5.writeMicroseconds(base_thrust - rotatePower);
+      // T7.writeMicroseconds(base_thrust + rotatePower);
+      publishMHorizontal(base_thrust, -1, base_thrust, -1);
+    }
 
     rControlStatus.state = 1;
     rControlStatus.rotation = 0;
@@ -798,33 +798,33 @@ void movementControl(){
 
   if(mControlMode1){
     if(keepMovingForward){
-      // T6.writeMicroseconds(1500 + mControlPowerTemp);
-      // T8.writeMicroseconds(1500 - mControlPowerTemp);
-      publishMHorizontal(-1, 1500 + mControlPowerTemp, -1, 1500 - mControlPowerTemp);
+      // T6.writeMicroseconds(base_thrust + mControlPowerTemp);
+      // T8.writeMicroseconds(base_thrust - mControlPowerTemp);
+      publishMHorizontal(-1, base_thrust + mControlPowerTemp, -1, base_thrust - mControlPowerTemp);
       //Testing-------------------
       positionY += 0.05;
       //ROS_INFO("moving forward...");
     }
     else if(keepMovingRight){
-      // T5.writeMicroseconds(1500 + mControlPowerTemp);
-      // T7.writeMicroseconds(1500 + mControlPowerTemp);
-      publishMHorizontal(1500 + mControlPowerTemp, -1, 1500 + mControlPowerTemp, -1);
+      // T5.writeMicroseconds(base_thrust + mControlPowerTemp);
+      // T7.writeMicroseconds(base_thrust + mControlPowerTemp);
+      publishMHorizontal(base_thrust + mControlPowerTemp, -1, base_thrust + mControlPowerTemp, -1);
       //Testing-------------------
       positionX += 0.05;
       //ROS_INFO("moving right...");
     }
     else if(keepMovingBackward){
-      // T6.writeMicroseconds(1500 - mControlPowerTemp);
-      // T8.writeMicroseconds(1500 + mControlPowerTemp);
-      publishMHorizontal(-1, 1500 - mControlPowerTemp, -1, 1500 + mControlPowerTemp);
+      // T6.writeMicroseconds(base_thrust - mControlPowerTemp);
+      // T8.writeMicroseconds(base_thrust + mControlPowerTemp);
+      publishMHorizontal(-1, base_thrust - mControlPowerTemp, -1, base_thrust + mControlPowerTemp);
       //Testing-------------------
       positionY -= 0.05;
       //ROS_INFO("moving backward...");
     }
     else if(keepMovingLeft){
-      // T5.writeMicroseconds(1500 - mControlPowerTemp);
-      // T7.writeMicroseconds(1500 - mControlPowerTemp);
-      publishMHorizontal(1500 - mControlPowerTemp, -1, 1500 - mControlPowerTemp, -1);
+      // T5.writeMicroseconds(base_thrust - mControlPowerTemp);
+      // T7.writeMicroseconds(base_thrust - mControlPowerTemp);
+      publishMHorizontal(base_thrust - mControlPowerTemp, -1, base_thrust - mControlPowerTemp, -1);
       //Testing-------------------
       positionX -= 0.05;
       //ROS_INFO("moving left...");
@@ -833,9 +833,9 @@ void movementControl(){
   else if(mControlMode5){
     //forward
     if(mControlDirection == 1){
-      // T6.writeMicroseconds(1500 + mControlPowerTemp);
-      // T8.writeMicroseconds(1500 - mControlPowerTemp);
-      publishMHorizontal(-1, 1500 + mControlPowerTemp, -1, 1500 - mControlPowerTemp);
+      // T6.writeMicroseconds(base_thrust + mControlPowerTemp);
+      // T8.writeMicroseconds(base_thrust - mControlPowerTemp);
+      publishMHorizontal(-1, base_thrust + mControlPowerTemp, -1, base_thrust - mControlPowerTemp);
       
       //Testing-------------------
       positionY += 0.05;
@@ -843,27 +843,27 @@ void movementControl(){
     }
     //right
     else if(mControlDirection == 2){
-      // T5.writeMicroseconds(1500 + mControlPowerTemp);
-      // T7.writeMicroseconds(1500 + mControlPowerTemp);
-      publishMHorizontal(1500 + mControlPowerTemp, -1, 1500 + mControlPowerTemp, -1);
+      // T5.writeMicroseconds(base_thrust + mControlPowerTemp);
+      // T7.writeMicroseconds(base_thrust + mControlPowerTemp);
+      publishMHorizontal(base_thrust + mControlPowerTemp, -1, base_thrust + mControlPowerTemp, -1);
       //Testing-------------------
       positionX += 0.05;
       ROS_INFO("moving right...");
     }
     //backward
     else if(mControlDirection == 3){
-      // T6.writeMicroseconds(1500 - mControlPowerTemp);
-      // T8.writeMicroseconds(1500 + mControlPowerTemp);
-      publishMHorizontal(-1, 1500 - mControlPowerTemp, -1, 1500 + mControlPowerTemp);
+      // T6.writeMicroseconds(base_thrust - mControlPowerTemp);
+      // T8.writeMicroseconds(base_thrust + mControlPowerTemp);
+      publishMHorizontal(-1, base_thrust - mControlPowerTemp, -1, base_thrust + mControlPowerTemp);
       //Testing-------------------
       positionY -= 0.05;
       ROS_INFO("moving backward...");
     }
     //left
     else if(mControlDirection == 4){
-      // T5.writeMicroseconds(1500 - mControlPowerTemp);
-      // T7.writeMicroseconds(1500 - mControlPowerTemp);
-      publishMHorizontal(1500 - mControlPowerTemp, -1, 1500 - mControlPowerTemp, -1);
+      // T5.writeMicroseconds(base_thrust - mControlPowerTemp);
+      // T7.writeMicroseconds(base_thrust - mControlPowerTemp);
+      publishMHorizontal(base_thrust - mControlPowerTemp, -1, base_thrust - mControlPowerTemp, -1);
       //Testing-------------------
       positionX -= 0.05;
       ROS_INFO("moving left...");
@@ -873,11 +873,11 @@ void movementControl(){
     // dtostrf(mControlMode5Timer, 4, 2, timerChar);
     // ROS_INFO(timerChar);
     if(mControlMode5Timer >= mControlRunningTime){
-      // T6.writeMicroseconds(1500);
-      // T8.writeMicroseconds(1500);
-      // T5.writeMicroseconds(1500);
-      // T7.writeMicroseconds(1500);
-      publishMHorizontal(1500, 1500, 1500, 1500);
+      // T6.writeMicroseconds(base_thrust);
+      // T8.writeMicroseconds(base_thrust);
+      // T5.writeMicroseconds(base_thrust);
+      // T7.writeMicroseconds(base_thrust);
+      publishMHorizontal(base_thrust, base_thrust, base_thrust, base_thrust);
       mControlMode5 = false;
       ROS_INFO("Mode 5 finished.\n");
     }
@@ -905,13 +905,13 @@ void movementControl(){
 //WHEN I RETURN TO THE ROOM I CAN FIND OUT AND EDIT THIS CODE.
 //  if (yaw < assignedYaw){
 //    //turn on motos to go down
-//    T5.writeMicroseconds(1500 + PWM_Motors);
-//    T7.writeMicroseconds(1500 - PWM_Motors);
+//    T5.writeMicroseconds(base_thrust + PWM_Motors);
+//    T7.writeMicroseconds(base_thrust - PWM_Motors);
 //  }
 //  else if (yaw > assignedYaw){
 //    //turn on motors to go up
-//    T5.writeMicroseconds(1500 - PWM_Motors);
-//    T7.writeMicroseconds(1500 + PWM_Motors);
+//    T5.writeMicroseconds(base_thrust - PWM_Motors);
+//    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
   float rotatePower = PWM_Motors_orient * 4.0;
@@ -919,14 +919,14 @@ void rotateLeftDynamically(){
   if(rotatePower > rControlPower) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-    // T6.writeMicroseconds(1500 + rotatePower);
-    // T8.writeMicroseconds(1500 + rotatePower);
-    publishMHorizontal(-1, 1500 + rotatePower, -1, 1500 + rotatePower);
+    // T6.writeMicroseconds(base_thrust + rotatePower);
+    // T8.writeMicroseconds(base_thrust + rotatePower);
+    publishMHorizontal(-1, base_thrust + rotatePower, -1, base_thrust + rotatePower);
   }
   else{
-    // T5.writeMicroseconds(1500 - rotatePower);
-    // T7.writeMicroseconds(1500 + rotatePower);
-    publishMHorizontal(1500 - rotatePower, -1, 1500 + rotatePower, -1);
+    // T5.writeMicroseconds(base_thrust - rotatePower);
+    // T7.writeMicroseconds(base_thrust + rotatePower);
+    publishMHorizontal(base_thrust - rotatePower, -1, base_thrust + rotatePower, -1);
   }
   // ROS_INFO("rotate left");
   //Testing----------------------------
@@ -941,14 +941,14 @@ void rotateRightDynamically(){
   if(rotatePower > rControlPower) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-    // T6.writeMicroseconds(1500 - rotatePower);
-    // T8.writeMicroseconds(1500 - rotatePower);
-    publishMHorizontal(-1, 1500 - rotatePower, -1, 1500 - rotatePower);
+    // T6.writeMicroseconds(base_thrust - rotatePower);
+    // T8.writeMicroseconds(base_thrust - rotatePower);
+    publishMHorizontal(-1, base_thrust - rotatePower, -1, base_thrust - rotatePower);
   }
   else{
-    // T5.writeMicroseconds(1500 + rotatePower);
-    // T7.writeMicroseconds(1500 - rotatePower);
-    publishMHorizontal(1500 + rotatePower, -1, 1500 - rotatePower, -1);
+    // T5.writeMicroseconds(base_thrust + rotatePower);
+    // T7.writeMicroseconds(base_thrust - rotatePower);
+    publishMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
   }
   // ROS_INFO("rotate right");
   //Testing----------------------------
@@ -973,14 +973,14 @@ void currentDepthCallback(const std_msgs::Float32& currentDepth){
 void setup() {
 
   //setup motor messages
-  mVertical.t1 = 1500;
-  mVertical.t2 = 1500;
-  mVertical.t3 = 1500;
-  mVertical.t4 = 1500;
-  mHorizontal.t5 = 1500;
-  mHorizontal.t6 = 1500;
-  mHorizontal.t7 = 1500;
-  mHorizontal.t8 = 1500;
+  mVertical.t1 = base_thrust;
+  mVertical.t2 = base_thrust;
+  mVertical.t3 = base_thrust;
+  mVertical.t4 = base_thrust;
+  mHorizontal.t5 = base_thrust;
+  mHorizontal.t6 = base_thrust;
+  mHorizontal.t7 = base_thrust;
+  mHorizontal.t8 = base_thrust;
 
   //Initialize ROS variable
   mControlDirection = 0;
@@ -1077,32 +1077,20 @@ void loop() {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // DEBUG
     // assignedYaw = yaw;
+    cout << "assignedYaw: " << assignedYaw << endl;
     
     /////////////////////////////////////////////////////////////////////////////////////////////
     
     if(subIsReady){
       ros::spinOnce();
       heightControl();
-      ros::spinOnce();
       movementControl();
-      ros::spinOnce();
       rotationControl();
       ros::spinOnce();
       publishMotors();
     }
   }
 }
-
-// ros::Publisher hControlPublisher("height_control_status", &hControlStatus);     //int: state, float: depth
-// ros::Publisher rControlPublisher("rotation_control_status", &rControlStatus);   //int: state, float: rotation
-// ros::Publisher mControlPublisher("movement_control_status", &mControlStatus);   //int: state, int: direction, float: distance
-
-// ros::Subscriber<robosub::HControl> hControlSubscriber("height_control", &hControlCallback);   //int: state, float: depth
-// ros::Subscriber<robosub::RControl> rControlSubscriber("rotation_control", &rControlCallback); //int: state, float: rotation
-// ros::Subscriber<robosub::MControl> mControlSubscriber("movement_control", &mControlCallback);
-
-// ros::Subscriber<ez_async_data::Rotation> rotationSubscriber("current_rotation", &rotationCallback);
-
 
 int main(int argc, char **argv){
 
