@@ -132,6 +132,7 @@ class Houston():
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
 
         while not self.state.is_detect_done and not break_loop > self.break_timer:
+
             # _, frame = self.cap.read()
             #if a sample exists run cv
             if self.sample:
@@ -153,9 +154,16 @@ class Houston():
                     # Give the array the correct dimensions of the video image
                     frame = img_array.reshape((height, width, 3))
                     # print(type(frame))
+
+                    self.outraw.write(frame)
+                    self.msg.found, coordinates = self.state.detect(frame)
+                    self.outprocessed.write(frame)
+
+                    self.show_img(frame)
+                    # self.last_reading.append(coordinates)
                 finally:
                     buf.unmap(mapinfo)
-                
+                    
                 self.outraw.write(frame)
                 self.msg.found, coordinates = self.state.detect(frame)
                 self.outprocessed.write(frame)
@@ -190,11 +198,14 @@ class Houston():
                     self.queue_direction = []
                     self.last_time = time.time()
 
+                    if self.msg.found:
+                        self.foundcoord = coordinates
                     break_loop += 1
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 
                 print 'task will stop in 30 secs or press q on 2nd window to quit'
+
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)
 
@@ -202,6 +213,7 @@ class Houston():
         if self.state.is_detect_done:
             self.state_num += 1
 
+        self.foundcoord = None
         self.closePipline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
@@ -236,6 +248,13 @@ class Houston():
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
         self.navigation.stop()
+
+
+    def show_img(self, img):
+        bytebuffer = img.tobytes()
+        self.display_buffers.append(bytebuffer)
+        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
+        self.display_input.emit("push-buffer", new_buf)
 
     def setupPipline(self):
         Gst.init(sys.argv)  # init gstreamer
@@ -302,12 +321,17 @@ class Houston():
         queue.link(convert)
         convert.link(scale)
         scale.link(output)
-
-        # display_pipeline = Gst.parse_launch("appsrc name=src ! videoconvert ! ximagesink")
-        # display_input = display_pipeline.get_by_name("src")
-        # display_input.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
+        
+        # Usually one would use cv2.imgshow(...) to display an image but this is
+        # tends to hang in threaded environments. So we create a small display
+        # pipeline which we could use to display the opencv buffers.
+        display_pipeline = Gst.parse_launch("appsrc name=src ! videoconvert ! ximagesink")
+        self.display_input = display_pipeline.get_by_name("src")
+        self.display_input.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.connect("new-sample", self.callback)
-        # display_pipeline.set_state(Gst.State.PLAYING)  
+
+        self.display_buffers = []
+        display_pipeline.set_state(Gst.State.PLAYING)  
 
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
@@ -315,6 +339,9 @@ class Houston():
         self.outraw.release()
         self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
+        self.display_buffers = []
+        self.last_reading = []
+        self.display_input = None
         self.pipeline = None
         self.sample = None
         cv2.destroyAllWindows()
