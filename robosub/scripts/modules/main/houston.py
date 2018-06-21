@@ -104,9 +104,6 @@ class Houston():
         self.loop = GLib.MainLoop()
         self.thread = None
 
-        self.img = cv2.imread('blank.png',0)
-
-
     def do_task(self):
         
         # self.thread=Thread(target=self.do_gate)
@@ -212,14 +209,14 @@ class Houston():
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 
-                print 'task will stop in 30 secs or press q on 2nd window to quit'
+                print 'task will stop in 30 secs'
 
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)
 
         print("exit loop")
-        if self.state.is_detect_done:
-            self.state_num += 1
+        #if self.state.is_detect_done:
+        #    self.state_num += 1
 
         self.foundcoord = None
         self.closePipline()
@@ -227,9 +224,6 @@ class Houston():
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
         self.state.reset()
-        #TODO will be used to release the cap(videocapture) if needed
-        # must initialize cap again if we plan to use this
-        #cap.release()
     
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
