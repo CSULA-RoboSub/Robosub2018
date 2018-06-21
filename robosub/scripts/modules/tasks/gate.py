@@ -35,6 +35,7 @@ class Gate(Task):
         self.phase_threshold = 150
         self.current_phase = self.phases[self.gate_phase]
         self.pole_rotation = 80
+        self.forward_counter = 0
 
         self.rotation_angle = 15
 
@@ -61,7 +62,9 @@ class Gate(Task):
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
-
+        if self.forward_counter => 2:
+            self.is_detect_done = True
+            
         if found:
             self.found_timer += 1
             gate_maneuver.move_to_gate(navigation, coordinates, power, rotation)
@@ -69,12 +72,14 @@ class Gate(Task):
         elif self.found_timer > self.phase_threshold:
             if not gate_maneuver.start_pole:
                 gate_maneuver.move_forward(navigation, power)
+                self.forward_counter += 1
             else:                
                 gate_maneuver.pole(navigation, power)
             self.found_timer = 0
 
         else:
             gate_maneuver.sweep(navigation, power, rotation)
+        
     
     def complete(self):
         #code below is not needed anymore
