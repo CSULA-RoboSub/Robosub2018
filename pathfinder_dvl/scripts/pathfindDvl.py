@@ -37,7 +37,7 @@ class RunDVL:
 		dvl.write("===") #DVL Break (PathFinder Guide p. 24 and p.99)
 		dvl.write("CR1\r") #set factory defaults.(Pathfinder guide p.67)
 		dvl.write("CP1\r") # required command
-		dvl.write("PD6\r") #pd6 data format (Pathfinder Guide p.207)
+		dvl.write("PD6\r") #pd6 data format (Pathfinder Guide p.207) <---important
 		dvl.write("EX11110\r") #coordinate transformation (Pathfinder guide p.124)
 		dvl.write("EA+4500\r") #heading alignment (Pathfinder guide 118)
 		dvl.write("EZ10000010\r") #sensor source (Pathfinder guide 125)
@@ -68,7 +68,7 @@ class RunDVL:
 		while not rospy.is_shutdown():
 			loopTime = time.time()
 			if self.yaw:
-				heading = self.yaw.pop() #put heading info ** heree from IMU
+				heading = self.yaw.pop()+180 #put heading info ** heree from IMU
 				heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
 				heading = int(heading)
 				if loopTime - headingTimePrev > headingTimeInterval: #needs to wait!***can't update too fast
@@ -81,7 +81,8 @@ class RunDVL:
 					xtrans = float(line[1])
 					ytrans = float(line[2])
 					ztrans = float(line[3])
-					timeDifference = line[4]
+					rangeToBottom = float(line[4])
+					timeDifference = float(line[5])
 					
 				
 				if line[:3] == ":BI": #If the message is a velocity update
