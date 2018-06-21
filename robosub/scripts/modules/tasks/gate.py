@@ -62,7 +62,7 @@ class Gate(Task):
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
-        if self.forward_counter => 2:
+        if self.forward_counter >= 2:
             self.is_detect_done = True
             
         if found:

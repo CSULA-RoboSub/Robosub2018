@@ -15,14 +15,14 @@ class RunDVL:
 	#self.yaw will always only have a length of 1 max to keep most updated
 	def rCallBack(self, rotation):
 		if self.yaw:
-			self.pop()
+			self.yaw.pop()
 		self.yaw.append(rotation.yaw)
 
 	def main(self):
 		# ROS publisher setup
 		pub = rospy.Publisher('dvl_status', DVL)
 		rospy.init_node('dvl_node', anonymous=True)
-		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size=0)
+		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size=1)
 
 		msg = DVL()
 
@@ -35,6 +35,8 @@ class RunDVL:
 		################PATHFINDER DVL COMMANDS TO STREAM DATA#####################
 
 		dvl.write("===") #DVL Break (PathFinder Guide p. 24 and p.99)
+
+		rospy.sleep(2) #sleep for 2 seconds
 		dvl.write("CR1\r") #set factory defaults.(Pathfinder guide p.67)
 		dvl.write("CP1\r") # required command
 		dvl.write("PD6\r") #pd6 data format (Pathfinder Guide p.207) <---important
@@ -66,7 +68,11 @@ class RunDVL:
 		headingTimeInterval = 0.25
 
 		while not rospy.is_shutdown():
-			loopTime = time.time()
+			try:
+				loopTime = time.time()
+			except:
+				print("read fail")
+
 			if self.yaw:
 				heading = self.yaw.pop()+180 #put heading info ** heree from IMU
 				heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
