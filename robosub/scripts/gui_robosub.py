@@ -1,12 +1,6 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'gui.ui'
-#
-# Created by: PyQt5 UI code generator 5.7
-#
-# WARNING! All changes made in this file will be lost!
-
+# TODO refactor to MVC
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -74,9 +68,10 @@ class Ui_MainWindow(object):
         self.right_layout.addLayout(self.mode_selection)
         self.task_selection = QtWidgets.QVBoxLayout()
         self.task_selection.setObjectName("task_selection")
-        self.task0_2 = QtWidgets.QPushButton(self.central_widget)
-        self.task0_2.setObjectName("task0_2")
-        self.task_selection.addWidget(self.task0_2)
+        self.task0 = QtWidgets.QPushButton(self.central_widget)
+
+        self.task0.setObjectName("task0")
+        self.task_selection.addWidget(self.task0)
         self.task1 = QtWidgets.QPushButton(self.central_widget)
         self.task1.setObjectName("task1")
         self.task_selection.addWidget(self.task1)
@@ -98,21 +93,42 @@ class Ui_MainWindow(object):
         self.task7 = QtWidgets.QPushButton(self.central_widget)
         self.task7.setObjectName("task7")
         self.task_selection.addWidget(self.task7)
+
         self.right_layout.addLayout(self.task_selection)
         self.cli_layout = QtWidgets.QVBoxLayout()
         self.cli_layout.setObjectName("cli_layout")
+
         self.cli_display = QtWidgets.QTextBrowser(self.central_widget)
         self.cli_display.setObjectName("cli_display")
+
+        # embed xterm into widget
+        # self.process = QtCore.QProcess(self.central_widget)
+        # self.cli_display = QtWidgets.QWidget(self.central_widget)
+        # self.cli_display.setObjectName("cli_display")
+        # self.process.start('xterm', ['-into', str(self.cli_display.winId())])
+        # print(str(self.cli_display.winId()))
+
         self.cli_layout.addWidget(self.cli_display)
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.central_widget)
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.cli_layout.addWidget(self.lineEdit_2)
+        self.line_edit = QtWidgets.QLineEdit(self.central_widget)
+        self.line_edit.setObjectName("line_edit")
+        self.cli_layout.addWidget(self.line_edit)
         self.right_layout.addLayout(self.cli_layout)
         self.horizontalLayout.addLayout(self.right_layout)
         MainWindow.setCentralWidget(self.central_widget)
 
+        # Connect Signal to Methods
+
         self.retranslateUi(MainWindow)
+        # self.task0.clicked.connect(self.line_edit.paste)
+        # self.task1.clicked.connect(self.line_edit.copy)
+        # self.is_auto_checkbox.stateChanged['int'].connect(self.line_edit.paste)
+        self.line_edit.returnPressed.connect(self.read_line)
+        # self.camera0.clicked.connect(self.display0.update)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+    def read_line(self):
+        self.cli_display.append(self.line_edit.text())
+        self.line_edit.clear()
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -122,7 +138,7 @@ class Ui_MainWindow(object):
         self.camera2.setText(_translate("MainWindow", "camera 2"))
         self.load_default_button.setText(_translate("MainWindow", "Load Default Params"))
         self.is_auto_checkbox.setText(_translate("MainWindow", "Auto mode"))
-        self.task0_2.setText(_translate("MainWindow", "task 0"))
+        self.task0.setText(_translate("MainWindow", "task 0"))
         self.task1.setText(_translate("MainWindow", "task 1"))
         self.task2.setText(_translate("MainWindow", "task 2"))
         self.task3.setText(_translate("MainWindow", "task 3"))
