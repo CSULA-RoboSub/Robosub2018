@@ -1,6 +1,6 @@
 from modules.sensors.computer_vision import GateDetector
 from task import Task
-from task.gate_maneuver import GateManeuver
+from gate_maneuver import GateManeuver
 from modules.controller.cv_controller import CVController
 
 class Gate(Task):
@@ -32,7 +32,7 @@ class Gate(Task):
         self.sweep_direction = {0: 'right', 1: 'left'}
         self.gate_phase = 0
         self.phases = {0: 'move_to_gate', 1: 'move_forward', 2: 'pole', 3: 'move_to_gate', 4: 'move_forward'}
-        self.phase_threshold = 150
+        self.phase_threshold = 50
         self.current_phase = self.phases[self.gate_phase]
         self.pole_rotation = 80
         self.forward_counter = 0
@@ -48,6 +48,7 @@ class Gate(Task):
         self.not_found_timer = 0
         self.found_timer = 0
         self.gate_circle_loc = 0
+        self.forward_counter = 0
         
     def detect(self, frame):
         #add frame when testing complete
@@ -67,19 +68,19 @@ class Gate(Task):
             
         if found:
             self.found_timer += 1
-            gate_maneuver.move_to_gate(navigation, coordinates, power, rotation)
+            self.gate_maneuver.move_to_gate(navigation, coordinates, power, rotation)
 
         elif self.found_timer > self.phase_threshold:
-            if not gate_maneuver.start_pole:
-                gate_maneuver.move_forward(navigation, power)
+            if not self.gate_maneuver.start_pole:
+                self.gate_maneuver.move_forward_method(navigation, power)
                 self.forward_counter += 1
             else:                
-                gate_maneuver.pole(navigation, power)
+                self.gate_maneuver.pole(navigation, power)
             self.found_timer = 0
 
         else:
-            gate_maneuver.sweep(navigation, power, rotation)
-        
+            #self.gate_maneuver.sweep(navigation, power, rotation)
+            pass
     
     def complete(self):
         #code below is not needed anymore

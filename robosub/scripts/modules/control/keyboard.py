@@ -115,22 +115,26 @@ class Keyboard():
             self.navigation.cancel_m_nav()
         elif char == 'w':
             self.navigation.cancel_m_nav()
-            self.navigation.m_nav('power', 'forward', power)
+            # self.navigation.m_nav('power', 'forward', power)
+            self.navigation.m_nav('distance', 'forward', power, 1)
         elif char == 'a':
             self.navigation.cancel_r_nav()
             self.navigation.r_nav('left', rotation, power)
         elif char == 's':
             self.navigation.cancel_m_nav()
-            self.navigation.m_nav('power', 'backward', power)
+            # self.navigation.m_nav('power', 'backward', power)
+            self.navigation.m_nav('distance', 'backward', power, 1)
         elif char == 'd':
             self.navigation.cancel_r_nav()
             self.navigation.r_nav('right', rotation, power)
         elif char == 'q':
             self.navigation.cancel_m_nav()
-            self.navigation.m_nav('power', 'left', power)
+            # self.navigation.m_nav('power', 'left', power)
+            self.navigation.m_nav('distance', 'left', power, 1)
         elif char == 'e':
             self.navigation.cancel_m_nav()
-            self.navigation.m_nav('power', 'right', power)
+            # self.navigation.m_nav('power', 'right', power)
+            self.navigation.m_nav('distance', 'right', power, 1)
         elif char == 'r':
             self.navigation.cancel_h_nav()
             self.navigation.h_nav('up', height, 100)

@@ -118,6 +118,7 @@ ros::Subscriber hControlSubscriber;   //int: state, float: depth
 ros::Subscriber rControlSubscriber; //int: state, float: rotation
 ros::Subscriber mControlSubscriber;
 ros::Subscriber rotationSubscriber;
+ros::Subscriber dvlSubscriber;
 
 //depth control variables
 // int pwm_submerge = 200;
@@ -134,7 +135,7 @@ const float base_thrust = 1500;
 
 //time variables
 double elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
-const int loopInterval = 14;
+const int loopInterval = 20;
 
 //the variable error will store the difference between the real_value_angle form IMU and desired_angle of 0 degrees. 
 // float PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
@@ -166,9 +167,9 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=170;//11;//3.55;//3.55
-double kd_depth=1;//0.75;//2.05;//2.05
-double ki_depth=0.0003;//0.003
+double kp_depth=500;//11;//3.55;//3.55
+double kd_depth=4.1;//0.75;//2.05;//2.05
+double ki_depth=0.003;//0.003
 ///////////////////////////////////////////////
 
 //double thrust=base_thrust; //initial value of thrust to the thrusters
@@ -484,8 +485,8 @@ void mControlCallback(const robosub::MControl& mControl){
   else if(mControl.state == 2){
     if(mControlMode1 || mControlMode2|| mControlMode3 || mControlMode4 || mControlMode5)
       ROS_INFO("Sub is still moving. Command abort.");
-    else if(mControl.mDirection != 1)
-      ROS_INFO("Invalid direction with state 2. Please check the program and try again.\n");
+    // else if(mControl.mDirection != 1)
+    //   ROS_INFO("Invalid direction with state 2. Please check the program and try again.\n");
     else{
       if(mControl.mDirection == 1){
         directionStr = "forward";
@@ -504,7 +505,7 @@ void mControlCallback(const robosub::MControl& mControl){
       // ROS_INFO("away from the target.../n");
       mControlMode2 = true;
       mControlPower = mControl.power;
-      mControlDirection = mControlDirection;
+      mControlDirection = mControl.mDirection;
       mControlDistance = mControl.distance;
       positionXPrev = positionX;
       positionYPrev = positionY;
@@ -765,46 +766,58 @@ void rotationControl(){
   }
   // AutoRotation to the assignedYaw
   else if(delta > rotationError){
+    // cout << "in rotationError delta: " << delta << " assignedYaw: " << assignedYaw << " yaw: " << yaw << endl;
     if(isTurningRight){
       // ROS_INFO("isTurningRight");
+      // cout << "isTurningRight" << endl;
       rotateRightDynamically();
     }
     else if(isTurningLeft){
       // ROS_INFO("isTurningLeft");
+      // cout << "isTurningLeft" << endl;
       rotateLeftDynamically();
     }
     else if(yaw + delta > rotationUpperBound){
       // ROS_INFO("yaw + delta > rotationUpperBound");
       if(yaw - delta == assignedYaw){
         // ROS_INFO("aw - delta == assignedYaw");
+        // cout << "aw - delta == assignedYaw" << endl;
         rotateLeftDynamically();
       }else{
         // ROS_INFO("aw - delta == assignedYaw else");
+        // cout << "aw - delta == assignedYaw else" << endl;
         rotateRightDynamically();
       }
     }
     else if(yaw - delta < rotationLowerBound){
       // ROS_INFO("yaw - delta < rotationUpperBound");
+
+      // cout << "yaw - delta < rotationUpperBound" << endl;
       if(yaw + delta == assignedYaw){
         // ROS_INFO("yaw + delta == assignedYaw");
+        // cout << "yaw + delta == assignedYaw" << endl;
         rotateRightDynamically();
       }
       else{
         // ROS_INFO("yaw + delta == assignedYaw else");
+        // cout << "yaw + delta == assignedYaw else" << endl;
         rotateLeftDynamically();
       }
     }
     else if(yaw < assignedYaw){
       // ROS_INFO("yaw < assignedYaw");
+      // cout << "yaw < assignedYaw" << endl;
       rotateRightDynamically();
     }
     else if(yaw > assignedYaw){
       // ROS_INFO("yaw < assignedYaw else");
+      // cout << "yaw < assignedYaw else" << endl;
       rotateLeftDynamically();
     }
   }
   //No rotation
- if(!keepTurningRight && !keepTurningLeft && !rControlMode3 && !rControlMode4 && delta <= rotationError){
+  else if(!keepTurningRight && !keepTurningLeft && !rControlMode3 && !rControlMode4 && delta <= rotationError){
+    // cout << "in no rotation" << endl;
     if(isTurningRight || isTurningLeft){
       isTurningRight = false;
       isTurningLeft = false;
@@ -816,11 +829,13 @@ void rotationControl(){
     if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     // T6.writeMicroseconds(base_thrust + rotatePower);
     // T8.writeMicroseconds(base_thrust + rotatePower);
+      cout << "base_thrust 6 and 8" << endl;
       publishMHorizontal(-1, base_thrust, -1, base_thrust);
     }
     else{
       // T5.writeMicroseconds(base_thrust - rotatePower);
       // T7.writeMicroseconds(base_thrust + rotatePower);
+      // cout << "base_thrust 5 and 7" << endl;
       publishMHorizontal(base_thrust, -1, base_thrust, -1);
     }
 
@@ -871,13 +886,15 @@ void movementControl(){
       //ROS_INFO("moving left...");
     }
   }
-  if(mControlMode2){
+  else if(mControlMode2){
+    // cout << "in mControlMode2" << endl;
     if(mControlDirection == 1){
       // T6.writeMicroseconds(base_thrust + mControlPowerTemp);
       // T8.writeMicroseconds(base_thrust - mControlPowerTemp);
+      // cout << "in mControlMode2 direction 1" << endl;
       publishMHorizontal(-1, base_thrust + mControlPowerTemp, -1, base_thrust - mControlPowerTemp);
       
-      ROS_INFO("moving forward...");
+      // ROS_INFO("moving forward...");
     }
     //right
     else if(mControlDirection == 2){
@@ -885,7 +902,7 @@ void movementControl(){
       // T7.writeMicroseconds(base_thrust + mControlPowerTemp);
       publishMHorizontal(base_thrust + mControlPowerTemp, -1, base_thrust + mControlPowerTemp, -1);
       
-      ROS_INFO("moving right...");
+      // ROS_INFO("moving right...");
     }
     //backward
     else if(mControlDirection == 3){
@@ -893,7 +910,7 @@ void movementControl(){
       // T8.writeMicroseconds(base_thrust + mControlPowerTemp);
       publishMHorizontal(-1, base_thrust - mControlPowerTemp, -1, base_thrust + mControlPowerTemp);
       
-      ROS_INFO("moving backward...");
+      // ROS_INFO("moving backward...");
     }
     //left
     else if(mControlDirection == 4){
@@ -901,14 +918,15 @@ void movementControl(){
       // T7.writeMicroseconds(base_thrust - mControlPowerTemp);
       publishMHorizontal(base_thrust - mControlPowerTemp, -1, base_thrust - mControlPowerTemp, -1);
       
-      ROS_INFO("moving left...");
+      // ROS_INFO("moving left...");
     }
     double calculatedDistance = 0;
     float l1 = max(positionX, positionXPrev) - min(positionX, positionXPrev);
     float l2 = max(positionY, positionYPrev) - min(positionY, positionYPrev);
     calculatedDistance = sqrt(l1*l1 + l2*l2);
-
-
+    // cout << "calculatedDistance: " << calculatedDistance << " mControlDistance: " << mControlDistance << endl;
+    // cout << "mControlPower: " << mControlPower << endl;
+    
     if(calculatedDistance >= mControlDistance){
       // T6.writeMicroseconds(base_thrust);
       // T8.writeMicroseconds(base_thrust);
@@ -1003,9 +1021,9 @@ void movementControl(){
 //    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 4.0;
+  float rotatePower = PWM_Motors_orient * 5.0;
 
-  if(rotatePower > rControlPower) rotatePower = rControlPower;
+  if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     // T6.writeMicroseconds(base_thrust + rotatePower);
@@ -1025,9 +1043,9 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 4.0;
+  float rotatePower = PWM_Motors_orient * 5.0;
 
-  if(rotatePower > rControlPower) rotatePower = rControlPower;
+  if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     // T6.writeMicroseconds(base_thrust - rotatePower);
@@ -1114,8 +1132,15 @@ void setup() {
   roll = 999;
   pitch = 999;
   yaw = 999;
+  positionXPrev = 0;
+  positionYPrev = 0;
+
   positionX = 0;
   positionY = 0;
+  positionZ = 0;
+  velocityX = 0;
+  velocityY = 0;
+  velocityZ = 0;
 
   assignedDepth = topDepth;
   currentDepth.data = feetDepth_read;
@@ -1166,7 +1191,7 @@ void loop() {
     /////////////////////////////////////////////////////////////////////////////////////////////
     // DEBUG
     // assignedYaw = yaw;
-    cout << "assignedYaw: " << assignedYaw << endl;
+    // cout << "assignedYaw: " << assignedYaw << endl;
     
     /////////////////////////////////////////////////////////////////////////////////////////////
     
@@ -1189,15 +1214,15 @@ int main(int argc, char **argv){
   hControlPublisher = nh.advertise<robosub::HControl>("height_control_status", 100);
   rControlPublisher = nh.advertise<robosub::RControl>("rotation_control_status", 100);
   mControlPublisher = nh.advertise<robosub::MControl>("movement_control_status", 100);
-  mVerticalPublisher = nh.advertise<hardware_interface::MotorVertical>("motor_vertical", 0);
-  mHorizontalPublisher = nh.advertise<hardware_interface::MotorHorizontal>("motor_horizontal", 0);
+  mVerticalPublisher = nh.advertise<hardware_interface::MotorVertical>("motor_vertical", 1);
+  mHorizontalPublisher = nh.advertise<hardware_interface::MotorHorizontal>("motor_horizontal", 1);
 
   currentDepthSubscriber = nh.subscribe("current_depth", 100, currentDepthCallback);
   hControlSubscriber = nh.subscribe("height_control", 100, hControlCallback);
   rControlSubscriber = nh.subscribe("rotation_control", 100, rControlCallback);
   mControlSubscriber = nh.subscribe("movement_control", 100, mControlCallback);
-  rotationSubscriber = nh.subscribe("current_rotation", 0, rotationCallback);
-  rotationSubscriber = nh.subscribe("dvl_status", 0, dvlCallback);
+  rotationSubscriber = nh.subscribe("current_rotation", 1, rotationCallback);
+  dvlSubscriber = nh.subscribe("dvl_status", 1, dvlCallback);
 
   setup();
   while(ros::ok()){
