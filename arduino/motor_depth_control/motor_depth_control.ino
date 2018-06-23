@@ -76,8 +76,8 @@ ros::Subscriber<hardware_interface::MotorHorizontal> mHorizontalSubscriber("moto
 
 float t1Power, t2Power, t3Power, t4Power, t5Power, t6Power, t7Power, t8Power;
 const float motorBase = 1500;
-const float motorMin = motorBase - 200;
-const float motorMax = motorBase + 200;
+const float motorMin = 1300;
+const float motorMax = 1700;
 
 //time variables
 unsigned long loopTime, loopTimePrev;
@@ -115,24 +115,32 @@ void setup() {
   pinMode(REED, INPUT);
 
   //Initialization of LCD 
-  LcdWriteCmd(0x21);                    //LCD extended commands
-  LcdWriteCmd(0xB8);                    //set LCD VOp (contrast)
-  LcdWriteCmd(0x04);                    //set emp coefficent
-  LcdWriteCmd(0x14);                    //LCD bias mode 1:30
-  LcdWriteCmd(0x20);                    //LCD basic commands
-  LcdWriteCmd(0x0C);                    
+ //  LcdWriteCmd(0x21);                    //LCD extended commands
+ //  LcdWriteCmd(0xB8);                    //set LCD VOp (contrast)
+ //  LcdWriteCmd(0x04);                    //set emp coefficent
+ //  LcdWriteCmd(0x14);                    //LCD bias mode 1:30
+ //  LcdWriteCmd(0x20);                    //LCD basic commands
+ //  LcdWriteCmd(0x0C);                    
 
-  for (int i = 0; i < 504; i++) {
-    LcdWriteData(0x00);
-  }
+ //  for (int i = 0; i < 504; i++) {
+ //    LcdWriteData(0x00);
+ //  }
 
- LcdXY(0,0);
- LcdWriteString("Roll: ");
- LcdXY(0,2);
- LcdWriteString("Pitch: ");
- LcdXY(0,4);
- LcdWriteString("Yaw: ");
+ // LcdXY(0,0);
+ // LcdWriteString("Roll: ");
+ // LcdXY(0,2);
+ // LcdWriteString("Pitch: ");
+ // LcdXY(0,4);
+ // LcdWriteString("Yaw: ");
 
+  t1Power = motorBase; 
+  t2Power = motorBase;
+  t3Power = motorBase;
+  t4Power = motorBase;
+  t5Power = motorBase;
+  t6Power = motorBase;
+  t7Power = motorBase;
+  t8Power = motorBase;
  //Pelican Motors activation of motors (initialization of pins to servo motors)
   T1.attach(2); //right front servo
   T1.writeMicroseconds(motorBase);
@@ -150,15 +158,6 @@ void setup() {
   T7.writeMicroseconds(motorBase);
   T8.attach(9); //front left servo
   T8.writeMicroseconds(motorBase);
-
-  t1Power = motorBase; 
-  t2Power = motorBase;
-  t3Power = motorBase;
-  t4Power = motorBase;
-  t5Power = motorBase;
-  t6Power = motorBase;
-  t7Power = motorBase;
-  t8Power = motorBase;
 
   delay(1000);
 
@@ -221,10 +220,10 @@ void loop() {
 
     //Depth
     //Testing----------------------
-    feetDepth_read =  sensor.depth() * 3.28 + 0.23;                                   //1 meter = 3.28 feet
+    feetDepth_read =  sensor.depth() * 3.28 + 2;                                   //1 meter = 3.28 feet
     // dutyCycl_depth = (abs(assignedDepth - feetDepth_read)/ 13.0);              //function to get a percentage of assigned height to the feet read
     // PWM_Motors_Depth = dutyCycl_depth * 400;                                   //PWM for motors are between 1500 - 1900; difference is 400
-
+    nh.spinOnce();
     if(reedVal == LOW){
       writeMotors();
     }else{
@@ -292,36 +291,36 @@ void killSwitch(){
   T8.writeMicroseconds(motorBase);
 }
 
-void LcdWriteString(char *characters){
-  while(*characters) LcdWriteCharacter(*characters++);
-}
+// void LcdWriteString(char *characters){
+//   while(*characters) LcdWriteCharacter(*characters++);
+// }
 
-void LcdWriteCharacter(char character){
-  for (int i = 0; i < 5; i++) 
-  {
-    LcdWriteData(ASCII[character - 0x20][i]);
-  }
-  LcdWriteData(0x00);
-  }
+// void LcdWriteCharacter(char character){
+//   for (int i = 0; i < 5; i++) 
+//   {
+//     LcdWriteData(ASCII[character - 0x20][i]);
+//   }
+//   LcdWriteData(0x00);
+//   }
 
-void LcdWriteData(byte dat)
-{
-  digitalWrite(DC, HIGH);
-  digitalWrite(CE, LOW);
-  shiftOut(DIN, CLK, MSBFIRST, dat);
-  digitalWrite(CE, HIGH);
-}
+// void LcdWriteData(byte dat)
+// {
+//   digitalWrite(DC, HIGH);
+//   digitalWrite(CE, LOW);
+//   shiftOut(DIN, CLK, MSBFIRST, dat);
+//   digitalWrite(CE, HIGH);
+// }
 
-void LcdWriteCmd(byte cmd)
-{
-  digitalWrite(DC, LOW);                 //DC pin is low for commands
-  digitalWrite(CE, LOW);                                
-  shiftOut(DIN, CLK, MSBFIRST, cmd);     //transmit serial data
-  digitalWrite(CE, HIGH);
-}
+// void LcdWriteCmd(byte cmd)
+// {
+//   digitalWrite(DC, LOW);                 //DC pin is low for commands
+//   digitalWrite(CE, LOW);                                
+//   shiftOut(DIN, CLK, MSBFIRST, cmd);     //transmit serial data
+//   digitalWrite(CE, HIGH);
+// }
 
-void LcdXY(int x, int y){
-  LcdWriteCmd(0x80 | x);
-  LcdWriteCmd(0x40 | y);
-}
+// void LcdXY(int x, int y){
+//   LcdWriteCmd(0x80 | x);
+//   LcdWriteCmd(0x40 | y);
+// }
 

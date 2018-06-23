@@ -161,7 +161,7 @@ class Houston():
                     self.msg.found, coordinates = self.state.detect(frame)
                     self.outprocessed.write(frame)
 
-                    self.show_img(frame)
+                    #self.show_img(frame)
                     # self.last_reading.append(coordinates)
                 except KeyboardInterrupt:
                     self.state.is_detect_done = True
@@ -191,7 +191,7 @@ class Houston():
                 #     break
 
                 # will run through whenever at least 1 second has passed
-                if (time.time()-self.last_time > .1):# and not self.msg.found):
+                if (time.time()-self.last_time > 0.1):# and not self.msg.found):
                     most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
                     self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
