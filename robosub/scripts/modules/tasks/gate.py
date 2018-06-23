@@ -1,7 +1,8 @@
 from modules.sensors.computer_vision import GateDetector
 from task import Task
-from task.gate_maneuver import GateManeuver
+from gate_maneuver import GateManeuver
 from modules.controller.cv_controller import CVController
+from modules.sensors.imu.gather_rotation import GetRotation
 
 class Gate(Task):
     
@@ -62,23 +63,24 @@ class Gate(Task):
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
-        if self.forward_counter => 2:
+        if self.forward_counter >= 2:
             self.is_detect_done = True
             
         if found:
             self.found_timer += 1
-            gate_maneuver.move_to_gate(navigation, coordinates, power, rotation)
+            self.gate_maneuver.move_to_gate(navigation, coordinates, power, rotation)
 
         elif self.found_timer > self.phase_threshold:
             if not gate_maneuver.start_pole:
-                gate_maneuver.move_forward(navigation, power)
+                self.gate_maneuver.move_forward_method(navigation, power)
                 self.forward_counter += 1
             else:                
-                gate_maneuver.pole(navigation, power)
+                self.gate_maneuver.pole(navigation, power)
             self.found_timer = 0
 
         else:
-            gate_maneuver.sweep(navigation, power, rotation)
+            self.gate_maneuver.sweep(navigation, power, rotation)
+            print 'sweeping'
         
     
     def complete(self):
