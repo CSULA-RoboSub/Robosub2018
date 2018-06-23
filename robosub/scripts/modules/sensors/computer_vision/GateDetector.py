@@ -11,41 +11,54 @@ class GateDetector:
         self.found =  False;
 #        self.cap = cv2.VideoCapture(0)
         self.preprocess = gp.GatePreprocessor()
-        #self.hog = self.classifier.get_hog() # why - to init? should init in class...
-        #self.lsvm = self.classifier.get_lsvm() # why - same?
-        self.lower = [40,60,60]
-        self.upper = [60,255,255]
         self.directions = [0,0]
         self.isTaskComplete = False
-        #print self.isTaskComplete # python2
-        print(self.isTaskComplete)
-
-#       self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-#        self.out = cv2.VideoWriter('gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
+        self.shapes = {1: "vertical", 2: "horizontal", 3: "sqare"} # so we can change names quicker
+        self.shape_buffer = 15
+        self.shape_list = []
         
-    '''
-    def get_directions(self,x,y,w,h):
-        return utils.get_directions(x,y,w,h)
-    '''
-    
+        #print self.isTaskComplete # python2
+        #print(self.isTaskComplete)
+#       self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#       self.out = cv2.VideoWriter('gate-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (640, 480))
+
+    # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
+    # returns the shape as a string
+    def get_shape(self, roi, buff):
+        x, y, w, h = roi
+        
+        if ( (h >= (w + buff) ) or (h >= (w - buff) )):
+            return self.shapes[1] # vertical
+        else if ( (h <= (w + buff) ) or (h <= (w - buff) )):
+            return self.shapes[2] # horizontal
+        else:
+            return self.shapes[3] # square
+
+    # now returns (found, directions, shape-of-roi, size)
     def detect(self, frame):
-    #     ret, frame = self.cap.read()
         height, width, ch = frame.shape
         center = (width / 2, height / 2)
         regions_of_interest = self.preprocess.get_interest_regions(frame)
-
+        
         for x, y, w, h in regions_of_interest:
             cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+            # have idea to use get_shape here so we classify only squares?
+            # add each to self.shape_list? - good for testing
+            # roi = (x, y, w, h)
+            # self.shape_list.add(roi) or
+            # gate_rois = self.classifier.classify(frame, roi) etc..
 
         #cv2.imshow('frame', frame)
         gate = self.classifier.classify(frame, regions_of_interest)
-
+        
+        gate_shape = self.get_shape(gate, self.shape_buffer)
+        
         if (gate == None):
             self.directions = [0, 0]
             self.found = False
         else:
             x, y, w, h = gate
             cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
-            self.directions = utils.get_directions(center, x, y ,w, h)
+            self.directions = utils.get_directions( center, x, y, w, h )
             self.found = True
-        return self.found, self.directions
+        return self.found, self.directions, gate_shape, (w, h)
