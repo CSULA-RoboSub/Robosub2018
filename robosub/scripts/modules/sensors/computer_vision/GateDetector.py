@@ -25,11 +25,15 @@ class GateDetector:
     # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
     # returns the shape as a string
     def get_shape(self, roi, buff):
-        x, y, w, h = roi
-        
+        print roi
+        if roi == None:
+            return None
+        else:
+            x, y, w, h = roi
+
         if ( (h >= (w + buff) ) or (h >= (w - buff) )):
             return self.shapes[1] # vertical
-        else if ( (h <= (w + buff) ) or (h <= (w - buff) )):
+        elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
             return self.shapes[2] # horizontal
         else:
             return self.shapes[3] # square
@@ -56,6 +60,7 @@ class GateDetector:
         if (gate == None):
             self.directions = [0, 0]
             self.found = False
+            w, h = 0, 0
         else:
             x, y, w, h = gate
             cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)

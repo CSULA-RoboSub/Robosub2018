@@ -170,7 +170,7 @@ class Houston():
                     buf.unmap(mapinfo)
                     
                 self.outraw.write(frame)
-                self.msg.found, coordinates = self.state.detect(frame)
+                self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
                 self.outprocessed.write(frame)
 
                 self.queue_direction.append(coordinates)

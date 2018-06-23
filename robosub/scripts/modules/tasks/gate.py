@@ -56,8 +56,7 @@ class Gate(Task):
         if not self.detectgate:
             self.detectgate = GateDetector.GateDetector()
 
-        found, gate_coordinates = self.detectgate.detect(frame)
-        return found, gate_coordinates
+        return self.detectgate.detect(frame)
     
     def navigate(self, navigation, found, coordinates, power, rotation):
         ''' to clear previous navigation commands'''
