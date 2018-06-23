@@ -1,6 +1,7 @@
 from misc.getch import _Getch
 from modules.control.navigation import Navigation
 from modules.control.waypoint import Waypoint
+from threading import Thread
 
 class Keyboard():
     """Navigate the robosub using keyboard controls
@@ -27,7 +28,10 @@ class Keyboard():
         self.navigation = Navigation()
         self.waypoint = Waypoint()
         self.h_power = 100
-
+        self.m_power = 100
+        self.r_power = 100
+        self.thread_w = None
+        self.exit = False
     def getch(self):
         """Gets keyboard input if killswitch is plugged in"""
 
@@ -35,9 +39,9 @@ class Keyboard():
         accepted = ['w', 'a', 's', 'd', 'q', 'e', 'r', 'f', '`']
         response = ''
         char = 0
-        power = self.multiplier
         rotation = self.r_multiplier
         height = 0.0
+        self.exit = False
         if self.is_killswitch_on:
             print(
                 '\
@@ -56,29 +60,33 @@ class Keyboard():
                 \nh: set height\
                 \ng: record waypoint\
                 \nt: go to last waypoint\
+                \np: run through all waypoints\
                 \nx: exit')
 
             while char != 'x':
                 char = getch()
 
                 if char in accepted:
-                    self.navigate(char, power, rotation, height)
+                    self.navigate(char, rotation, height)
                 elif char.isdigit():
                     if char == '0':
-                        power = int(10) * self.multiplier
+                        self.m_power = int(10) * self.multiplier
+                        self.r_power = self.m_power
                         rotation = int(10) * self.r_multiplier
                     else:
-                        power = int(char) * self.multiplier
+                        self.m_power = int(char) * self.multiplier
+                        self.r_power = self.m_power
                         rotation = int(char) * self.r_multiplier
 
-                    print('power: %d rotation: %.2f degrees' % (power, rotation))
+                    print('power: %d rotation: %.2f degrees' % (self.m_power, rotation))
                 elif char == 'c':
                     while not response.isdigit() or int(response) < 0 or int(response) > 400:
                         response = raw_input('\nEnter a custom power value [0-400]: ')
 
-                    power = int(response)
+                    self.m_power = int(response)
+                    self.r_power = self.m_power
                     response = ''
-                    print('power: %d' % power)
+                    print('power: %d' % self.m_power)
                 elif char == 'v':
                     while True:
                         try:
@@ -116,39 +124,58 @@ class Keyboard():
                         last_x, last_y, last_depth = self.waypoint.pop()
                         direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
                         direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
-                        self.navigation.go_waypoint(direction_r, degree_r, power, direction_h, distance_h, self.h_power, distance_m, power)
+                        self.navigation.go_waypoint(direction_r, degree_r, self.r_power, direction_h, distance_h, self.h_power, distance_m, self.m_power)
+                elif char == 'p':
+                    self.thread_w=Thread(target=self.run_all_waypoints)
+                    self.thread_w.start()
+            self.exit = True
         else:
             print('Magnet is not plugged in.')
 
-    def navigate(self, char, power, rotation, height):
+    def run_all_waypoints(self):
+        print('\nwaiting 4 seconds')
+        self.navigation.ros_sleep(4)
+        print('\nrunning waypoints...')
+        while not self.waypoint.is_empty() and not self.exit:
+            if not self.navigation.is_running_waypoint():
+                print('\nrunning a waypoint')
+                #travel to waypoint at top of stack if not running one
+                last_x, last_y, last_depth = self.waypoint.pop()
+                direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
+                direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
+                self.navigation.go_waypoint(direction_r, degree_r, self.r_power, direction_h, distance_h, self.h_power, distance_m, self.m_power)
+        print('\nfinished running all waypoints')
+
+
+    def navigate(self, char, rotation, height):
         """Navigates robosub with given character input and power"""
 
         if char == '`':
             self.navigation.cancel_h_nav(self.h_power)
-            self.navigation.cancel_r_nav()
-            self.navigation.cancel_m_nav()
+            self.navigation.cancel_r_nav(self.r_power)
+            self.navigation.cancel_m_nav(self.m_power)
         elif char == 'w':
             self.navigation.cancel_m_nav()
             # self.navigation.m_nav('power', 'forward', power)
-            self.navigation.m_nav('distance', 'forward', power, 1)
+            self.navigation.m_nav('distance', 'forward', self.m_power, 1)
         elif char == 'a':
             self.navigation.cancel_r_nav()
-            self.navigation.r_nav('left', rotation, power)
+            self.navigation.r_nav('left', rotation, self.r_power)
         elif char == 's':
             self.navigation.cancel_m_nav()
             # self.navigation.m_nav('power', 'backward', power)
-            self.navigation.m_nav('distance', 'backward', power, 1)
+            self.navigation.m_nav('distance', 'backward', self.m_power, 1)
         elif char == 'd':
             self.navigation.cancel_r_nav()
-            self.navigation.r_nav('right', rotation, power)
+            self.navigation.r_nav('right', rotation, self.r_power)
         elif char == 'q':
             self.navigation.cancel_m_nav()
             # self.navigation.m_nav('power', 'left', power)
-            self.navigation.m_nav('distance', 'left', power, 1)
+            self.navigation.m_nav('distance', 'left', self.m_power, 1)
         elif char == 'e':
             self.navigation.cancel_m_nav()
             # self.navigation.m_nav('power', 'right', power)
-            self.navigation.m_nav('distance', 'right', power, 1)
+            self.navigation.m_nav('distance', 'right', self.m_power, 1)
         elif char == 'r':
             self.navigation.cancel_h_nav(self.h_power)
             self.navigation.h_nav('up', height, self.h_power)

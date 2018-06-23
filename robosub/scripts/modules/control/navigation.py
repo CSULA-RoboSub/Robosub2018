@@ -3,6 +3,7 @@ import rospy
 from robosub.msg import HControl
 from robosub.msg import RControl
 from robosub.msg import MControl
+import math
 
 
 class Navigation():
@@ -19,8 +20,8 @@ class Navigation():
         self.pub_m_nav = rospy.Publisher('movement_control', MControl, queue_size=100)
 
         # rospy.init_node('navigation_node', anonymous=True)
-        rospy.Subscriber('rotation_control_status', RControl, self.rCallBack, queue_size=100)
-
+        rospy.Subscriber('rotation_control_status', RControl, self.r_callback, queue_size=100)
+        rospy.Subscriber('movement_control_status', MControl, self.m_callback, queue_size=100)
         self.h_control = HControl()
         self.r_control = RControl()
         self.m_control = MControl()
@@ -80,9 +81,12 @@ class Navigation():
 
         self.runningTime = None  # runningTime (time for the motor to turn on)
 
-        self.is_running_waypoint = False
+        self.is_running_waypoint_rotation = False
+        self.is_running_waypoint_movement = False
+        self.is_busy_waypoint = False
         self.w_distance_m = 0
         self.w_power_m = 100
+        self.movement_state = 0
     def set_h_nav(self, hState, depth, hPower):
         """
         hState -- 'down': 0, 'staying': 1, 'up': 2
@@ -250,21 +254,53 @@ class Navigation():
         rospy.Rate(hz)
 
 
-    def rCallBack(self, rotation_status):
+    def r_callback(self, rotation_status):
         # print(rotation_status)
-        if self.is_running_waypoint:
+        if self.is_running_waypoint_rotation and self.is_busy_waypoint:
             if rotation_status.state == 1:
-                # print('waypoint rotation rCallBack')
-                self.is_running_waypoint = False
+                # print('waypoint rotation r_callback')
+                self.is_running_waypoint_movement = True
                 self.m_nav('distance', 'forward', self.w_power_m, self.w_distance_m)
+                self.is_running_waypoint_rotation = False
+                self.movement_state = 1
+                # print(self.w_distance_m)
+
+    def m_callback(self, movement_status):
+        # print(rotation_status)
+        if self.is_running_waypoint_movement and not self.is_running_waypoint_rotation and self.is_busy_waypoint:
+            # print('movement_status: ')
+            # print(self.movement_state)
+            # print(movement_status.distance)
+            # print(self.w_distance_m)
+            if movement_status.state == 0 and self.movement_state == 1 and abs(movement_status.distance - self.w_distance_m) < 0.001:
+                print('in state 1')
+                self.m_nav('motor_time', 'backward', self.w_power_m, 2.5)
+                self.movement_state = 2
+            elif movement_status.state == 0 and self.movement_state == 2:
+                print('in state 2')
+                # print('waypoint rotation r_callback')
+                self.is_running_waypoint_movement = False
+                self.is_busy_waypoint = False
+                self.movement_state = 0
+
 
     def go_waypoint(self, direction_r, degree_r, power_r, direction_h, distance_h, power_h, distance_m, power_m):
         # if not direction or not degree or not distance or not depth or not power or not h_power:
         #     return
+        if self.is_busy_waypoint:
+            return
+        self.is_busy_waypoint = True
+        self.cancel_r_nav()
+        self.cancel_h_nav()
+        self.cancel_m_nav()
+        self.movement_state = 0
 
         print('going to waypoint')
-        self.is_running_waypoint = True
+        self.is_running_waypoint_rotation = True
         self.r_nav(direction_r, degree_r, power_r)
         self.h_nav(direction_h, distance_h, power_h)
         self.w_distance_m = distance_m
         self.w_power_m = power_m
+
+    def is_running_waypoint(self):
+        return self.is_busy_waypoint

@@ -56,7 +56,7 @@ float mControlPower;
 float rControlPower;
 float mControlDistance;
 float mControlRunningTime;
-float mControlMode5Timer;
+double mControlMode5Timer;
 // float frontCamForwardDistance;
 // float frontCamHorizontalDistance;
 // float frontCamVerticalDistance;
@@ -176,7 +176,7 @@ double ki_depth=0.003;//0.003
 float desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hoover
-float threshold = 0.1;
+float threshold = 0.3;
 ///////////////////////////////////////////////
 
 float degreeToTurn();
@@ -185,7 +185,7 @@ void rotateLeftDynamically();
 
 //returns time in milliseconds
 double millis(){
-  return ros::WallTime::now().toNSec()*1e-6;
+  return ros::WallTime::now().toNSec()/1000000;
 }
 
 //pass in -1 to ignore that motor
@@ -241,6 +241,9 @@ void hControlCallback(const robosub::HControl& hControl) {
   // char depthChar[6];
   // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
+  hControlStatus.state = hState;
+  hControlStatus.depth = feetDepth_read;
+  hControlStatus.power = hControlPower;
 
   if(hControl.state == 0){
     if(!isGoingUp && !isGoingDown){
@@ -261,6 +264,7 @@ void hControlCallback(const robosub::HControl& hControl) {
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
+      hControlPublisher.publish(hControlStatus);
     }
     // ROS_INFO();
     // ROS_INFO("assignedDepth:");
@@ -310,10 +314,6 @@ void hControlCallback(const robosub::HControl& hControl) {
     publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
     publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
   }
-  hControlStatus.state = hState;
-  hControlStatus.depth = hDepth;
-  hControlStatus.power = hControlPower;
-  hControlPublisher.publish(hControlStatus);
 
 }
 
@@ -324,6 +324,9 @@ void rControlCallback(const robosub::RControl& rControl){
   // char rotationChar[11];
   // dtostrf(rotation, 4, 2, rotationChar);
   rControlPower = rControl.power;
+  rControlStatus.state = rControl.state;
+  rControlStatus.rotation = rControl.rotation;
+  rControlStatus.power = rControlPower;
 
   if(rControl.state == 0){
     if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
@@ -418,12 +421,11 @@ void mControlCallback(const robosub::MControl& mControl){
   float mode5Time = mControl.runningTime;
 
   string directionStr;
-  // char powerChar[11];
-  // char distanceChar[11];
-  // char timeChar[11];
-  // dtostrf(power, 4, 2, powerChar);
-  // dtostrf(distance, 4, 2, distanceChar);
-  // dtostrf(mode5Time, 4, 2, timeChar);
+  mControlStatus.state = mControl.state;
+  mControlStatus.mDirection = mControl.mDirection;
+  mControlStatus.power = mControl.power;
+  mControlStatus.distance = mControl.distance;
+  mControlStatus.runningTime = mControl.runningTime;
 
 
   if(mControl.state == 0){
@@ -443,6 +445,7 @@ void mControlCallback(const robosub::MControl& mControl){
       keepMovingBackward = false;
       keepMovingLeft = false;
       ROS_INFO("Movement control is now cancelled\n");
+      mControlPublisher.publish(mControlStatus);
     }
     mControlDirection = 0;
     mControlPower = 0;
@@ -559,7 +562,7 @@ void mControlCallback(const robosub::MControl& mControl){
         directionStr = "left";
       }
 
-      directionStr = "Moving " + directionStr + " with power...";
+      directionStr = "Moving " + directionStr + " with time...";
       ROS_INFO("%s", directionStr.c_str());
       // ROS_INFO(powerChar);
       // ROS_INFO("for...");
@@ -567,7 +570,6 @@ void mControlCallback(const robosub::MControl& mControl){
       // ROS_INFO("seconds...\n");
 
       mControlMode5 = true;
-      mControlMode5Timer = 0;
       mControlDirection = mControl.mDirection;
       mControlPower = mControl.power;
       mControlRunningTime = mControl.runningTime;
@@ -575,12 +577,6 @@ void mControlCallback(const robosub::MControl& mControl){
       mControlDistance = 0;
     }
   }
-  mControlStatus.state = mControl.state;
-  mControlStatus.mDirection = mControl.mDirection;
-  mControlStatus.power = mControl.power;
-  mControlStatus.distance = mControl.distance;
-  mControlStatus.runningTime = mControl.runningTime;
-  mControlPublisher.publish(mControlStatus);
 
 }
 
@@ -982,7 +978,8 @@ void movementControl(){
     // char timerChar[11];
     // dtostrf(mControlMode5Timer, 4, 2, timerChar);
     // ROS_INFO(timerChar);
-    if((loopTime - mControlMode5Timer) >= (mControlRunningTime*1000)){
+    // cout << "loopTime - mControlMode5Timer: " << (loopTime - mControlMode5Timer) << " mControlRunningTime: " << mControlRunningTime << endl;
+    if((loopTime - mControlMode5Timer) > (mControlRunningTime*1000)){
       // T6.writeMicroseconds(base_thrust);
       // T8.writeMicroseconds(base_thrust);
       // T5.writeMicroseconds(base_thrust);
@@ -992,19 +989,20 @@ void movementControl(){
       ROS_INFO("Mode 5 finished.\n");
     }
   }
-  else{
+
+  if((!mControlMode1 && !mControlMode2 && !mControlMode5) ){
     centerTimer = 0;
     // movementTimer = 0;
     mControlMode5Timer = 0;
     mControlDirection = 0;
     mControlRunningTime = 0;
     mControlPower = 0;
-    mControlDistance = 0;
     mControlStatus.state = 0;
     mControlStatus.mDirection = 0;
     mControlStatus.power = 0;
-    mControlStatus.distance = 0;
+    mControlStatus.distance = mControlDistance;
     mControlStatus.runningTime = 0;
+    mControlDistance = 0;
     mControlPublisher.publish(mControlStatus);
   }
 
@@ -1024,7 +1022,7 @@ void movementControl(){
 //    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 5.0;
+  float rotatePower = PWM_Motors_orient * 6.5;
 
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1046,7 +1044,7 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 5.0;
+  float rotatePower = PWM_Motors_orient * 6.5;
 
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;

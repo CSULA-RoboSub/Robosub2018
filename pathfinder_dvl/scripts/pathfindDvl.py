@@ -14,7 +14,7 @@ class RunDVL:
 
 	#self.yaw will always only have a length of 1 max to keep most updated
 	def rCallBack(self, rotation):
-		if self.yaw:
+		if len(self.yaw) >= 1:
 			self.yaw.pop()
 		self.yaw.append(rotation.yaw)
 
@@ -29,8 +29,8 @@ class RunDVL:
 		#########################INITALIZE DVL SERIAL################################
 
 		#dvl = serial.Serial("COM13", 115200) #Windows Serial
-		dvl = serial.Serial("/dev/ttyUSB0", 115200) #Ubuntu Serial
-		# dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
+		# dvl = serial.Serial("/dev/ttyUSB0", 115200) #Ubuntu Serial
+		dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
 
 
 		################PATHFINDER DVL COMMANDS TO STREAM DATA#####################
@@ -74,7 +74,7 @@ class RunDVL:
 			except:
 				print("read fail")
 
-			if self.yaw:
+			if len(self.yaw) >= 1:
 				heading = self.yaw.pop()+180 #put heading info ** heree from IMU
 				heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
 				heading = int(heading)
