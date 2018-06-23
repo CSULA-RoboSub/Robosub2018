@@ -90,7 +90,7 @@ class Houston():
 
         #self.rotational_movement = {-1: }
         self.height = 1
-        self.break_timer = 30
+        self.break_timer = 300
 
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
@@ -191,7 +191,7 @@ class Houston():
                 #     break
 
                 # will run through whenever at least 1 second has passed
-                if (time.time()-self.last_time > 1):# and not self.msg.found):
+                if (time.time()-self.last_time > .1):# and not self.msg.found):
                     most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
                     self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
@@ -209,7 +209,7 @@ class Houston():
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 
-                print 'task will stop in 30 secs'
+                print 'task will stop in 300'
 
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)

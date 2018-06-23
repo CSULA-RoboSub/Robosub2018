@@ -63,8 +63,6 @@ class Gate(Task):
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
-        if self.forward_counter >= 2:
-            self.is_detect_done = True
             
         if found:
             self.found_timer += 1
@@ -80,7 +78,7 @@ class Gate(Task):
 
         else:
             self.gate_maneuver.sweep(navigation, power, rotation)
-            print 'sweeping'
+
         
     
     def complete(self):

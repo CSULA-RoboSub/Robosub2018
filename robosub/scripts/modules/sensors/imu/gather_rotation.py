@@ -23,7 +23,7 @@ class GetRotation():
         return self.rotation.pitch
     
     def get_roll(self):
-        return self.rotation.yaw
+        return self.rotation.roll
 
     def reset(self):
         self.rotation = 0
