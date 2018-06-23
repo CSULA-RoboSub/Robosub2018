@@ -29,7 +29,8 @@ class RunDVL:
 		#########################INITALIZE DVL SERIAL################################
 
 		#dvl = serial.Serial("COM13", 115200) #Windows Serial
-		dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
+		dvl = serial.Serial("/dev/ttyUSB0", 115200) #Ubuntu Serial
+		# dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
 
 
 		################PATHFINDER DVL COMMANDS TO STREAM DATA#####################
@@ -112,8 +113,8 @@ class RunDVL:
 					#setup msg to be published to ROS
 					msg.xpos = east_trans
 					msg.xvel = east_vel
-					msg.ypos = north_trans
-					msg.yvel = north_vel
+					msg.ypos = -north_trans
+					msg.yvel = -north_vel
 					msg.zpos = depth_trans
 					msg.zvel = depth_vel
 					pub.publish(msg)

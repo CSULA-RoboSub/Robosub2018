@@ -108,6 +108,7 @@ class Keyboard():
                 elif char == 'g':
                     #record waypoint
                     cur_x, cur_y, cur_depth = self.waypoint.get_position()
+                    print('pushed (x,y,depth): %.2f, %.2f, %.2f' %(cur_x,cur_y,cur_depth))
                     self.waypoint.push(cur_x, cur_y, cur_depth)
                 elif char == 't':
                     #travel to last waypoint
@@ -115,7 +116,7 @@ class Keyboard():
                         last_x, last_y, last_depth = self.waypoint.pop()
                         direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
                         direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
-                        self.navigation.go_waypoint(direction_r, degree_r, distance_r, power, direction_h, distance_h, self.h_power, distance_m, power)
+                        self.navigation.go_waypoint(direction_r, degree_r, power, direction_h, distance_h, self.h_power, distance_m, power)
         else:
             print('Magnet is not plugged in.')
 

@@ -19,7 +19,7 @@ class Navigation():
         self.pub_m_nav = rospy.Publisher('movement_control', MControl, queue_size=100)
 
         # rospy.init_node('navigation_node', anonymous=True)
-        rospy.Subscriber('current_rotation_status', RControl, self.rCallBack, queue_size=100)
+        rospy.Subscriber('rotation_control_status', RControl, self.rCallBack, queue_size=100)
 
         self.h_control = HControl()
         self.r_control = RControl()
@@ -251,14 +251,16 @@ class Navigation():
 
 
     def rCallBack(self, rotation_status):
+        # print(rotation_status)
         if self.is_running_waypoint:
             if rotation_status.state == 1:
+                # print('waypoint rotation rCallBack')
                 self.is_running_waypoint = False
                 self.m_nav('distance', 'forward', self.w_power_m, self.w_distance_m)
 
-    def go_waypoint(self, direction_r, degree_r, distance_r, power_r, direction_h, distance_h, power_h, distance_m, power_m):
-        if not direction or not degree or not distance or not depth or not power or not h_power:
-            return
+    def go_waypoint(self, direction_r, degree_r, power_r, direction_h, distance_h, power_h, distance_m, power_m):
+        # if not direction or not degree or not distance or not depth or not power or not h_power:
+        #     return
 
         print('going to waypoint')
         self.is_running_waypoint = True

@@ -31,6 +31,7 @@ class Waypoint():
 	def rotation_callback(self, rotation_msg):
 		#yaw value from imu will be +- 180 deg, so add 180 to match dvl 0-360
 		self.yaw = rotation_msg.yaw + 180
+		# print('current yaw: %.2f' % self.yaw)
 
 	def depth_callback(self, depth):
 		#currently in feet
@@ -90,7 +91,7 @@ class Waypoint():
 
 		return None, None, None
 
-	def get_depth_direction(self, new_depth):
+	def get_depth_directions(self, new_depth):
 		direction_val = new_depth - self.depth
 		if direction_val > 0:
 			direction = 'down'
@@ -110,7 +111,7 @@ class Waypoint():
 		x1 = self.dvl_msg.xpos
 		y1 = self.dvl_msg.ypos
 
-		direction_degree = np.arctan2(y2-y1, x2-x1) * 180 / np.pi
+		direction_degree = math.atan2(y2-y1, x2-x1) * 180 / np.pi
 		dvl_yaw = 0
 
 		#convert to degrees dvl uses
@@ -118,7 +119,8 @@ class Waypoint():
 			dvl_yaw = 360-direction_degree
 		else:
 			dvl_yaw = -direction_degree
-
+		print('dvl_yaw: %.2f' %(dvl_yaw))
+		print('current_yaw %.2f' %self.yaw)
 		yaw_diff = dvl_yaw - self.yaw
 
 		l1 = max(x1,x2) - min(x1,x2)
