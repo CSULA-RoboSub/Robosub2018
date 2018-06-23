@@ -355,6 +355,10 @@ void rControlCallback(const robosub::RControl& rControl){
       rControlMode4 = false;
       assignedYaw = yaw;
       ROS_INFO("Rotation control is now cancelled\n");
+      rControlStatus.state = 1;
+      rControlStatus.rotation = 0;
+      rControlStatus.power = rControlPower;
+      rControlPublisher.publish(rControlStatus);
     }
   }
   else if(rControl.state == 2){
@@ -396,10 +400,10 @@ void rControlCallback(const robosub::RControl& rControl){
       ROS_INFO("Sub is still rotating.Command abort.");
     
   }
-  rControlStatus.state = rControl.state;
-  rControlStatus.rotation = rControl.rotation;
-  rControlStatus.power = rControlPower;
-  rControlPublisher.publish(rControlStatus);
+  // rControlStatus.state = rControl.state;
+  // rControlStatus.rotation = rControl.rotation;
+  // rControlStatus.power = rControlPower;
+  // rControlPublisher.publish(rControlStatus);
 
 }
 
@@ -822,6 +826,10 @@ void rotationControl(){
       isTurningRight = false;
       isTurningLeft = false;
       ROS_INFO("Assigned rotation reached.\n");
+      rControlStatus.state = 1;
+      rControlStatus.rotation = 0;
+      rControlStatus.power = rControlPower;
+      rControlPublisher.publish(rControlStatus);
     }
     // T5.writeMicroseconds(base_thrust);
     // T7.writeMicroseconds(base_thrust);
@@ -829,7 +837,7 @@ void rotationControl(){
     if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     // T6.writeMicroseconds(base_thrust + rotatePower);
     // T8.writeMicroseconds(base_thrust + rotatePower);
-      cout << "base_thrust 6 and 8" << endl;
+      // cout << "base_thrust 6 and 8" << endl;
       publishMHorizontal(-1, base_thrust, -1, base_thrust);
     }
     else{
@@ -838,11 +846,6 @@ void rotationControl(){
       // cout << "base_thrust 5 and 7" << endl;
       publishMHorizontal(base_thrust, -1, base_thrust, -1);
     }
-
-    rControlStatus.state = 1;
-    rControlStatus.rotation = 0;
-    rControlStatus.power = rControlPower;
-    rControlPublisher.publish(rControlStatus);
   }
 
 }

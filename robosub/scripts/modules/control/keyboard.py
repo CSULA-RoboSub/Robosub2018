@@ -1,6 +1,6 @@
 from misc.getch import _Getch
 from modules.control.navigation import Navigation
-
+from modules.control.waypoint import Waypoint
 
 class Keyboard():
     """Navigate the robosub using keyboard controls
@@ -25,6 +25,8 @@ class Keyboard():
         self.multiplier = 40
         self.r_multiplier = 18.0
         self.navigation = Navigation()
+        self.waypoint = Waypoint()
+        self.h_power = 100
 
     def getch(self):
         """Gets keyboard input if killswitch is plugged in"""
@@ -36,7 +38,6 @@ class Keyboard():
         power = self.multiplier
         rotation = self.r_multiplier
         height = 0.0
-
         if self.is_killswitch_on:
             print(
                 '\
@@ -53,6 +54,8 @@ class Keyboard():
                 \nc: custom power\
                 \nv: custom rotation\
                 \nh: set height\
+                \ng: record waypoint\
+                \nt: go to last waypoint\
                 \nx: exit')
 
             while char != 'x':
@@ -102,7 +105,17 @@ class Keyboard():
 
                     response = ''
                     print('height: %.2f' % height)
-
+                elif char == 'g':
+                    #record waypoint
+                    cur_x, cur_y, cur_depth = self.waypoint.get_position()
+                    self.waypoint.push(cur_x, cur_y, cur_depth)
+                elif char == 't':
+                    #travel to last waypoint
+                    if not self.waypoint.is_empty():
+                        last_x, last_y, last_depth = self.waypoint.pop()
+                        direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
+                        direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
+                        self.navigation.go_waypoint(direction_r, degree_r, distance_r, power, direction_h, distance_h, self.h_power, distance_m, power)
         else:
             print('Magnet is not plugged in.')
 
@@ -110,7 +123,7 @@ class Keyboard():
         """Navigates robosub with given character input and power"""
 
         if char == '`':
-            self.navigation.cancel_h_nav()
+            self.navigation.cancel_h_nav(self.h_power)
             self.navigation.cancel_r_nav()
             self.navigation.cancel_m_nav()
         elif char == 'w':
@@ -136,11 +149,11 @@ class Keyboard():
             # self.navigation.m_nav('power', 'right', power)
             self.navigation.m_nav('distance', 'right', power, 1)
         elif char == 'r':
-            self.navigation.cancel_h_nav()
-            self.navigation.h_nav('up', height, 100)
+            self.navigation.cancel_h_nav(self.h_power)
+            self.navigation.h_nav('up', height, self.h_power)
         elif char == 'f':
-            self.navigation.cancel_h_nav()
-            self.navigation.h_nav('down', height, 100)
+            self.navigation.cancel_h_nav(self.h_power)
+            self.navigation.h_nav('down', height, self.h_power)
 
     def start(self):
         """Allows keyboard navigation when killswitch is plugged in"""

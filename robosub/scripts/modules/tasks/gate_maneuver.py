@@ -13,9 +13,10 @@ class GateManeuver():
         self.depth = -1
         self.sweep_counter = 0
         self.sweep_direction = {0: 'right', 1: 'left'}
+        self.h_power = 100
 
     def move_to_gate(self, navigation, coordinates, power, rotation):
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, 100)
+        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, h_power)
         navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
         navigation.m_nav('power', self.move_forward, power)
 

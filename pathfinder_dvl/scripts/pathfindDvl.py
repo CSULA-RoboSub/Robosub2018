@@ -53,12 +53,12 @@ class RunDVL:
 		print "dvl start"
 		heading = 0 
 		dvlHeading = 0
-		xtrans = 0
-		ytrans = 0
-		ztrans = 0
-		xvel = 0
-		yvel = 0
-		zvel = 0
+		east_trans = 0
+		north_trans = 0
+		depth_trans = 0
+		east_vel = 0
+		north_vel = 0
+		depth_vel = 0
 		status = 0
 
 		loopTime = time.time()
@@ -84,18 +84,18 @@ class RunDVL:
 				line = dvl.readline()
 				if line[:3] == ":BD": #If the message is a positional update
 					line = line.split(",")
-					xtrans = float(line[1])
-					ytrans = float(line[2])
-					ztrans = float(line[3])
+					north_trans = float(line[1])
+					east_trans = float(line[2])
+					depth_trans = float(line[3])
 					rangeToBottom = float(line[4])
 					timeDifference = float(line[5])
 					
 				
 				if line[:3] == ":BI": #If the message is a velocity update
 					line = line.split(",")
-					xvel = float(line[1])
-					yvel = float(line[2])
-					zvel = float(line[3])
+					north_vel = float(line[1])
+					east_vel = float(line[2])
+					depth_vel = float(line[3])
 					status = line[4]
 				if line[:3] == ":SA": #If the message is orientation 
 					line = line.split(",")
@@ -103,19 +103,19 @@ class RunDVL:
 				if line[:3] == ":TS": #If the message is a timestamp
 					pass
 					#print line
-					#print "Heading:", heading, "Xvel:", xvel, "Yvel:", yvel, "Zvel:", zvel, "Status:", status, "\r"
+					#print "Heading:", heading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "\r"
 					
-				# print "IMU Heading:", heading, "DVL Heading:", dvlHeading, "Xvel:", xvel, "Yvel:", yvel, "Zvel:", zvel, "Status:", status, "Xpos", xtrans, "YPos", ytrans, "ZPos", ztrans
+				# print "IMU Heading:", heading, "DVL Heading:", dvlHeading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "Xpos", east_trans, "YPos", north_trans, "ZPos", depth_trans
 				if (loopTime - pubTimePrev) > pubTimeInterval:
 					pubTimePrev = loopTime
 
 					#setup msg to be published to ROS
-					msg.xpos = xtrans
-					msg.xvel = xvel
-					msg.ypos = ytrans
-					msg.yvel = yvel
-					msg.zpos = ztrans
-					msg.zvel = zvel
+					msg.xpos = east_trans
+					msg.xvel = east_vel
+					msg.ypos = north_trans
+					msg.yvel = north_vel
+					msg.zpos = depth_trans
+					msg.zvel = depth_vel
 					pub.publish(msg)
 
 dvl = RunDVL()
