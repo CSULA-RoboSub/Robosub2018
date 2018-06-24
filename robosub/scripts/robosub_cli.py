@@ -167,29 +167,44 @@ class CLI(cmd.Cmd):
 
 
 def parse(arg):
-    'Convert a series of zero or more numbers to an argument tuple'
+    """Convert a series of zero or more numbers to an argument tuple"""
     return tuple(map(int, arg.split()))
 
 
+def start_roscore():
+    """Check if roscore is running. If not starts roscore"""
+
+    name = 'roscore'
+    ps = os.popen('ps -Af').read()
+
+    if name not in ps:
+        # open roscore in subprocess
+        print('Setting up roscore.')
+        os.system('killall -9 roscore')
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')
+
+        roscore = subprocess.Popen('roscore')
+        time.sleep(1)
+        return roscore
+
+    return False
+
+
 if __name__ == '__main__':
-    # open roscore in subprocess
-    print('Setting up roscore.')
-    os.system('killall -9 roscore')
-    os.system('killall -9 rosmaster')
-    os.system('killall -9 rosout')
-    roscore = subprocess.Popen('roscore')
-    time.sleep(1)
+    roscore = start_roscore()
 
     AUV = AUV()  # initialize AUV() class
 
     print('\n***Plug in magnet after setting up configurations to start AUV.***')
     print('\n***Set motor state to 1 to start motors.***')
 
-    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1#########################
+    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1 #########################
 
     CLI().cmdloop()  # run AUV command interpreter
 
-    # close roscore and rosmaster on exit
-    subprocess.Popen.kill(roscore)
-    os.system('killall -9 rosmaster')
-    os.system('killall -9 rosout')
+    # close roscore and rosmaster on exit if opened by CLI
+    if(roscore):
+        subprocess.Popen.kill(roscore)
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')
