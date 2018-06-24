@@ -56,7 +56,7 @@ float mControlPower;
 float rControlPower;
 float mControlDistance;
 float mControlRunningTime;
-float mControlMode5Timer;
+double mControlMode5Timer;
 // float frontCamForwardDistance;
 // float frontCamHorizontalDistance;
 // float frontCamVerticalDistance;
@@ -167,8 +167,8 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=500;//11;//3.55;//3.55
-double kd_depth=4.1;//0.75;//2.05;//2.05
+double kp_depth=180;//11;//3.55;//3.55
+double kd_depth=0.75;//0.75;//2.05;//2.05
 double ki_depth=0.003;//0.003
 ///////////////////////////////////////////////
 
@@ -176,7 +176,7 @@ double ki_depth=0.003;//0.003
 float desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hoover
-float threshold = 0.1;
+float threshold = 0.3;
 ///////////////////////////////////////////////
 
 float degreeToTurn();
@@ -185,7 +185,7 @@ void rotateLeftDynamically();
 
 //returns time in milliseconds
 double millis(){
-  return ros::WallTime::now().toNSec()*1e-6;
+  return ros::WallTime::now().toNSec()/1000000;
 }
 
 //pass in -1 to ignore that motor
@@ -211,6 +211,11 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
   if(t8 > 0)
     mHorizontal.t8 = t8;
 
+}
+
+void motorsOff(){
+  publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
+  publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
 }
 
 void publishMotors(){
@@ -241,6 +246,9 @@ void hControlCallback(const robosub::HControl& hControl) {
   // char depthChar[6];
   // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
+  hControlStatus.state = hState;
+  hControlStatus.depth = feetDepth_read;
+  hControlStatus.power = hControlPower;
 
   if(hControl.state == 0){
     if(!isGoingUp && !isGoingDown){
@@ -261,6 +269,7 @@ void hControlCallback(const robosub::HControl& hControl) {
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
+      hControlPublisher.publish(hControlStatus);
     }
     // ROS_INFO();
     // ROS_INFO("assignedDepth:");
@@ -310,10 +319,6 @@ void hControlCallback(const robosub::HControl& hControl) {
     publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
     publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
   }
-  hControlStatus.state = hState;
-  hControlStatus.depth = hDepth;
-  hControlStatus.power = hControlPower;
-  hControlPublisher.publish(hControlStatus);
 
 }
 
@@ -324,6 +329,9 @@ void rControlCallback(const robosub::RControl& rControl){
   // char rotationChar[11];
   // dtostrf(rotation, 4, 2, rotationChar);
   rControlPower = rControl.power;
+  rControlStatus.state = rControl.state;
+  rControlStatus.rotation = rControl.rotation;
+  rControlStatus.power = rControlPower;
 
   if(rControl.state == 0){
     if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
@@ -418,12 +426,11 @@ void mControlCallback(const robosub::MControl& mControl){
   float mode5Time = mControl.runningTime;
 
   string directionStr;
-  // char powerChar[11];
-  // char distanceChar[11];
-  // char timeChar[11];
-  // dtostrf(power, 4, 2, powerChar);
-  // dtostrf(distance, 4, 2, distanceChar);
-  // dtostrf(mode5Time, 4, 2, timeChar);
+  mControlStatus.state = mControl.state;
+  mControlStatus.mDirection = mControl.mDirection;
+  mControlStatus.power = mControl.power;
+  mControlStatus.distance = mControl.distance;
+  mControlStatus.runningTime = mControl.runningTime;
 
 
   if(mControl.state == 0){
@@ -443,6 +450,7 @@ void mControlCallback(const robosub::MControl& mControl){
       keepMovingBackward = false;
       keepMovingLeft = false;
       ROS_INFO("Movement control is now cancelled\n");
+      mControlPublisher.publish(mControlStatus);
     }
     mControlDirection = 0;
     mControlPower = 0;
@@ -559,7 +567,7 @@ void mControlCallback(const robosub::MControl& mControl){
         directionStr = "left";
       }
 
-      directionStr = "Moving " + directionStr + " with power...";
+      directionStr = "Moving " + directionStr + " with time...";
       ROS_INFO("%s", directionStr.c_str());
       // ROS_INFO(powerChar);
       // ROS_INFO("for...");
@@ -567,7 +575,6 @@ void mControlCallback(const robosub::MControl& mControl){
       // ROS_INFO("seconds...\n");
 
       mControlMode5 = true;
-      mControlMode5Timer = 0;
       mControlDirection = mControl.mDirection;
       mControlPower = mControl.power;
       mControlRunningTime = mControl.runningTime;
@@ -575,12 +582,6 @@ void mControlCallback(const robosub::MControl& mControl){
       mControlDistance = 0;
     }
   }
-  mControlStatus.state = mControl.state;
-  mControlStatus.mDirection = mControl.mDirection;
-  mControlStatus.power = mControl.power;
-  mControlStatus.distance = mControl.distance;
-  mControlStatus.runningTime = mControl.runningTime;
-  mControlPublisher.publish(mControlStatus);
 
 }
 
@@ -611,10 +612,12 @@ void heightControl(){
     pid_i_roll = pid_i_roll+(ki_roll*error_roll);
   } 
 
-  if(-0.5 < error_depth && error_depth < 0.5)
+  if(-threshold < error_depth && error_depth < threshold)
   {
     pid_i_depth = pid_i_depth+(ki_depth*error_depth);
-  } 
+  } else {
+    pid_i_depth = 0;
+  }
   
   pid_d_pitch = kd_pitch*((error_pitch - prev_error_pitch)/elapsedTime);
   pid_d_roll = kd_roll*((error_roll - prev_error_roll)/elapsedTime);
@@ -670,17 +673,19 @@ void heightControl(){
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Assigned depth reached.\n");
+      hControlStatus.state = 1;
+      hControlStatus.depth = feetDepth_read;
+      hControlStatus.power = hControlPower;
+      hControlPublisher.publish(hControlStatus);
     }
-
-    pwmThruster_1 = base_thrust - PID_pitch - PID_roll;
-    pwmThruster_2 = base_thrust + PID_pitch - PID_roll;
-    pwmThruster_3 = base_thrust - PID_pitch + PID_roll;
-    pwmThruster_4 = base_thrust + PID_pitch + PID_roll;
-
-    hControlStatus.state = 1;
-    hControlStatus.depth = feetDepth_read;
-    hControlStatus.power = hControlPower;
-    hControlPublisher.publish(hControlStatus);
+    // pwmThruster_1 = base_thrust - PID_pitch - PID_roll - pid_i_depth;
+    // pwmThruster_2 = base_thrust + PID_pitch - PID_roll + pid_i_depth;
+    // pwmThruster_3 = base_thrust - PID_pitch + PID_roll - pid_i_depth;
+    // pwmThruster_4 = base_thrust + PID_pitch + PID_roll + pid_i_depth;
+    pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
+    pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
+    pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
+    pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
   }
 
   ///////////Thruster power buffer//////////////
@@ -982,7 +987,8 @@ void movementControl(){
     // char timerChar[11];
     // dtostrf(mControlMode5Timer, 4, 2, timerChar);
     // ROS_INFO(timerChar);
-    if((loopTime - mControlMode5Timer) >= (mControlRunningTime*1000)){
+    // cout << "loopTime - mControlMode5Timer: " << (loopTime - mControlMode5Timer) << " mControlRunningTime: " << mControlRunningTime << endl;
+    if((loopTime - mControlMode5Timer) > (mControlRunningTime*1000)){
       // T6.writeMicroseconds(base_thrust);
       // T8.writeMicroseconds(base_thrust);
       // T5.writeMicroseconds(base_thrust);
@@ -992,19 +998,20 @@ void movementControl(){
       ROS_INFO("Mode 5 finished.\n");
     }
   }
-  else{
+
+  if((!mControlMode1 && !mControlMode2 && !mControlMode5) ){
     centerTimer = 0;
     // movementTimer = 0;
     mControlMode5Timer = 0;
     mControlDirection = 0;
     mControlRunningTime = 0;
     mControlPower = 0;
-    mControlDistance = 0;
     mControlStatus.state = 0;
     mControlStatus.mDirection = 0;
     mControlStatus.power = 0;
-    mControlStatus.distance = 0;
+    mControlStatus.distance = mControlDistance;
     mControlStatus.runningTime = 0;
+    mControlDistance = 0;
     mControlPublisher.publish(mControlStatus);
   }
 
@@ -1024,7 +1031,7 @@ void movementControl(){
 //    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 5.0;
+  float rotatePower = PWM_Motors_orient * 6.5 + 10;
 
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1046,7 +1053,7 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 5.0;
+  float rotatePower = PWM_Motors_orient * 6.5 + 10;
 
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1204,8 +1211,10 @@ void loop() {
       movementControl();
       rotationControl();
       ros::spinOnce();
-      publishMotors();
+    } else {
+      motorsOff();
     }
+    publishMotors();
   }
 }
 
