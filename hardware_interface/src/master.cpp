@@ -167,8 +167,8 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=500;//11;//3.55;//3.55
-double kd_depth=4.1;//0.75;//2.05;//2.05
+double kp_depth=180;//11;//3.55;//3.55
+double kd_depth=0.75;//0.75;//2.05;//2.05
 double ki_depth=0.003;//0.003
 ///////////////////////////////////////////////
 
@@ -211,6 +211,11 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
   if(t8 > 0)
     mHorizontal.t8 = t8;
 
+}
+
+void motorsOff(){
+  publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
+  publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
 }
 
 void publishMotors(){
@@ -607,10 +612,12 @@ void heightControl(){
     pid_i_roll = pid_i_roll+(ki_roll*error_roll);
   } 
 
-  if(-0.5 < error_depth && error_depth < 0.5)
+  if(-threshold < error_depth && error_depth < threshold)
   {
     pid_i_depth = pid_i_depth+(ki_depth*error_depth);
-  } 
+  } else {
+    pid_i_depth = 0;
+  }
   
   pid_d_pitch = kd_pitch*((error_pitch - prev_error_pitch)/elapsedTime);
   pid_d_roll = kd_roll*((error_roll - prev_error_roll)/elapsedTime);
@@ -666,17 +673,19 @@ void heightControl(){
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Assigned depth reached.\n");
+      hControlStatus.state = 1;
+      hControlStatus.depth = feetDepth_read;
+      hControlStatus.power = hControlPower;
+      hControlPublisher.publish(hControlStatus);
     }
-
-    pwmThruster_1 = base_thrust - PID_pitch - PID_roll;
-    pwmThruster_2 = base_thrust + PID_pitch - PID_roll;
-    pwmThruster_3 = base_thrust - PID_pitch + PID_roll;
-    pwmThruster_4 = base_thrust + PID_pitch + PID_roll;
-
-    hControlStatus.state = 1;
-    hControlStatus.depth = feetDepth_read;
-    hControlStatus.power = hControlPower;
-    hControlPublisher.publish(hControlStatus);
+    // pwmThruster_1 = base_thrust - PID_pitch - PID_roll - pid_i_depth;
+    // pwmThruster_2 = base_thrust + PID_pitch - PID_roll + pid_i_depth;
+    // pwmThruster_3 = base_thrust - PID_pitch + PID_roll - pid_i_depth;
+    // pwmThruster_4 = base_thrust + PID_pitch + PID_roll + pid_i_depth;
+    pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
+    pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
+    pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
+    pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
   }
 
   ///////////Thruster power buffer//////////////
@@ -1022,7 +1031,7 @@ void movementControl(){
 //    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 6.5;
+  float rotatePower = PWM_Motors_orient * 6.5 + 10;
 
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1044,7 +1053,7 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 6.5;
+  float rotatePower = PWM_Motors_orient * 6.5 + 10;
 
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1202,8 +1211,10 @@ void loop() {
       movementControl();
       rotationControl();
       ros::spinOnce();
-      publishMotors();
+    } else {
+      motorsOff();
     }
+    publishMotors();
   }
 }
 
