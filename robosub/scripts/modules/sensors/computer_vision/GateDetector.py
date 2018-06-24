@@ -13,7 +13,7 @@ class GateDetector:
         self.preprocess = gp.GatePreprocessor()
         self.directions = [0,0]
         self.isTaskComplete = False
-        self.shapes = {1: "vertical", 2: "horizontal", 3: "sqare"} # so we can change names quicker
+        self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
         self.shape_list = []
         
@@ -25,15 +25,16 @@ class GateDetector:
     # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
     # returns the shape as a string
     def get_shape(self, roi, buff):
-        print roi
         if roi == None:
             return None
         else:
             x, y, w, h = roi
 
-        if ( (h >= (w + buff) ) or (h >= (w - buff) )):
+        #if ( (h >= (w + buff) ) or (h >= (w - buff) )):
+        if h - w > buff:
             return self.shapes[1] # vertical
-        elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
+        #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
+        elif w - h > buff:    
             return self.shapes[2] # horizontal
         else:
             return self.shapes[3] # square

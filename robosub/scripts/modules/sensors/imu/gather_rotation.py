@@ -10,9 +10,11 @@ class GetRotation():
         #self.rot_sub.unregister()
         rospy.signal_shutdown("only need 1 subscribe")
     '''
+    def __init__(self):
+        #rospy.init_node('rotation_listener', anonymous=True)
+        pass
 
     def update_rot(self):
-        rospy.init_node('rotation_listener', anonymous=True)
         #rospy.Subscriber('current_rotation', Rotation, self.rotation_callback)
         self.rotation = rospy.wait_for_message("current_rotation", Rotation)
 
