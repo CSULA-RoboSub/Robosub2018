@@ -4,6 +4,8 @@ from robosub.msg import HControl
 from robosub.msg import RControl
 from robosub.msg import MControl
 import math
+from waypoint import Waypoint
+from threading import Thread
 
 
 class Navigation():
@@ -12,7 +14,7 @@ class Navigation():
     Controls thrusters to move or point AUV to a certain direction given power and direction or rotational values
     """
 
-    def __init__(self):
+    def __init__(self, wp = None):
         self.is_killswitch_on = False
 
         self.pub_h_nav = rospy.Publisher('height_control', HControl, queue_size=100)
@@ -87,6 +89,14 @@ class Navigation():
         self.w_distance_m = 0
         self.w_power_m = 100
         self.movement_state = 0
+
+        if wp:
+            self.waypoint = wp
+        else:
+            self.waypoint = Waypoint()
+
+        self.thread_w = None
+        self.exit_waypoints = False
     def set_h_nav(self, hState, depth, hPower):
         """
         hState -- 'down': 0, 'staying': 1, 'up': 2
@@ -253,7 +263,7 @@ class Navigation():
     def ros_rate(self, hz = 100):
         rospy.Rate(hz)
 
-
+############################### Waypoint Functions ######################################################################################
     def r_callback(self, rotation_status):
         # print(rotation_status)
         if self.is_running_waypoint_rotation and self.is_busy_waypoint:
@@ -304,3 +314,55 @@ class Navigation():
 
     def is_running_waypoint(self):
         return self.is_busy_waypoint
+
+    def push_current_waypoint(self):
+        self.waypoint.push_current_position()
+    def enqueue_current_waypoint(self):
+        self.waypoint.enqueue_current_position()
+
+    def run_top_stack_waypoint(self, r_power=120, h_power=100, m_power=120):
+        #travel to waypoint at top of stack
+        if not self.waypoint.is_empty():
+            last_x, last_y, last_depth = self.waypoint.pop()
+            direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
+            direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
+            self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
+
+    def run_front_queue_waypoint(self, r_power=120, h_power=100, m_power=120):
+        #travel to waypoint at front of queue
+        if not self.waypoint.is_empty():
+            last_x, last_y, last_depth = self.waypoint.dequeue()
+            direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
+            direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
+            self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
+
+    def run_stack_waypoints(self, r_power=120, h_power=100, m_power=120):
+        print('waiting 4 seconds')
+        self.ros_sleep(4)
+        self.set_exit_waypoints(False)
+        print('running all stack waypoints...')
+        while not self.waypoint.is_empty() and not self.exit_waypoints:
+            if not self.is_busy_waypoint:
+                self.run_top_stack_waypoint(r_power, h_power, m_power)
+        print('finished running all waypoints')
+
+    def run_queue_waypoints(self, r_power=120, h_power=100, m_power=120):
+        print('waiting 4 seconds')
+        self.ros_sleep(4)
+        self.set_exit_waypoints(False)
+        print('running all queue waypoints...')
+        while not self.waypoint.is_empty() and not self.exit_waypoints:
+            if not self.is_busy_waypoint:
+                self.run_front_queue_waypoint(r_power, h_power, m_power)
+        print('finished running all waypoints')
+
+    def run_stack_waypoints_async(self, r_power=120, h_power=100, m_power=120):
+        self.thread_w=Thread(target=self.run_stack_waypoints, args = (r_power,h_power,m_power))
+        self.thread_w.start()
+
+    def run_queue_waypoints_async(self, r_power=120, h_power=100, m_power=120):
+        self.thread_w=Thread(target=self.run_queue_waypoints, args = (r_power,h_power,m_power))
+        self.thread_w.start()
+
+    def set_exit_waypoints(self, exit = False):
+        self.exit_waypoints = exit

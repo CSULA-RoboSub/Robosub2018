@@ -19,18 +19,13 @@ class RunDVL:
 		self.yaw.append(rotation.yaw)
 
 	def main(self):
-		# ROS publisher setup
-		pub = rospy.Publisher('dvl_status', DVL)
-		rospy.init_node('dvl_node', anonymous=True)
-		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size=1)
-
-		msg = DVL()
 
 		#########################INITALIZE DVL SERIAL################################
 
 		#dvl = serial.Serial("COM13", 115200) #Windows Serial
 		# dvl = serial.Serial("/dev/ttyUSB0", 115200) #Ubuntu Serial
 		dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
+		rospy.init_node('dvl_node', anonymous=True)
 
 
 		################PATHFINDER DVL COMMANDS TO STREAM DATA#####################
@@ -38,6 +33,12 @@ class RunDVL:
 		dvl.write("===") #DVL Break (PathFinder Guide p. 24 and p.99)
 
 		rospy.sleep(2) #sleep for 2 seconds
+
+		# ROS publisher setup
+		pub = rospy.Publisher('dvl_status', DVL)
+		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size=1)
+		msg = DVL()
+		
 		dvl.write("CR1\r") #set factory defaults.(Pathfinder guide p.67)
 		dvl.write("CP1\r") # required command
 		dvl.write("PD6\r") #pd6 data format (Pathfinder Guide p.207) <---important
