@@ -63,16 +63,16 @@ class GateManeuver():
         navigation.cancel_r_nav()
         self.move_forward_method(navigation, power)
     
-    def move_to_gate(self, navigation, coordinates, power, get_rot, heading):
+    def move_to_gate(self, navigation, coordinates, power):
         print 'move_forward_method'
-        get_rot.update_rot()
-        yaw_change = heading - get_rot.get_yaw()
-        if yaw_change < 0:
-            navigation.r_nav('left', self.heading_rot_change, self.heading_rot_power)
-        elif yaw_change > 0:
-            navigation.r_nav('right', self.heading_rot_change, self.heading_rot_power)
-        else:
-            navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
+        # get_rot.update_rot()
+        # yaw_change = heading - get_rot.get_yaw()
+        # if yaw_change < 0:
+        #     navigation.r_nav('left', self.heading_rot_change, self.heading_rot_power)
+        # elif yaw_change > 0:
+        #     navigation.r_nav('right', self.heading_rot_change, self.heading_rot_power)
+        # else:
+        #     navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
 
         navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
         navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
@@ -118,19 +118,19 @@ class GateManeuver():
         navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
         navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
 
-    def go_under_gate(self, navigation, coordinates, power, get_rot, heading):
+    def go_under_gate(self, navigation, coordinates, power):
         if not self.under_gate > 1:
             navigation.h_nav(self.vertical_movement[-1], self.depth_change, self.h_power)
         
-        get_rot.update_rot()
-        yaw_change = heading - get_rot.get_yaw()
+        # get_rot.update_rot()
+        # yaw_change = heading - get_rot.get_yaw()
 
-        if yaw_change < 0:
-            navigation.r_nav('left', self.heading_rot_change, self.heading_rot_power)
-        elif yaw_change > 0:
-            navigation.r_nav('right', self.heading_rot_change, self.heading_rot_power)
-        else:
-            navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
+        # if yaw_change < 0:
+        #     navigation.r_nav('left', self.heading_rot_change, self.heading_rot_power)
+        # elif yaw_change > 0:
+        #     navigation.r_nav('right', self.heading_rot_change, self.heading_rot_power)
+        # else:
+        #     navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
 
         navigation.m_nav('power', self.move_forward, power)
         self.under_gate += 1
@@ -145,7 +145,7 @@ class GateManeuver():
             self.backup_to_square(navigation, power)
 
         else:
-            self.gate_maneuver.go_under_gate(navigation, coordinates, power, self.getrotation, self.heading)
+            self.go_under_gate(navigation, coordinates, power)
             self.under_timer += 1
 
     def square(self, navigation, coordinates, power, rotation, gate_shape, width_height):

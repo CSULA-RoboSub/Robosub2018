@@ -2,7 +2,6 @@ from modules.sensors.computer_vision import GateDetector
 from task import Task
 from gate_maneuver import GateManeuver
 from modules.controller.cv_controller import CVController
-from modules.sensors.imu.gather_rotation import GetRotation
 
 class Gate(Task):
     
@@ -54,9 +53,6 @@ class Gate(Task):
                             'vertical': self.gate_maneuver.vertical,
                             'horizontal': self.gate_maneuver.horizontal,
                             'square': self.gate_maneuver.square}
-
-        self.getrotation = GetRotation()
-
     def reset(self):
         self.detectgate = None
         self.is_found = False
@@ -99,7 +95,7 @@ class Gate(Task):
                     self.gate_maneuver.backup_to_square(navigation, power)
 
                 else:
-                    self.gate_maneuver.go_under_gate(navigation, coordinates, power, self.getrotation, self.heading)
+                    self.gate_maneuver.go_under_gate(navigation, coordinates, power)
                     self.under_timer += 1
 
             elif gate_shape == 'square':
@@ -113,7 +109,7 @@ class Gate(Task):
                     self.gate_maneuver.center_square(navigation, coordinates, power)
 
                 else:
-                    self.gate_maneuver.move_to_gate(navigation, coordinates, power, self.getrotation, self.heading)
+                    self.gate_maneuver.move_to_gate(navigation, coordinates, power)
         else:
             #self.gate_phases[gate_shape](navigation, power, rotation)
             self.gate_maneuver.sweep(navigation, power, rotation)
