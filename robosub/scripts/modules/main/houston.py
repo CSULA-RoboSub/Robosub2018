@@ -211,7 +211,8 @@ class Houston():
                 print 'task will stop in 300'
                 print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                 print 'current count: {}'.format(break_loop)
-                print(coordinates)
+                print 'coordinates: {}'.format(coordinates)
+                print '--------------------------------------------'
 
         print("exit loop")
         #if self.state.is_detect_done:

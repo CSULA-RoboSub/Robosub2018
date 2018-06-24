@@ -23,7 +23,12 @@ class Gate(Task):
         self.found_timer = 0
         self.gate_circle_loc = 0
 
-        self.mState = {'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5}
+        self.mState = {'off': 0,
+                        'power': 1,
+                        'distance': 2,
+                        'front_cam_center': 3,
+                        'bot_cam_center': 4,
+                        'motor_time': 5}
 
         self.depth_change = 1
         self.phase_threshold = 50
@@ -32,12 +37,23 @@ class Gate(Task):
 
         self.rotation_angle = 15
 
-        self.movement_to_square = {'vertical': 'right', 'horizontal': 'backward'}
+        self.movement_to_square = {'vertical': 'right',
+                                'horizontal': 'backward'}
 
         self.heading = None
         self.previous_width_height = (0,0)
-        self.get_heading_timer = 20
-        self.heading_timer = 0
+        self.heading_verify_threshold = 20
+        self.heading_verify_count = 0
+
+        self.under_timer = 0
+        self.under_threshold = 50
+
+        self.passed_gate = 0
+
+        self.gate_phases = {None: self.gate_maneuver.sweep,
+                            'vertical': self.gate_maneuver.vertical,
+                            'horizontal': self.gate_maneuver.horizontal,
+                            'square': self.gate_maneuver.square}
 
         self.getrotation = GetRotation()
 
@@ -53,7 +69,9 @@ class Gate(Task):
         self.forward_counter = 0
         self.heading = None
         self.previous_width_height = (0,0)
-        self.heading_timer = 0
+        self.heading_verify_count = 0
+        self.under_timer = 0
+        self.passed_gate = 0
         
     def detect(self, frame):
         #add frame when testing complete
@@ -70,38 +88,41 @@ class Gate(Task):
         '''if self.forward_counter >= 2:
             self.is_detect_done = True'''            
         
+        #TODO need to get rid of if statements and clean up code
         if found:
-            self.found_timer += 1
-            #self.gate_maneuver.move_to_gate(navigation, coordinates, power, rotation)
-
+            #self.gate_phases[gate_shape](navigation, coordinates, power, rotation, gate_shape, width_height)
             if gate_shape == 'vertical':
                 self.gate_maneuver.strafe_to_square(navigation, power, rotation, width_height[0])
+                
             elif gate_shape == 'horizontal':
-                self.gate_maneuver.backup_to_square(navigation, power)
+                if self.heading is None:
+                    self.gate_maneuver.backup_to_square(navigation, power)
+
+                else:
+                    self.gate_maneuver.go_under_gate(navigation, coordinates, power, self.getrotation, self.heading)
+                    self.under_timer += 1
+
             elif gate_shape == 'square':
-                self.heading_timer += 1
-                if self.heading == None and self.heading_timer >= self.get_heading_timer:
+                self.heading_verify_count += 1
+
+                if self.heading == None and self.heading_verify_count >= self.heading_verify_threshold:
                     self.getrotation.update_rot()
                     self.heading = self.getrotation.get_yaw()
-                    print 'heading: {}'.format(self.heading)
-                    print 'Heading has been received and logged'
 
                 if self.heading is None:
                     self.gate_maneuver.center_square(navigation, coordinates, power)
+
                 else:
                     self.gate_maneuver.move_to_gate(navigation, coordinates, power, self.getrotation, self.heading)
         else:
+            #self.gate_phases[gate_shape](navigation, power, rotation)
             self.gate_maneuver.sweep(navigation, power, rotation)
+
                     
         self.previous_width_height = width_height
 
-        '''elif self.found_timer > self.phase_threshold:
-            if not self.gate_maneuver.start_pole:
-                self.gate_maneuver.move_forward_method(navigation, power, self.getrotation, self.heading)
-                self.forward_counter += 1
-            else:                
-                self.gate_maneuver.pole(navigation, power)
-            self.found_timer = 0'''
+        if self.under_timer > self.under_threshold:
+            self.passed_gate = 1
     
     def complete(self):
         #code below is not needed anymore

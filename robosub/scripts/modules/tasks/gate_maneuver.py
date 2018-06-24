@@ -26,9 +26,10 @@ class GateManeuver():
         self.heading_rot_change = 2
         self.heading_rot_power = 50
         self.change_m_nav_timer = 0
+        self.under_gate = 0
 
     def move_forward_method(self, navigation, coordinates, power, rotation):
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
         navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
         navigation.m_nav('power', self.move_forward, power)
 
@@ -78,12 +79,11 @@ class GateManeuver():
         
         '''while loop added just for 2 iterations
         so that m_nav is able to strafe before it moves forward'''
-        while self.change_m_nav_timer < 1:
-            self.change_m_nav_timer += 1
-        self.change_m_nav_timer = 0
+        #while self.change_m_nav_timer < 1:
+        #    self.change_m_nav_timer += 1
+        #self.change_m_nav_timer = 0
         navigation.cancel_m_nav()
         navigation.m_nav('power', self.move_forward, power)
-        print 'completed move_to_gate method'
 
     def sweep(self, navigation, power, rotation):
         if self.sweep_forward == 0:
@@ -104,7 +104,6 @@ class GateManeuver():
             self.sweep_forward_counter = 0
 
     def strafe_to_square(self, navigation, power, rotation, width):
-        print 'strafe_to_square width: {}'.format(width)
         if self.previous_width > width:
             self.strafe_direction = 1 - self.strafe_direction
 
@@ -113,9 +112,41 @@ class GateManeuver():
         self.previous_width = width
     
     def backup_to_square(self, navigation, power):
-        print 'backup_to_square'
         navigation.m_nav('power', self.move_backward, power)
 
     def center_square(self, navigation, coordinates, power):
         navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+
+    def go_under_gate(self, navigation, coordinates, power, get_rot, heading):
+        if not self.under_gate > 1:
+            navigation.h_nav(self.vertical_movement[-1], self.depth_change, self.h_power)
+        
+        get_rot.update_rot()
+        yaw_change = heading - get_rot.get_yaw()
+
+        if yaw_change < 0:
+            navigation.r_nav('left', self.heading_rot_change, self.heading_rot_power)
+        elif yaw_change > 0:
+            navigation.r_nav('right', self.heading_rot_change, self.heading_rot_power)
+        else:
+            navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
+
+        navigation.m_nav('power', self.move_forward, power)
+        self.under_gate += 1
+
+    def vertical(self, navigation, coordinates, power, rotation, gate_shape, width_height):
+        print 'vertical'
+        self.strafe_to_square(navigation, power, rotation, width_height[0])
+    
+    def horizontal(self, navigation, coordinates, power, rotation, gate_shape, width_height):
+        print 'horizontal'
+        if self.heading is None:
+            self.backup_to_square(navigation, power)
+
+        else:
+            self.gate_maneuver.go_under_gate(navigation, coordinates, power, self.getrotation, self.heading)
+            self.under_timer += 1
+
+    def square(self, navigation, coordinates, power, rotation, gate_shape, width_height):
+        print 'square'
