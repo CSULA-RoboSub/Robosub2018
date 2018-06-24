@@ -315,6 +315,9 @@ class Navigation():
     def is_running_waypoint(self):
         return self.is_busy_waypoint
 
+    def clear_waypoints(self):
+        self.waypoint.clear_all()
+
     def push_current_waypoint(self):
         self.waypoint.push_current_position()
     def enqueue_current_waypoint(self):
