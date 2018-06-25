@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "vn100");
 
 	ros::NodeHandle nh;
-	ros::Publisher ypr_pub = nh.advertise<ez_async_data::Rotation>("current_rotation", 0);
+	ros::Publisher ypr_pub = nh.advertise<ez_async_data::Rotation>("current_rotation", 1);
 	//ros::Publisher y_pub = nh.advertise<std_msgs::Float32>("yaw", 10);
 	//ros::Publisher p_pub = nh.advertise<std_msgs::Float32>("pitch", 10);
 	//ros::Publisher r_pub = nh.advertise<std_msgs::Float32>("roll", 10);
