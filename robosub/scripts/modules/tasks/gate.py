@@ -83,7 +83,7 @@ class Gate(Task):
         navigation.cancel_h_nav()
         '''if self.forward_counter >= 2:
             self.is_detect_done = True'''            
-        
+        # self.gate_maneuver.sweep_forward = 0
         #TODO need to get rid of if statements and clean up code
         if found:
             #self.gate_phases[gate_shape](navigation, coordinates, power, rotation, gate_shape, width_height)

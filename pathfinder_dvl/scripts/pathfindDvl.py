@@ -14,7 +14,7 @@ class RunDVL:
 
 	#self.yaw will always only have a length of 1 max to keep most updated
 	def rCallBack(self, rotation):
-		if len(self.yaw) >= 1:
+		if len(self.yaw) > 1:
 			self.yaw.pop()
 		self.yaw.append(rotation.yaw)
 
@@ -24,7 +24,8 @@ class RunDVL:
 
 		#dvl = serial.Serial("COM13", 115200) #Windows Serial
 		# dvl = serial.Serial("/dev/ttyUSB0", 115200) #Ubuntu Serial
-		dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
+		# dvl = serial.Serial("/dev/ttyUSB1", 115200) #Ubuntu Serial
+		dvl = serial.Serial("/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller-if00-port0", 115200) #Ubuntu Serial
 		rospy.init_node('dvl_node', anonymous=True)
 
 
@@ -32,11 +33,11 @@ class RunDVL:
 
 		dvl.write("===") #DVL Break (PathFinder Guide p. 24 and p.99)
 
-		rospy.sleep(2) #sleep for 2 seconds
+		rospy.sleep(5) #sleep for 2 seconds
 
 		# ROS publisher setup
-		pub = rospy.Publisher('dvl_status', DVL)
-		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size=1)
+		pub = rospy.Publisher('dvl_status', DVL, queue_size = 1)
+		rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size = 1)
 		msg = DVL()
 		
 		dvl.write("CR1\r") #set factory defaults.(Pathfinder guide p.67)
@@ -66,8 +67,8 @@ class RunDVL:
 		loopTime = time.time()
 		pubTimePrev = loopTime
 		pubTimeInterval = 0.01
-		headingTimePrev = loopTime
-		headingTimeInterval = 0.25
+		# headingTimePrev = loopTime
+		# headingTimeInterval = 0.016
 
 		while not rospy.is_shutdown():
 			try:
@@ -79,9 +80,9 @@ class RunDVL:
 				heading = self.yaw.pop()+180 #put heading info ** heree from IMU
 				heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
 				heading = int(heading)
-				if loopTime - headingTimePrev > headingTimeInterval: #needs to wait!***can't update too fast
-					headingTimePrev = loopTime
-					dvl.write("EH " + str(heading) + "\r") #Update Heading
+				# if loopTime - headingTimePrev > headingTimeInterval: #needs to wait!***can't update too fast
+					# headingTimePrev = loopTime
+				dvl.write("EH " + str(heading) + "\r") #Update Heading
 			if dvl.in_waiting > 0: #If there is a message from the DVL
 				line = dvl.readline()
 				if line[:3] == ":BD": #If the message is a positional update

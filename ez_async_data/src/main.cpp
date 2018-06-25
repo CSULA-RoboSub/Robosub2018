@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	// const string SensorPort = "COM1";                             // Windows format for physical and virtual (USB) serial port.
 	// const string SensorPort = "/dev/ttyS1";                    // Linux format for physical serial port.
 	// const string SensorPort = "/dev/ttyUSB1";                  // Linux format for virtual (USB) serial port.
-	const string SensorPort = "/dev/ttyUSB0"; 
+	const string SensorPort = "/dev/serial/by-id/usb-FTDI_USB-RS232_Cable_FT1GUJXT-if00-port0"; 
 	// const string SensorPort = "/dev/tty.usbserial-FTXXXXXX";   // Mac OS X format for virtual (USB) serial port.
 	// const string SensorPort = "/dev/ttyS0";                    // CYGWIN format. Usually the Windows COM port number minus 1. This would connect to COM1.
 	const uint32_t SensorBaudrate = 115200;
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 
 	cout << "current_rotation topic start" << endl;
 
-	ros::Rate loop_rate(100); //for delay use
+	ros::Rate loop_rate(140); //for delay use
 	ez_async_data::Rotation ypr;
 	while(ros::ok())
 	{

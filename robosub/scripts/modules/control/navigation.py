@@ -284,7 +284,7 @@ class Navigation():
             # print(self.w_distance_m)
             if movement_status.state == 0 and self.movement_state == 1 and abs(movement_status.distance - self.w_distance_m) < 0.001:
                 # print('in state 1')
-                self.m_nav('motor_time', 'backward', self.w_power_m, 2.5)
+                self.m_nav('motor_time', 'backward', self.w_power_m, 2.14)
                 self.movement_state = 2
             elif movement_status.state == 0 and self.movement_state == 2:
                 # print('in state 2')
@@ -301,10 +301,10 @@ class Navigation():
             return
         self.is_busy_waypoint = True
         self.cancel_r_nav()
-        self.cancel_h_nav()
+        # self.cancel_h_nav()
         self.cancel_m_nav()
         self.movement_state = 0
-
+        self.ros_sleep(1)
         # print('going to waypoint')
         self.is_running_waypoint_rotation = True
         self.r_nav(direction_r, degree_r, power_r)

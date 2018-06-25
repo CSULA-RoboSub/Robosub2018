@@ -132,7 +132,7 @@ class Houston():
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
-
+        self.state.gate_maneuver.sweep_forward=0
         while not self.state.is_detect_done and not break_loop > self.break_timer:
 
             # _, frame = self.cap.read()
@@ -157,21 +157,23 @@ class Houston():
                     frame = img_array.reshape((height, width, 3))
                     # print(type(frame))
 
+                    # self.outraw.write(frame)
+                    # self.msg.found, coordinates = self.state.detect(frame)
+                    # self.outprocessed.write(frame)
+
+                    # self.last_reading.append(coordinates)
                     self.outraw.write(frame)
-                    self.msg.found, coordinates = self.state.detect(frame)
+                    self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
                     self.outprocessed.write(frame)
 
-                    #self.show_img(frame)
-                    # self.last_reading.append(coordinates)
+                    self.show_img(frame)
+
                 except KeyboardInterrupt:
                     self.state.is_detect_done = True
                     # raise
                 finally:
                     buf.unmap(mapinfo)
                     
-                self.outraw.write(frame)
-                self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
-                self.outprocessed.write(frame)
 
                 self.queue_direction.append(coordinates)
 

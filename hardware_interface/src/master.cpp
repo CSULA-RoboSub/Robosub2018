@@ -119,6 +119,7 @@ ros::Subscriber rControlSubscriber; //int: state, float: rotation
 ros::Subscriber mControlSubscriber;
 ros::Subscriber rotationSubscriber;
 ros::Subscriber dvlSubscriber;
+// ros::AsyncSpinner spinner;
 
 //depth control variables
 // int pwm_submerge = 200;
@@ -167,7 +168,7 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=180;//11;//3.55;//3.55
+double kp_depth=240;//11;//3.55;//3.55
 double kd_depth=0.75;//0.75;//2.05;//2.05
 double ki_depth=0.003;//0.003
 ///////////////////////////////////////////////
@@ -252,25 +253,26 @@ void hControlCallback(const robosub::HControl& hControl) {
 
   if(hControl.state == 0){
     if(!isGoingUp && !isGoingDown){
-      if(depth == -1 || depth + assignedDepth >= bottomDepth)
-        assignedDepth = bottomDepth;
-      else
-        assignedDepth = assignedDepth + depth;
       isGoingDown = true;
       ROS_INFO("Going down...");
       // ROS_INFO(depthChar);
       // ROS_INFO("ft...(-1 means infinite)\n");
     }else
       ROS_INFO("Sub is still running. Command abort.");
+
+    if(depth == -1 || depth + assignedDepth >= bottomDepth)
+      assignedDepth = bottomDepth;
+    else
+      assignedDepth = assignedDepth + depth;
   }
   else if(hControl.state == 1){
     if(isGoingUp || isGoingDown){
-      assignedDepth = feetDepth_read;
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
       hControlPublisher.publish(hControlStatus);
     }
+    // assignedDepth = feetDepth_rade;
     // ROS_INFO();
     // ROS_INFO("assignedDepth:");
     // ROS_INFO(assignedDepthChar);
@@ -279,16 +281,17 @@ void hControlCallback(const robosub::HControl& hControl) {
   }
   else if(hControl.state == 2){
     if(!isGoingUp && !isGoingDown){
-      if(depth == -1 || depth >= assignedDepth - topDepth)
-        assignedDepth = topDepth;
-      else
-        assignedDepth = assignedDepth - depth;
       isGoingUp = true;
       ROS_INFO("Going up...");
       // ROS_INFO(depthChar);
       // ROS_INFO("ft...(-1 means infinite)\n");
     }else
       ROS_INFO("Sub is still running. Command abort.");
+      
+    if(depth == -1 || depth >= assignedDepth - topDepth)
+      assignedDepth = topDepth;
+    else
+      assignedDepth = assignedDepth - depth;
   }
   else if(hControl.state == 4){
     assignedYaw = yaw;
@@ -954,7 +957,7 @@ void movementControl(){
       
       //Testing-------------------
       // positionY += 0.05;
-      ROS_INFO("moving forward...");
+      // ROS_INFO("moving forward...");
     }
     //right
     else if(mControlDirection == 2){
@@ -963,7 +966,7 @@ void movementControl(){
       publishMHorizontal(base_thrust + mControlPowerTemp, -1, base_thrust + mControlPowerTemp, -1);
       //Testing-------------------
       // positionX += 0.05;
-      ROS_INFO("moving right...");
+      // ROS_INFO("moving right...");
     }
     //backward
     else if(mControlDirection == 3){
@@ -972,7 +975,7 @@ void movementControl(){
       publishMHorizontal(-1, base_thrust - mControlPowerTemp, -1, base_thrust + mControlPowerTemp);
       //Testing-------------------
       // positionY -= 0.05;
-      ROS_INFO("moving backward...");
+      // ROS_INFO("moving backward...");
     }
     //left
     else if(mControlDirection == 4){
@@ -981,7 +984,7 @@ void movementControl(){
       publishMHorizontal(base_thrust - mControlPowerTemp, -1, base_thrust - mControlPowerTemp, -1);
       //Testing-------------------
       // positionX -= 0.05;
-      ROS_INFO("moving left...");
+      // ROS_INFO("moving left...");
     }
     // mControlMode5Timer += 0.05;
     // char timerChar[11];
@@ -1031,7 +1034,7 @@ void movementControl(){
 //    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 6.5 + 10;
+  float rotatePower = PWM_Motors_orient * 6.5 + 25;
 
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1053,7 +1056,7 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 6.5 + 10;
+  float rotatePower = PWM_Motors_orient * 6.5 + 25;
 
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1186,7 +1189,7 @@ void setup() {
 }
 
 void loop() {
-  ros::spinOnce();
+  // ros::spinOnce();
   loopTime = millis();  // actual time read
   //  gettingRawData();
 
@@ -1206,11 +1209,11 @@ void loop() {
     /////////////////////////////////////////////////////////////////////////////////////////////
     
     if(subIsReady){
-      ros::spinOnce();
+      // ros::spinOnce();
       heightControl();
       movementControl();
       rotationControl();
-      ros::spinOnce();
+      // ros::spinOnce();
     } else {
       motorsOff();
     }
@@ -1236,6 +1239,8 @@ int main(int argc, char **argv){
   rotationSubscriber = nh.subscribe("current_rotation", 1, rotationCallback);
   dvlSubscriber = nh.subscribe("dvl_status", 1, dvlCallback);
 
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
   setup();
   while(ros::ok()){
     loop();
