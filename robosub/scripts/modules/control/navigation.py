@@ -301,10 +301,10 @@ class Navigation():
             return
         self.is_busy_waypoint = True
         self.cancel_r_nav()
-        # self.cancel_h_nav()
+        self.cancel_h_nav()
         self.cancel_m_nav()
         self.movement_state = 0
-        self.ros_sleep(1)
+        rospy.sleep(1.5)
         # print('going to waypoint')
         self.is_running_waypoint_rotation = True
         self.r_nav(direction_r, degree_r, power_r)
@@ -340,9 +340,9 @@ class Navigation():
             self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
 
     def run_stack_waypoints(self, r_power=120, h_power=100, m_power=120):
-        print('waiting 4 seconds')
-        self.ros_sleep(4)
-        self.set_exit_waypoints(False)
+        # print('waiting 4 seconds')
+        # self.ros_sleep(4)
+        # self.set_exit_waypoints(False)
         print('running all stack waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
             if not self.is_busy_waypoint:
@@ -350,9 +350,9 @@ class Navigation():
         print('finished running all waypoints')
 
     def run_queue_waypoints(self, r_power=120, h_power=100, m_power=120):
-        print('waiting 4 seconds')
-        self.ros_sleep(4)
-        self.set_exit_waypoints(False)
+        # print('waiting 4 seconds')
+        # self.ros_sleep(4)
+        # self.set_exit_waypoints(False)
         print('running all queue waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
             if not self.is_busy_waypoint:

@@ -2,6 +2,7 @@ from misc.getch import _Getch
 from modules.control.navigation import Navigation
 from modules.control.waypoint import Waypoint
 from threading import Thread
+import time
 
 class Keyboard():
     """Navigate the robosub using keyboard controls
@@ -133,6 +134,7 @@ class Keyboard():
                     # cur_x, cur_y, cur_depth = self.waypoint.get_position()
                     # print('pushed (x,y,depth): %.2f, %.2f, %.2f' %(cur_x,cur_y,cur_depth))
                     # self.waypoint.push(cur_x, cur_y, cur_depth)
+                    # self.navigation.push_current_waypoint()
                     self.navigation.push_current_waypoint()
                 elif char == 't':
                     #travel to last waypoint
@@ -145,6 +147,9 @@ class Keyboard():
                 elif char == 'p':
                     # self.thread_w=Thread(target=self.run_all_waypoints)
                     # self.thread_w.start()
+                    print('waiting 20 seconds')
+                    self.navigation.set_exit_waypoints(False)
+                    time.sleep(20)
                     self.navigation.run_stack_waypoints_async(self.r_power, self.h_power, self.m_power)
             self.navigation.set_exit_waypoints(True)
         else:

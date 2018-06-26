@@ -47,6 +47,8 @@ float assignedYaw;
 //const float rotationLowerBound = -193.8;
 const float rotationUpperBound = 179.99;
 const float rotationLowerBound = -179.99;
+const float rotationMultiplier = 6.5;
+const float rotationMinOffselt = 35;
 const float topDepth = 0.5;
 const float bottomDepth = 12;
 const float motorMax = 1700;
@@ -100,6 +102,7 @@ float velocityY = 0;
 float velocityZ = 0;
 
 std_msgs::Float32 currentDepth;
+std_msgs::Float32 dvlHeading;
 robosub::HControl hControlStatus;
 robosub::RControl rControlStatus;
 robosub::MControl mControlStatus;
@@ -114,6 +117,7 @@ ros::Publisher mHorizontalPublisher;
 ros::Publisher mVerticalPublisher;
 
 ros::Subscriber currentDepthSubscriber;
+ros::Subscriber dvlHeadingSubscriber;
 ros::Subscriber hControlSubscriber;   //int: state, float: depth
 ros::Subscriber rControlSubscriber; //int: state, float: rotation
 ros::Subscriber mControlSubscriber;
@@ -225,7 +229,7 @@ void publishMotors(){
 }
 
 void rotationCallback(const ez_async_data::Rotation& rotation){
-  yaw = rotation.yaw;
+  // yaw = rotation.yaw;
   roll = -rotation.roll;
   pitch = -rotation.pitch;
 }
@@ -725,7 +729,7 @@ void heightControl(){
 void rotationControl(){
 
   float delta = degreeToTurn();
-  float rotationError = 0.3;
+  float rotationError = 0.2;
   int fixedPower = rControlPower;
   if(fixedPower > rotatePowerMax) fixedPower = rotatePowerMax;
 
@@ -1034,7 +1038,7 @@ void movementControl(){
 //    T7.writeMicroseconds(base_thrust + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 6.5 + 25;
+  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
 
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1056,7 +1060,7 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 6.5 + 25;
+  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
 
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -1087,6 +1091,10 @@ float degreeToTurn(){
 
 void currentDepthCallback(const std_msgs::Float32& currentDepth){
   feetDepth_read = currentDepth.data;
+}
+
+void dvlHeadingCallback(const std_msgs::Float32& dvlHeading){
+  yaw = 180-dvlHeading.data;
 }
 
 
@@ -1232,14 +1240,15 @@ int main(int argc, char **argv){
   mVerticalPublisher = nh.advertise<hardware_interface::MotorVertical>("motor_vertical", 1);
   mHorizontalPublisher = nh.advertise<hardware_interface::MotorHorizontal>("motor_horizontal", 1);
 
-  currentDepthSubscriber = nh.subscribe("current_depth", 100, currentDepthCallback);
+  currentDepthSubscriber = nh.subscribe("current_depth", 1, currentDepthCallback);
   hControlSubscriber = nh.subscribe("height_control", 100, hControlCallback);
   rControlSubscriber = nh.subscribe("rotation_control", 100, rControlCallback);
   mControlSubscriber = nh.subscribe("movement_control", 100, mControlCallback);
   rotationSubscriber = nh.subscribe("current_rotation", 1, rotationCallback);
   dvlSubscriber = nh.subscribe("dvl_status", 1, dvlCallback);
+  dvlHeadingSubscriber = nh.subscribe("dvl_heading", 1, dvlHeadingCallback);
 
-  ros::AsyncSpinner spinner(1);
+  ros::AsyncSpinner spinner(2);
   spinner.start();
   setup();
   while(ros::ok()){
