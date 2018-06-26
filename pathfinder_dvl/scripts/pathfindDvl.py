@@ -92,13 +92,17 @@ class RunDVL:
             except:
                 print("read fail")
 
-            # if len(self.yaw) >= 1:
-            #     heading = self.yaw.pop() #put heading info ** heree from IMU
-            #     heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
-            #     heading = int(heading)
-            #     # if loopTime - headingTimePrev > headingTimeInterval: #needs to wait!***can't update too fast
-            #     #     headingTimePrev = loopTime
-            #     dvl.write("EH " + str(heading) + "\r") #Update Heading
+            if len(self.yaw) >= 1:
+                # heading = self.yaw.pop() #put heading info ** heree from IMU
+                # heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
+                # headingInt = int(heading)
+                # if heading - headingInt >= 0.5:
+                #     headingInt += 1
+                # dvl.write("EH " + str(headingInt) + "\r") #Update Heading
+
+                # if loopTime - headingTimePrev > headingTimeInterval: #needs to wait!***can't update too fast
+                #     headingTimePrev = loopTime
+                #     dvl.write("EH " + str(heading) + "\r") #Update Heading
             if dvl.in_waiting > 0: #If there is a message from the DVL
                 line = dvl.readline()
                 if line[:3] == ":BD": #If the message is a positional update
