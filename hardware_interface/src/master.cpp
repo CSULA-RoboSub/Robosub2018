@@ -43,10 +43,8 @@ float dutyCycl_orient;
 float assignedYaw;
 
 //Initialize ROS node
-//const float rotationUpperBound = 166.2;
-//const float rotationLowerBound = -193.8;
-const float rotationUpperBound = 179.99;
-const float rotationLowerBound = -179.99;
+const float rotationUpperBound = 179.9999;
+const float rotationLowerBound = -179.9999;
 const float rotationMultiplier = 6.5;
 const float rotationMinOffselt = 35;
 const float topDepth = 0.5;
@@ -1084,7 +1082,10 @@ void currentDepthCallback(const std_msgs::Float32& currentDepth){
 }
 
 void dvlHeadingCallback(const std_msgs::Float32& dvlHeading){
-  yaw = 180-dvlHeading.data;
+  if(dvlHeading.data <= 180)
+    yaw = dvlHeading.data;
+  else
+    yaw = dvlHeading.data-360;
 }
 
 

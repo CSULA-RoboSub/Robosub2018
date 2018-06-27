@@ -13,12 +13,25 @@ class RunDVL:
     def __init__(self):
         self.yaw = []
 
-    #self.yaw will always only have a length of 1 max to keep most updated
+    # self.yaw will always only have a length of 1 max to keep most updated
+    # imu is 0 degrees west 90 deg north -90 deg south +- 180 east
+    # dvl takes 0 - 359.99 with 0 deg north, 90 deg east, 180 south, and 270 west
+    # this is assuming typical nautical heading
     # def rCallBack(self, rotation):
     #     if len(self.yaw) > 1:
     #         self.yaw.pop(0)
 
-    #     heading = 180 - rotation.yaw
+    #     if 90 <= rotation.yaw and rotation.yaw <= 180:
+    #         heading = rotation.yaw - 90
+    #     else:
+    #         heading = rotation.yaw + 270
+    #     # logic for else :
+    #     # elif -180 <= rotation.yaw and rotation.yaw <= -90:
+    #     #     heading = rotation.yaw + 270
+    #     # elif -90 < rotation.yaw and rotation.yaw < 0:
+    #     #     heading = rotation.yaw + 270
+    #     # elif 0 <= rotation.yaw and rotation.yaw < 90:
+    #     #     heading = rotation.yaw + 270
         
     #     self.yaw.append(heading)
 
