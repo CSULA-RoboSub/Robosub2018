@@ -107,8 +107,10 @@ class RunDVL:
                     print("read fail")
                 if line[:3] == ":BD": #If the message is a positional update
                     line = line.split(",")
-                    north_trans = float(line[1])
-                    east_trans = float(line[2])
+                    # north_trans = float(line[1])
+                    # east_trans = float(line[2])
+                    east_trans = float(line[1])
+                    north_trans = float(line[2])
                     up_trans = float(line[3])
                     rangeToBottom = float(line[4])
                     timeDifference = float(line[5])
@@ -120,12 +122,12 @@ class RunDVL:
 
                 # elif line[:3] == ":BS": #If the message is a velocity update
                 #     line = line.split(",")
-                #     north_vel = float(line[1])
-                #     east_vel = float(line[2])
+                #     port_vel = float(line[1])
+                #     aft_vel = float(line[2])
                 #     up_vel = float(line[3])
                 #     status = line[4]
-                #     msg.xvel = east_vel
-                #     msg.yvel = north_vel
+                #     msg.xvel = port_vel #need to change msg var names
+                #     msg.yvel = aft_vel
                 #     msg.zvel = up_vel
                 #     pub.publish(msg)
 
