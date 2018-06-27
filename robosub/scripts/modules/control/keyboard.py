@@ -150,7 +150,7 @@ class Keyboard():
                     print('waiting 20 seconds')
                     self.navigation.set_exit_waypoints(False)
                     time.sleep(20)
-                    self.navigation.run_stack_waypoints_async(self.r_power, self.h_power, self.m_power)
+                    self.navigation.run_stack_waypoints_async()
             self.navigation.set_exit_waypoints(True)
         else:
             print('Magnet is not plugged in.')

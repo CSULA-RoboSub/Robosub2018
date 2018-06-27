@@ -172,7 +172,7 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=240;//11;//3.55;//3.55
+double kp_depth=250;//11;//3.55;//3.55
 double kd_depth=0.75;//0.75;//2.05;//2.05
 double ki_depth=0.003;//0.003
 ///////////////////////////////////////////////
@@ -246,14 +246,11 @@ void dvlCallback(const pathfinder_dvl::DVL& dvl_status){
 
 void hControlCallback(const robosub::HControl& hControl) {
   int hState = hControl.state;
-  float hDepth = hControl.depth;
+  // float hDepth = hControl.depth;
   float depth = hControl.depth;
   // char depthChar[6];
   // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
-  hControlStatus.state = hState;
-  hControlStatus.depth = feetDepth_read;
-  hControlStatus.power = hControlPower;
 
   if(hControl.state == 0){
     if(!isGoingUp && !isGoingDown){
@@ -274,7 +271,6 @@ void hControlCallback(const robosub::HControl& hControl) {
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
-      hControlPublisher.publish(hControlStatus);
     }
     // assignedDepth = feetDepth_rade;
     // ROS_INFO();
@@ -299,33 +295,27 @@ void hControlCallback(const robosub::HControl& hControl) {
   }
   else if(hControl.state == 4){
     assignedYaw = yaw;
-    assignedDepth = feetDepth_read;
+    assignedDepth = topDepth;
     if(!subIsReady){
-      subIsReady = true;
       ROS_INFO("Motors unlocked.");
     }
-    //assignedDepth = 0.1;
+    subIsReady = true;
   }
   else if(hControl.state == 5){
     if(subIsReady){
-      subIsReady = false;
       ROS_INFO("Motors are locked.");
-
     }
-    assignedDepth = feetDepth_read;
-//    assignedDepth = 0.2;
+    assignedDepth = topDepth;
     subIsReady = false;
-    // T1.writeMicroseconds(base_thrust);
-    // T2.writeMicroseconds(base_thrust);
-    // T3.writeMicroseconds(base_thrust);
-    // T4.writeMicroseconds(base_thrust);
-    // T5.writeMicroseconds(base_thrust);
-    // T6.writeMicroseconds(base_thrust);
-    // T7.writeMicroseconds(base_thrust);
-    // T8.writeMicroseconds(base_thrust);
     publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
     publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
   }
+
+  hControlStatus.state = hState;
+  hControlStatus.depth = assignedDepth;
+  hControlStatus.power = hControlPower;
+  
+  hControlPublisher.publish(hControlStatus);
 
 }
 
@@ -1128,7 +1118,7 @@ void setup() {
   rotationTimer = 0;
   rotationTime = 10;
   // movementTimer = 0;
-  movementTime = 10;
+  // movementTime = 10;
   subIsReady = false;
   isGoingUp = false;
   isGoingDown = false;

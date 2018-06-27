@@ -48,6 +48,9 @@ class Waypoint():
 
         return None, None, None
     
+    def get_depth(self):
+        return self.depth
+        
     def get_dvl_yaw(self):
         return self.yaw
 

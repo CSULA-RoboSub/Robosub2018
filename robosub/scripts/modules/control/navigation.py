@@ -6,7 +6,7 @@ from robosub.msg import MControl
 import math
 from waypoint import Waypoint
 from threading import Thread
-
+import time
 
 class Navigation():
     """
@@ -24,6 +24,7 @@ class Navigation():
         # rospy.init_node('navigation_node', anonymous=True)
         rospy.Subscriber('rotation_control_status', RControl, self.r_callback, queue_size=100)
         rospy.Subscriber('movement_control_status', MControl, self.m_callback, queue_size=100)
+        rospy.Subscriber('height_control_status', HControl, self.h_callback, queue_size=100)
         self.h_control = HControl()
         self.r_control = RControl()
         self.m_control = MControl()
@@ -83,17 +84,25 @@ class Navigation():
 
         self.runningTime = None  # runningTime (time for the motor to turn on)
 
+        if wp:
+            self.waypoint = wp
+        else:
+            self.waypoint = Waypoint()
+
         self.is_running_waypoint_rotation = False
         self.is_running_waypoint_movement = False
         self.is_busy_waypoint = False
         self.w_distance_m = 0
         self.w_power_m = 100
-        self.movement_state = 0
+        self.waypoint_state = 0
 
-        if wp:
-            self.waypoint = wp
-        else:
-            self.waypoint = Waypoint()
+        #vars dealing with movement break time
+        self.waypoint_m_time = 0
+        self.waypoint_m_time_max = 2.14
+
+        #vars dealing with height checking
+        self.depth_threshold = 0.3
+        self.depth_assignment = 0
 
         self.thread_w = None
         self.exit_waypoints = False
@@ -271,28 +280,36 @@ class Navigation():
                 # print('waypoint rotation r_callback')
                 self.is_running_waypoint_movement = True
                 self.m_nav('distance', 'forward', self.w_power_m, self.w_distance_m)
+                self.waypoint_m_time = time.time()
                 self.is_running_waypoint_rotation = False
-                self.movement_state = 1
+                self.waypoint_state = 1
                 # print(self.w_distance_m)
 
     def m_callback(self, movement_status):
         # print(rotation_status)
         if self.is_running_waypoint_movement and not self.is_running_waypoint_rotation and self.is_busy_waypoint:
             # print('movement_status: ')
-            # print(self.movement_state)
+            # print(self.waypoint_state)
             # print(movement_status.distance)
             # print(self.w_distance_m)
-            if movement_status.state == 0 and self.movement_state == 1 and abs(movement_status.distance - self.w_distance_m) < 0.001:
+            if movement_status.state == 0 and self.waypoint_state == 1 and abs(movement_status.distance - self.w_distance_m) < 0.001:
                 # print('in state 1')
-                self.m_nav('motor_time', 'backward', self.w_power_m, 2.14)
-                self.movement_state = 2
-            elif movement_status.state == 0 and self.movement_state == 2:
+                final_waypoint_m_time = time.time() - self.waypoint_m_time
+                if final_waypoint_m_time > self.waypoint_m_time_max:
+                    final_waypoint_m_time = self.waypoint_m_time_max
+
+                self.m_nav('motor_time', 'backward', self.w_power_m, final_waypoint_m_time)
+                self.waypoint_state = 2
+            elif movement_status.state == 0 and self.waypoint_state == 2:
                 # print('in state 2')
                 # print('waypoint rotation r_callback')
                 self.is_running_waypoint_movement = False
                 self.is_busy_waypoint = False
-                self.movement_state = 0
+                self.waypoint_state = 0
 
+    def h_callback(self, height_status):
+        if height_status.state == 0 or height_status.state == 2:
+            self.depth_assignment = height_status.depth
 
     def go_waypoint(self, direction_r, degree_r, power_r, direction_h, distance_h, power_h, distance_m, power_m):
         # if not direction or not degree or not distance or not depth or not power or not h_power:
@@ -301,9 +318,9 @@ class Navigation():
             return
         self.is_busy_waypoint = True
         self.cancel_r_nav()
-        self.cancel_h_nav()
+        # self.cancel_h_nav()
         self.cancel_m_nav()
-        self.movement_state = 0
+        self.waypoint_state = 0
         rospy.sleep(1.5)
         # print('going to waypoint')
         self.is_running_waypoint_rotation = True
@@ -339,13 +356,18 @@ class Navigation():
             direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
             self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
 
+    def is_at_assigned_depth(self):
+        if abs(self.depth_assignment - self.waypoint.get_depth()) <= self.depth_threshold:
+            return True
+        return False
+
     def run_stack_waypoints(self, r_power=120, h_power=100, m_power=120):
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         # self.set_exit_waypoints(False)
         print('running all stack waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
-            if not self.is_busy_waypoint:
+            if not self.is_busy_waypoint and self.is_at_assigned_depth():
                 self.run_top_stack_waypoint(r_power, h_power, m_power)
         print('finished running all waypoints')
 
@@ -355,17 +377,25 @@ class Navigation():
         # self.set_exit_waypoints(False)
         print('running all queue waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
-            if not self.is_busy_waypoint:
+            if not self.is_busy_waypoint and self.is_at_assigned_depth():
                 self.run_front_queue_waypoint(r_power, h_power, m_power)
         print('finished running all waypoints')
 
     def run_stack_waypoints_async(self, r_power=120, h_power=100, m_power=120):
+        self.reset_thread()
+
         self.thread_w=Thread(target=self.run_stack_waypoints, args = (r_power,h_power,m_power))
         self.thread_w.start()
 
     def run_queue_waypoints_async(self, r_power=120, h_power=100, m_power=120):
+        self.reset_thread()
+
         self.thread_w=Thread(target=self.run_queue_waypoints, args = (r_power,h_power,m_power))
         self.thread_w.start()
 
     def set_exit_waypoints(self, exit = False):
         self.exit_waypoints = exit
+
+    def reset_thread(self):
+        if self.thread_w:
+            self.thread_w = None
