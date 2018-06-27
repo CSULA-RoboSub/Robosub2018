@@ -87,10 +87,7 @@ class RunDVL:
         # headingTimeInterval = 0.010
 
         while not rospy.is_shutdown():
-            try:
-                loopTime = time.time()
-            except:
-                print("read fail")
+            loopTime = time.time()
 
             # if len(self.yaw) >= 1:
             #     heading = self.yaw.pop() #put heading info ** heree from IMU
@@ -104,7 +101,10 @@ class RunDVL:
             #         headingTimePrev = loopTime
             #         dvl.write("EH " + str(heading) + "\r") #Update Heading
             if dvl.in_waiting > 0: #If there is a message from the DVL
-                line = dvl.readline()
+                try:
+                    line = dvl.readline()
+                except:
+                    print("read fail")
                 if line[:3] == ":BD": #If the message is a positional update
                     line = line.split(",")
                     north_trans = float(line[1])
