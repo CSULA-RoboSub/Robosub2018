@@ -68,12 +68,14 @@ class RunDVL:
         # dvl.write("PD13\r")
         dvl.write("EX11110\r") #coordinate transformation (Pathfinder guide p.124)
         dvl.write("EA+4500\r") #heading alignment (Pathfinder guide 118)
-        dvl.write("EZ10000010\r") #sensor source (Pathfinder guide 125)
+        # dvl.write("EZ10000010\r") #default sensor source (Pathfinder guide 125)
+        dvl.write("EZ11111010\r") #internal speed of sound, depth, heading, pitch, roll, temperature
+        # dvl.write("EZ11011010\r") #internal speed of sound, depth, pitch, roll, temperature
+        # dvl.write("EZ11000010\r") #internal speed of sound, depth, temperature
+        # dvl.write("EZ10000010\r") #internal speed of sound, temperature
+
         dvl.write("CK\r") #stores present parameters (Pathfinder guide 114)
         dvl.write("CS\r") #start pinning (Pathfinder guide 115)
-
-        #PD13 settings -------------------------------------------------------------
-        #pd13 to get imu data aswell
 
         #NOTE: the \r character is required for continuous stream i.e (PD6\r")
 
