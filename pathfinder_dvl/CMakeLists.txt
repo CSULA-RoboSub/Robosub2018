@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(robosub)
+project(pathfinder_dvl)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -49,14 +49,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  # Navigate.msg
-  HControl.msg
-  RControl.msg
-  MControl.msg
-  CVIn.msg
-  CVOut.msg
-  Hydrophone.msg
-  Rotation.msg
+  # msg files here
+  DVL.msg
 )
 
 ## Generate services in the 'srv' folder
