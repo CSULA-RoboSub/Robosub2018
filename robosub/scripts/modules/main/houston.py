@@ -132,7 +132,7 @@ class Houston():
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
         self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
-
+        self.state.gate_maneuver.sweep_forward=0
         while not self.state.is_detect_done and not break_loop > self.break_timer:
 
             # _, frame = self.cap.read()
@@ -157,21 +157,23 @@ class Houston():
                     frame = img_array.reshape((height, width, 3))
                     # print(type(frame))
 
+                    # self.outraw.write(frame)
+                    # self.msg.found, coordinates = self.state.detect(frame)
+                    # self.outprocessed.write(frame)
+
+                    # self.last_reading.append(coordinates)
                     self.outraw.write(frame)
-                    self.msg.found, coordinates = self.state.detect(frame)
+                    self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
                     self.outprocessed.write(frame)
 
-                    #self.show_img(frame)
-                    # self.last_reading.append(coordinates)
+                    self.show_img(frame)
+
                 except KeyboardInterrupt:
                     self.state.is_detect_done = True
                     # raise
                 finally:
                     buf.unmap(mapinfo)
                     
-                self.outraw.write(frame)
-                self.msg.found, coordinates = self.state.detect(frame)
-                self.outprocessed.write(frame)
 
                 self.queue_direction.append(coordinates)
 
@@ -193,11 +195,10 @@ class Houston():
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.1):# and not self.msg.found):
                     most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
-                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
+                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
                     """break_loop used for temp breaking of loop"""
                     #print 'press q to quit task or wait 30 secs'
-                    print(self.counts.most_common(1))
 
                     self.counts = Counter()
                     self.queue_direction = []
@@ -209,10 +210,11 @@ class Houston():
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 
-                print 'task will stop in 30 secs'
-
+                print 'task will stop in 300'
+                print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                 print 'current count: {}'.format(break_loop)
-                print(coordinates)
+                print 'coordinates: {}'.format(coordinates)
+                print '--------------------------------------------'
 
         print("exit loop")
         #if self.state.is_detect_done:

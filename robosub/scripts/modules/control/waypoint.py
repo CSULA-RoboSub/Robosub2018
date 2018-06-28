@@ -16,7 +16,8 @@ class Waypoint():
         # rospy.init_node('waypoint_node', anonymous=True)
         rospy.Subscriber('dvl_status', DVL, self.dvl_callback, queue_size=1)
         rospy.Subscriber('current_depth', Float32, self.depth_callback, queue_size=1)
-        rospy.Subscriber('current_rotation', Rotation, self.rotation_callback, queue_size=1)
+        # rospy.Subscriber('current_rotation', Rotation, self.rotation_callback, queue_size=1)
+        rospy.Subscriber('dvl_heading', Float32, self.rotation_callback, queue_size=1)
 
     def dvl_callback(self, dvl_msg):
         #x is east axis y is north axis, dvl uses compass north east as axis
@@ -28,9 +29,13 @@ class Waypoint():
         self.dvl_msg.zpos = dvl_msg.zpos
         self.dvl_msg.zvel = dvl_msg.zvel
 
+    # def rotation_callback(self, rotation_msg):
+    #     #yaw value from imu will be +- 180 deg, so 180-yaw to match dvl 0-360
+    #     self.yaw = 180-rotation_msg.yaw
+    #     # print('current yaw: %.2f' % self.yaw)
     def rotation_callback(self, rotation_msg):
-        #yaw value from imu will be +- 180 deg, so add 180 to match dvl 0-360
-        self.yaw = rotation_msg.yaw + 180
+        #dvl heading value goes from 0-360
+        self.yaw = rotation_msg.data
         # print('current yaw: %.2f' % self.yaw)
 
     def depth_callback(self, depth):
@@ -43,6 +48,9 @@ class Waypoint():
 
         return None, None, None
     
+    def get_depth(self):
+        return self.depth
+        
     def get_dvl_yaw(self):
         return self.yaw
 
