@@ -34,6 +34,8 @@ class Keyboard():
         self.r_power = 100
         self.thread_w = None
         self.exit = False
+        self.w_time_delay = 20
+
     def getch(self):
         """Gets keyboard input if killswitch is plugged in"""
 
@@ -63,6 +65,7 @@ class Keyboard():
                 \nh: set height\
                 \ng: record waypoint\
                 \nt: go to last waypoint\
+                \no: set all waypoint start delay\
                 \np: run through all waypoints\
                 \nx: exit')
 
@@ -103,6 +106,13 @@ class Keyboard():
                     self.m_power = int(response)
                     response = ''
                     print('movement power: %d' % self.m_power)
+                elif char == 'o':
+                    while not response.isdigit() or int(response) < 0 or int(response) > 400:
+                        response = raw_input('\nEnter a time delay in seconds: ')
+
+                    self.w_time_delay = int(response)
+                    response = ''
+                    print('delay time: %d' % self.w_time_delay)
                 elif char == 'v':
                     while True:
                         try:
@@ -147,9 +157,9 @@ class Keyboard():
                 elif char == 'p':
                     # self.thread_w=Thread(target=self.run_all_waypoints)
                     # self.thread_w.start()
-                    print('waiting 20 seconds')
+                    print('waiting %d seconds' %self.w_time_delay)
                     self.navigation.set_exit_waypoints(False)
-                    time.sleep(20)
+                    time.sleep(self.w_time_delay)
                     self.navigation.run_stack_waypoints_async()
             self.navigation.set_exit_waypoints(True)
         else:

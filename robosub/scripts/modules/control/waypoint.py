@@ -16,8 +16,8 @@ class Waypoint():
         # rospy.init_node('waypoint_node', anonymous=True)
         rospy.Subscriber('dvl_status', DVL, self.dvl_callback, queue_size=1)
         rospy.Subscriber('current_depth', Float32, self.depth_callback, queue_size=1)
-        # rospy.Subscriber('current_rotation', Rotation, self.rotation_callback, queue_size=1)
-        rospy.Subscriber('dvl_heading', Float32, self.rotation_callback, queue_size=1)
+        rospy.Subscriber('current_rotation', Rotation, self.rotation_callback, queue_size=1)
+        # rospy.Subscriber('dvl_heading', Float32, self.rotation_callback, queue_size=1)
 
     def dvl_callback(self, dvl_msg):
         #x is east axis y is north axis, dvl uses compass north east as axis
@@ -29,14 +29,18 @@ class Waypoint():
         self.dvl_msg.zpos = dvl_msg.zpos
         self.dvl_msg.zvel = dvl_msg.zvel
 
-    # def rotation_callback(self, rotation_msg):
-    #     #yaw value from imu will be +- 180 deg, so 180-yaw to match dvl 0-360
-    #     self.yaw = 180-rotation_msg.yaw
-    #     # print('current yaw: %.2f' % self.yaw)
     def rotation_callback(self, rotation_msg):
-        #dvl heading value goes from 0-360
-        self.yaw = rotation_msg.data
+        #yaw value from imu will be +- 180 deg, so convert to match dvl 0-360
+        if 90 <= rotation_msg.yaw and rotation_msg.yaw <= 180:
+            heading = rotation_msg.yaw - 90
+        else:
+            heading = rotation_msg.yaw + 270
+        self.yaw = heading
         # print('current yaw: %.2f' % self.yaw)
+    # def rotation_callback(self, rotation_msg):
+    #     #dvl heading value goes from 0-360
+    #     self.yaw = rotation_msg.data
+    #     # print('current yaw: %.2f' % self.yaw)
 
     def depth_callback(self, depth):
         #currently in feet
@@ -132,13 +136,18 @@ class Waypoint():
         y1 = self.dvl_msg.ypos
         #theta = 
         direction_degree = math.atan2(y2-y1, x2-x1) * 180 / np.pi
-        dvl_yaw = 0
+        # dvl_yaw = 0
 
         #convert to degrees dvl uses
-        if direction_degree > 0:
-            dvl_yaw = 360-direction_degree
+        if direction_degree >= 0:
+            direction_degree = 180 - direction_degree
         else:
-            dvl_yaw = -direction_degree
+            direction_degree = -180 - direction_degree
+            
+        if 90 <= direction_degree and direction_degree <= 180:
+            dvl_yaw = direction_degree - 90
+        else:
+            dvl_yaw = direction_degree + 270
         print('dvl_yaw: %.2f' %(dvl_yaw))
         print('current_yaw %.2f' %self.yaw)
         yaw_diff = dvl_yaw - self.yaw
@@ -171,3 +180,16 @@ class Waypoint():
         print('direction: ' + direction)
 
         return direction, degree, distance
+
+    def get_distance(self, x2, y2):
+        # print('x2: %.2f y2: %.2f' %(x2,y2))
+        x1 = self.dvl_msg.xpos
+        y1 = self.dvl_msg.ypos
+        # print('x1: %.2f y1: %.2f' %(x1,y1))
+
+
+        l1 = max(x1,x2) - min(x1,x2)
+        l2 = max(y1,y2) - min(y1,y2)
+        distance = math.sqrt(l1*l1 + l2*l2)
+
+        return distance

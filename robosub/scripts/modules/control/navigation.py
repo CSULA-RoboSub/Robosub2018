@@ -102,7 +102,9 @@ class Navigation():
 
         #vars dealing with height checking
         self.depth_threshold = 0.3
-        self.depth_assignment = 0
+        self.depth_assignment = 0.5
+        self.current_waypoint_x = 0
+        self.current_waypoint_y = 0
 
         self.thread_w = None
         self.exit_waypoints = False
@@ -279,8 +281,10 @@ class Navigation():
             if rotation_status.state == 1:
                 # print('waypoint rotation r_callback')
                 self.is_running_waypoint_movement = True
+                self.w_distance_m = self.waypoint.get_distance(self.current_waypoint_x, self.current_waypoint_y)
                 self.m_nav('distance', 'forward', self.w_power_m, self.w_distance_m)
                 self.waypoint_m_time = time.time()
+                print("foward wp state 1")
                 self.is_running_waypoint_rotation = False
                 self.waypoint_state = 1
                 # print(self.w_distance_m)
@@ -300,12 +304,14 @@ class Navigation():
 
                 self.m_nav('motor_time', 'backward', self.w_power_m, final_waypoint_m_time)
                 self.waypoint_state = 2
+                print("backward wp state 2")
             elif movement_status.state == 0 and self.waypoint_state == 2:
                 # print('in state 2')
                 # print('waypoint rotation r_callback')
                 self.is_running_waypoint_movement = False
                 self.is_busy_waypoint = False
                 self.waypoint_state = 0
+                print("time fin wp state reset")
 
     def h_callback(self, height_status):
         if height_status.state == 0 or height_status.state == 2:
@@ -344,6 +350,8 @@ class Navigation():
         #travel to waypoint at top of stack
         if not self.waypoint.is_empty():
             last_x, last_y, last_depth = self.waypoint.pop()
+            self.current_waypoint_x = last_x
+            self.current_waypoint_y = last_y
             direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
             direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
             self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
@@ -352,6 +360,8 @@ class Navigation():
         #travel to waypoint at front of queue
         if not self.waypoint.is_empty():
             last_x, last_y, last_depth = self.waypoint.dequeue()
+            self.current_waypoint_x = last_x
+            self.current_waypoint_y = last_y
             direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
             direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
             self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
