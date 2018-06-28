@@ -82,9 +82,17 @@ class Houston():
         'roulette', 'pinger_a', 'cash_in'
         """
         self.state_num = 0
-        self.states = [self.gate, self.path_1, self.dice, self.chip_1, self.path_2, 
-                        self.slots, self.chip_2, self.pinger_a, self.roulette,
-                        self.pinger_b, self.cash_in]
+        self.states = [self.gate, 
+                        self.path_1, 
+                        self.dice, 
+                        self.chip_1, 
+                        self.path_2,
+                        self.slots, 
+                        self.chip_2, 
+                        self.pinger_a, 
+                        self.roulette, 
+                        self.pinger_b, 
+                        self.cash_in]
     
         self.queue_direction = []
 

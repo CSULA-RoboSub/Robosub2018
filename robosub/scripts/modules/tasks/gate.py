@@ -49,7 +49,7 @@ class Gate(Task):
 
         self.passed_gate = 0
 
-        self.gate_phases = {None: self.gate_maneuver.sweep,
+        self.gate_phases = {None: self.gate_maneuver.no_shape_found,
                             'vertical': self.gate_maneuver.vertical,
                             'horizontal': self.gate_maneuver.horizontal,
                             'square': self.gate_maneuver.square}
@@ -68,6 +68,8 @@ class Gate(Task):
         self.heading_verify_count = 0
         self.under_timer = 0
         self.passed_gate = 0
+
+        self.gate_maneuver.reset()
         
     def detect(self, frame):
         #add frame when testing complete
@@ -77,7 +79,6 @@ class Gate(Task):
         return self.detectgate.detect(frame)
     
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
-        ''' to clear previous navigation commands'''
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
@@ -85,7 +86,7 @@ class Gate(Task):
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
         #TODO need to get rid of if statements and clean up code
-        if found:
+        '''if found:
             #self.gate_phases[gate_shape](navigation, coordinates, power, rotation, gate_shape, width_height)
             if gate_shape == 'vertical':
                 self.gate_maneuver.strafe_to_square(navigation, power, rotation, width_height[0])
@@ -112,12 +113,26 @@ class Gate(Task):
                     self.gate_maneuver.move_to_gate(navigation, coordinates, power)
         else:
             #self.gate_phases[gate_shape](navigation, power, rotation)
-            self.gate_maneuver.sweep(navigation, power, rotation)
+            self.gate_maneuver.sweep(navigation, power, rotation)'''
+
+        if found and gate_shape == 'square':
+            self.heading_verify_count += 1
+            if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
+                self.getrotation.update_rot()
+                self.heading = self.getrotation.get_yaw()
+
+            if self.heading is None:
+                self.gate_maneuver.center_square(navigation, coordinates, power)
+
+            else:
+                self.gate_maneuver.move_to_gate(navigation, coordinates, power)
+        else:
+            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, heading)
 
                     
         self.previous_width_height = width_height
 
-        if self.under_timer > self.under_threshold:
+        if self.gate_maneuver.under_timer > self.under_threshold:
             self.passed_gate = 1
     
     def complete(self):
