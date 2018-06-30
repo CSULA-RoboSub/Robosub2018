@@ -2,6 +2,7 @@ from modules.sensors.computer_vision import GateDetector
 from task import Task
 from gate_maneuver import GateManeuver
 from modules.controller.cv_controller import CVController
+from modules.sensors.imu.gather_rotation import GetRotation
 
 class Gate(Task):
     
@@ -11,6 +12,7 @@ class Gate(Task):
         
         self.houston = Houston
         self.gate_maneuver = GateManeuver()
+        self.getrotation = GetRotation()
         
         self.detectgate = None
         self.is_found = False
@@ -86,35 +88,6 @@ class Gate(Task):
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
         #TODO need to get rid of if statements and clean up code
-        '''if found:
-            #self.gate_phases[gate_shape](navigation, coordinates, power, rotation, gate_shape, width_height)
-            if gate_shape == 'vertical':
-                self.gate_maneuver.strafe_to_square(navigation, power, rotation, width_height[0])
-                
-            elif gate_shape == 'horizontal':
-                if self.heading is None:
-                    self.gate_maneuver.backup_to_square(navigation, power)
-
-                else:
-                    self.gate_maneuver.go_under_gate(navigation, coordinates, power)
-                    self.under_timer += 1
-
-            elif gate_shape == 'square':
-                self.heading_verify_count += 1
-
-                if self.heading == None and self.heading_verify_count >= self.heading_verify_threshold:
-                    self.getrotation.update_rot()
-                    self.heading = self.getrotation.get_yaw()
-
-                if self.heading is None:
-                    self.gate_maneuver.center_square(navigation, coordinates, power)
-
-                else:
-                    self.gate_maneuver.move_to_gate(navigation, coordinates, power)
-        else:
-            #self.gate_phases[gate_shape](navigation, power, rotation)
-            self.gate_maneuver.sweep(navigation, power, rotation)'''
-
         if found and gate_shape == 'square':
             self.heading_verify_count += 1
             if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
@@ -127,13 +100,14 @@ class Gate(Task):
             else:
                 self.gate_maneuver.move_to_gate(navigation, coordinates, power)
         else:
-            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, heading)
+            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.heading)
 
                     
         self.previous_width_height = width_height
 
         if self.gate_maneuver.under_timer > self.under_threshold:
             self.passed_gate = 1
+            print 'sub has gone under and past gate'
     
     def complete(self):
         #code below is not needed anymore

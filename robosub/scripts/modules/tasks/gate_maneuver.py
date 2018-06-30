@@ -165,7 +165,11 @@ class GateManeuver():
         #return True
 
     def vertical(self, navigation, coordinates, power, rotation, width_height, heading):
-        self.strafe_to_square(navigation, power, rotation, width_height[0])
+        if heading is None:
+            self.strafe_to_square(navigation, power, rotation, width_height[0])
+        else:
+            self.go_under_gate(navigation, coordinates, power)
+            self.under_timer += 1
     
     def horizontal(self, navigation, coordinates, power, rotation, width_height, heading):
         if heading is None:
@@ -174,6 +178,7 @@ class GateManeuver():
             self.go_under_gate(navigation, coordinates, power)
             self.under_timer += 1
 
+        
     def square(self, navigation, coordinates, power, rotation, width_height, heading):
         #self.heading_verify_count += 1
 
