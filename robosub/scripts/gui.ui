@@ -143,9 +143,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="change_params_button">
+          <property name="text">
+           <string>Change Params</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="auto_checkbox">
           <property name="text">
-           <string>Auto mode</string>
+           <string>Start in Auto mode</string>
           </property>
          </widget>
         </item>
@@ -165,6 +172,13 @@
            <widget class="QPushButton" name="start_tasks">
             <property name="text">
              <string>start tasks</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="stop_tasks">
+            <property name="text">
+             <string>stop tasks</string>
             </property>
            </widget>
           </item>
@@ -504,6 +518,22 @@
     <hint type="destinationlabel">
      <x>1070</x>
      <y>140</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>power</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>messages</receiver>
+   <slot>paste()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>990</x>
+     <y>252</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>360</x>
+     <y>708</y>
     </hint>
    </hints>
   </connection>
