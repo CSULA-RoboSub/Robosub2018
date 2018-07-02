@@ -153,12 +153,13 @@ class Keyboard():
                     #     direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
                     #     direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
                     #     self.navigation.go_waypoint(direction_r, degree_r, self.r_power, direction_h, distance_h, self.h_power, distance_m, self.m_power)
+                    
                     self.navigation.run_top_stack_waypoint(self.r_power, self.h_power, self.m_power)
                 elif char == 'p':
                     # self.thread_w=Thread(target=self.run_all_waypoints)
                     # self.thread_w.start()
                     print('waiting %d seconds' %self.w_time_delay)
-                    self.navigation.set_exit_waypoints(False)
+                    
                     time.sleep(self.w_time_delay)
                     self.navigation.run_stack_waypoints_async()
             self.navigation.set_exit_waypoints(True)

@@ -375,6 +375,7 @@ class Navigation():
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         # self.set_exit_waypoints(False)
+        self.reset_wp_vals()
         print('running all stack waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
             if not self.is_busy_waypoint and self.is_at_assigned_depth():
@@ -385,6 +386,7 @@ class Navigation():
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         # self.set_exit_waypoints(False)
+        self.reset_wp_vals()
         print('running all queue waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
             if not self.is_busy_waypoint and self.is_at_assigned_depth():
@@ -409,3 +411,20 @@ class Navigation():
     def reset_thread(self):
         if self.thread_w:
             self.thread_w = None
+    def reset_wp_vals(self):        
+        self.is_running_waypoint_rotation = False
+        self.is_running_waypoint_movement = False
+        self.is_busy_waypoint = False
+        self.waypoint_state = 0
+
+        #vars dealing with movement break time
+        self.waypoint_m_time = 0
+
+        #vars dealing with height checking
+        #reset initial depth to current
+        self.depth_assignment = self.waypoint.get_depth()
+        
+        self.current_waypoint_x = 0
+        self.current_waypoint_y = 0
+
+        self.exit_waypoints = False
