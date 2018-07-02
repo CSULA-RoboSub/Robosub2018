@@ -140,24 +140,10 @@ class Keyboard():
                     response = ''
                     print('height: %.2f' % height)
                 elif char == 'g':
-                    #record waypoint
-                    # cur_x, cur_y, cur_depth = self.waypoint.get_position()
-                    # print('pushed (x,y,depth): %.2f, %.2f, %.2f' %(cur_x,cur_y,cur_depth))
-                    # self.waypoint.push(cur_x, cur_y, cur_depth)
-                    # self.navigation.push_current_waypoint()
                     self.navigation.push_current_waypoint()
                 elif char == 't':
-                    #travel to last waypoint
-                    # if not self.waypoint.is_empty():
-                    #     last_x, last_y, last_depth = self.waypoint.pop()
-                    #     direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
-                    #     direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
-                    #     self.navigation.go_waypoint(direction_r, degree_r, self.r_power, direction_h, distance_h, self.h_power, distance_m, self.m_power)
-                    
                     self.navigation.run_top_stack_waypoint(self.r_power, self.h_power, self.m_power)
                 elif char == 'p':
-                    # self.thread_w=Thread(target=self.run_all_waypoints)
-                    # self.thread_w.start()
                     print('waiting %d seconds' %self.w_time_delay)
                     
                     time.sleep(self.w_time_delay)
@@ -165,21 +151,6 @@ class Keyboard():
             self.navigation.set_exit_waypoints(True)
         else:
             print('Magnet is not plugged in.')
-
-    # def run_all_waypoints(self):
-    #     print('waiting 4 seconds')
-    #     self.navigation.ros_sleep(4)
-    #     print('running waypoints...')
-    #     while not self.waypoint.is_empty() and not self.exit:
-    #         if not self.navigation.is_running_waypoint():
-    #             # print('running a waypoint')
-    #             #travel to waypoint at top of stack if not running one
-    #             last_x, last_y, last_depth = self.waypoint.pop()
-    #             direction_r, degree_r, distance_m = self.waypoint.get_directions(last_x, last_y)
-    #             direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
-    #             self.navigation.go_waypoint(direction_r, degree_r, self.r_power, direction_h, distance_h, self.h_power, distance_m, self.m_power)
-    #     print('finished running all waypoints')
-
 
     def navigate(self, char, rotation, height):
         """Navigates robosub with given character input and power"""
