@@ -23,25 +23,6 @@ class DiceDetector:
         interest_regions =  self.preprocessor.get_interest_areas()
         dice = [die for die in interest_regions if self.classifier.predict(die) > .1]
         return dice
-    ''''
-        find a better way to pair the distances and the value of the dice itself
-    def get_pair(self):
-        dice = self.locate_dice()
-        dice_dict = {}
-        for x, y, w, h in dice:
-            dice_dict[(x, y, w, h)] = self.get_dots((x, y, w, h))
-
-        path_centers = []
-        for i in range(0, 6):
-            for j in range(i + 1, 6):
-                if dice_dict[dice[i]] + dice_dict[dice[j]] == 7 or dice_dict[dice[i]] + dice_dict[dice[j]] == 11:
-                    path_centers.append((utils.center(dice[i]), utils.center(dice[j])))
-        low = 0
-        for i in range(1, len(path_centers)):
-            if utils.dist(path_centers[i]) < utils.dist(path_centers[low]):
-                low = i
-        return dice_dict[i]
-    '''
 
     def search_die(self, frame, value):
         found = False

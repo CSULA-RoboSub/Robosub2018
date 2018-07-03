@@ -23,8 +23,6 @@ class Dice(Task):
         self.found_timer = 0
         self.task_complete = False
         self.at_platform = False
-        self.is_complete_first_die = False
-        self.is_complete_second_die = False
         self.sum = 7
         self.dice_to_find = []
 
@@ -32,9 +30,39 @@ class Dice(Task):
         found, coordinates = self.dice_detector.detect()
         return found, coordinates
 
-    def find_platform(self,frame):
+    def find_platform(self, frame):
         found, coords = self.platform_detector.detect(frame)
-        return found, coords
+        dice_found, _ = self.detect(frame)
+        return found, coords, dice_found
+
+    def center(self,frame, x_die, y_die):
+        width, height, _ = frame.shape()
+        center = [width / 2 , height / 2]
+        x_buffer = center[0] / 7
+        y_buffer = center[1] / 7
+
+        '''
+            FIND THE CODE TO STRAFE 
+        '''
+        if x_die < center[0] - x_buffer:
+            self.coordinates[0] = -1
+        elif x_die > center[0] + x_buffer:
+            self.coordinates[0] = 1
+        else:
+            self.coordinates[0] = 0
+
+        if y_die < center[0] - y_buffer:
+            self.coordinates[0] = -1
+        elif y_die > center[0] + y_buffer:
+            self.coordinates[0] = 1
+        else:
+            self.coordinates[0] = 0
+
+        if self.coordinates == [0,0]:
+            return True
+        else:
+            #Command the sub to strafe in the directions found
+            return False
 
     def navigate(self, navigation, found, coordinates, power, rotation):
         pass

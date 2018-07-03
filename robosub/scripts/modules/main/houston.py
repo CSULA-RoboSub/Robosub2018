@@ -226,6 +226,8 @@ class Houston():
         die1 = False
         die6 = False
         platform_complete =  False
+        dice_located = False
+
         while not state.is_done:
             if self.sample:
                 buf = self.sample.get_buffer()
@@ -241,12 +243,20 @@ class Houston():
             '''
                 This is the subtask of finding the dice with one dot.
             '''
-            while not die1:
-                self.msg.found, coords =  self.state.search_die(1)
-                self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
-            while not die6:
-                self.msg.found, coords =  self.state.search_die(6)
-                self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
+            while not platform_complete:
+                self.msg.found, coords, dice_located =  self.state.find_platform(frame)
+                if dice_located:
+                    break
+
+            if platform_complete:
+                while not die1:
+                    self.msg.found, coords =  self.state.search_die(frame, 1)
+                    self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
+                while not die6:
+                    self.msg.found, coords =  self.state.search_die(frame, 6)
+                    self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
+            if die1 and die6:
+                self.state.task_complete = True
 
 
     '''
