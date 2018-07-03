@@ -13,8 +13,7 @@ class DiceDetector:
     the initialization will take a cam parameter so that we know which camera we are selecting
         later in documentation we should include which camera is which by number.
     '''
-    def __init__(self, cam):
-        self.cap = cv2.VideoCapture(cam)
+    def __init__(self):
         self.pp = dpp.DicePreprocessor()
         self.classifier = dc.DiceClassifier()
         self.directions = [None, None]
@@ -51,7 +50,7 @@ class DiceDetector:
                 self.directions = utils.get_directions(die)
 
     def get_dots(self, die):
-        _,bw_die = cv2.cvtColor(die, cv2.COLOR_BGR2GRAY)
+        bw_die = cv2.cvtColor(die, cv2.COLOR_BGR2GRAY)
         _, th = cv2.threshold(bw_die, 127, 255, 0)
         temp_im, conts, _ = cv2.findContours(th, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         dots = [cv2.boundingRect(c) for c in conts]

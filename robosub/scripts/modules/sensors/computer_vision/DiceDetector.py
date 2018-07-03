@@ -14,41 +14,43 @@ class DiceDetector:
         later in documentation we should include which camera is which by number.
     '''
     def __init__(self, cam):
-        self.cap = cv2.VideoCapture(cam)
-        self.pp = dpp.DicePreprocessor()
+        self.preprocessor = dpp.DicePreprocessor()
         self.classifier = dc.DiceClassifier()
         self.directions = [None, None]
         self.dot_size = 100
 
-    def locate_dice(self):
-        return False
+    def locate_dice(self,frame):
+        interest_regions =  self.preprocessor.get_interest_areas()
+        dice = [die for die in interest_regions if self.classifier.predict(die) > .1]
+        return dice
     ''''
         find a better way to pair the distances and the value of the dice itself
-    '''
     def get_pair(self):
         dice = self.locate_dice()
         dice_dict = {}
         for x, y, w, h in dice:
             dice_dict[(x, y, w, h)] = self.get_dots((x, y, w, h))
+
         path_centers = []
-        for i in range(0,6):
-            for j in range (i+1,6):
+        for i in range(0, 6):
+            for j in range(i + 1, 6):
                 if dice_dict[dice[i]] + dice_dict[dice[j]] == 7 or dice_dict[dice[i]] + dice_dict[dice[j]] == 11:
                     path_centers.append((utils.center(dice[i]), utils.center(dice[j])))
-
         low = 0
-
         for i in range(1, len(path_centers)):
             if utils.dist(path_centers[i]) < utils.dist(path_centers[low]):
                 low = i
+        return dice_dict[i]
+    '''
 
-    def search_die(self, value):
-        candidate_dice = self.pp.get_interest_areas()
-        dice = [die for die in candidate_dice if self.classifier.predict(die) > .1]
-
+    def search_die(self, frame, value):
+        found = False
+        dice = self.locate_dice(frame)
         for die in dice:
             if self.get_dots(die) == value:
+                found = True
                 self.directions = utils.get_directions(die)
+        return found, self.directions
 
     def get_dots(self, die):
         _,bw_die = cv2.cvtColor(die, cv2.COLOR_BGR2GRAY)

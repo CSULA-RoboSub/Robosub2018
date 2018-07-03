@@ -79,11 +79,6 @@ class Houston():
         self.qualify = Qualify(self)
         #self.buoy = Buoy(Houston)
 
-        """
-        self.tasks values listed below
-        'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
-        'roulette', 'pinger_a', 'cash_in'
-        """
         self.state_num = 0
         self.states = [self.gate, self.path_1, self.dice, self.chip_1, self.path_2, 
                         self.slots, self.chip_2, self.pinger_a, self.roulette,
@@ -214,6 +209,33 @@ class Houston():
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub` will navigate to it
     # rather than just going to last coordinates
+    def do_dice(self):
+        self.setup_pipeline()
+        self.thread = Thread(target=self.start_loop)
+        self.thread.start()
+        start_time = time.time()
+        navi = self.navigation
+        pow = self.power
+        rot = self.rotation
+        prev_detected = False
+        state =  self.states[2]
+        die1 = False
+        die6 = False
+
+        while not state.is_done:
+            if self.sample:
+                buf = self.sample.get_buffer()
+                caps = self.sample.get_caps()
+                width = caps[0].get_value("width")
+                height = caps[0].get_value("height")
+            try:
+                res, mapinfo = buf.map(Gst.MapFlags.READ)
+                img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+                frame = img_array.reshape((height, width, 3))
+            finally:
+                buf.unmap(mapinfo)
+            
+
     '''
         Qualification task
     '''
@@ -254,16 +276,6 @@ class Houston():
                 print ("task timed out")
                 break
 
-
-
-
-    def get_most_occur_coordinates(self, last, counts):
-        for sublist in last:
-            counts.update(combinations(sublist, 2))
-
-        for key, count in counts.most_common(1):
-            most_occur = key
-        return most_occur
 
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
