@@ -65,8 +65,27 @@ class Dice(Task):
             return False
 
     def navigate(self, navigation, found, coordinates, power, rotation):
-        pass
-    
+        if found:
+            navigation.cancel_h_nav()
+            navigation.h_nav(0, self.depth_change, 100)
+
+            navigation.cancel_r_nav()
+            navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
+
+            navigation.cancel_m_nav()
+            navigation.m_nav('power', self.move_forward, power)
+
+        elif found == False and self.been_found == True:
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+            navigation.r_nav(self.rotation_direction, rotation, 50)
+        else:
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+            navigation.r_nav(self.rotation_direction, rotation, 50)
+
     def complete(self):
         pass
 
