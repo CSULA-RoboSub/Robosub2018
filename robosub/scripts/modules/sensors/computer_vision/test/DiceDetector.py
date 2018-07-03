@@ -44,10 +44,14 @@ class DiceDetector:
     def search_die(self, value):
         candidate_dice = self.pp.get_interest_areas()
         dice = [die for die in candidate_dice if self.classifier.predict(die) > .1]
-
         for die in dice:
             if self.get_dots(die) == value:
                 self.directions = utils.get_directions(die)
+                return True, self.directions
+
+        return False, [0, 0]
+
+
 
     def get_dots(self, die):
         bw_die = cv2.cvtColor(die, cv2.COLOR_BGR2GRAY)

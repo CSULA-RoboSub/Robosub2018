@@ -11,7 +11,7 @@ class Dice(Task):
         super(Dice, self).__init__()
 
         self.houston = Houston
-        self.dice_detector = DiceDetector.DiceDetector()
+        self.dice_detector = dd.DiceDetector()
         self.platform_detector = dpd.DicePlatformDetector()
         self.coordinates = []
         self.is_found = False
@@ -35,10 +35,6 @@ class Dice(Task):
     def find_platform(self,frame):
         found, coords = self.platform_detector.detect(frame)
         return found, coords
-
-    def find_pair(self,frame):
-        die1, die2 = self.dice_detector.get_pair(frame)
-
 
     def navigate(self, navigation, found, coordinates, power, rotation):
         pass

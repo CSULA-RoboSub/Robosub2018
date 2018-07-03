@@ -217,11 +217,15 @@ class Houston():
         navi = self.navigation
         pow = self.power
         rot = self.rotation
+        coords = []
         prev_detected = False
         state =  self.states[2]
+        '''
+            these two check if each respective dice has been touched and moved.
+        '''
         die1 = False
         die6 = False
-
+        platform_complete =  False
         while not state.is_done:
             if self.sample:
                 buf = self.sample.get_buffer()
@@ -234,7 +238,16 @@ class Houston():
                 frame = img_array.reshape((height, width, 3))
             finally:
                 buf.unmap(mapinfo)
-            
+            '''
+                This is the subtask of finding the dice with one dot.
+            '''
+            while not die1:
+                self.msg.found, coords =  self.state.search_die(1)
+                self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
+            while not die6:
+                self.msg.found, coords =  self.state.search_die(6)
+                self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
+
 
     '''
         Qualification task
