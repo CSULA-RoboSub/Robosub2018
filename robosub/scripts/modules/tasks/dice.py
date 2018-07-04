@@ -1,5 +1,13 @@
 from modules.sensors.computer_vision import DiceDetector
 from task import Task
+from modules.controller.cv_controller import CVController
+from modules.sensors.imu.gather_rotation import GetRotation
+from modules.control.navigation import Navigation
+from threading import Thread, Lock
+import time
+
+from collections import Counter
+from itertools import combinations
 
 class Dice(Task):
     
@@ -7,10 +15,40 @@ class Dice(Task):
         """ To initialize Dice """
         super(Dice, self).__init__()
 
+        ################ INSTANCES ################
         self.houston = Houston
-
+        self.cvcontroller = CVController()
         self.detectdice = None
+
+        ################ THRESHOLD VARIABLES ################
+        #self.found_threshold = 300
+
+        ################ FLAG VARIABLES ################
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
+        self.is_done = False
+
+        ################ TIMER VARIABLES ################
+        self.not_found_timer = 0
+        self.found_timer = 0
+
+        ################ DICTIONARIES ################
         self.coordinates = []
+
+        ################ AUV MOBILITY VARIABLES ################
+        self.r_power=100
+        self.h_power=100
+        self.m_power=120
+
+        ################ THREAD VARIABLES ################  
+        self.thread_dice = None
+        self.mutex = Lock()
+
+
+    def reset(self):
+        self.detectdice = None
+
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
@@ -19,17 +57,37 @@ class Dice(Task):
         self.not_found_timer = 0
         self.found_timer = 0
 
-        self.is_complete_first_die = False
-        self.is_complete_second_die = False
+        self.coordinates = []
+
+        self.thread_dice = None
+
+    def start(self, m_power=120, rotation=15):
+        self.navigation.start()
+        #self.run_detect_for_task(m_power, rotation)
+    
+    def stop(self):
+        self.navigation.stop()
+
+    def run_detect_for_task(self, m_power=120, rotation=15):
+        self.reset_thread()
+
+        self.thread_dice = Thread(target = self.detect, args = (m_power,rotation))
+        #self.thread_dice = Thread(target=self.test)
+        self.thread_dice.start()
+        #self.thread_dice.join()
+
+    def reset_thread(self):
+        if self.thread_dice:
+            self.thread_dice = None
 
     def detect(self, frame):
         print('detect_dice')
         if not self.detectdice:
             self.detectdice = DiceDetector.DiceDetector()
 
-        found, coordinates = self.detectdice.detect()
+        #found, coordinates = self.detectdice.detect()
 
-        return found, coordinates
+        return self.detectdice.detect()
 
     def navigate(self, navigation, found, coordinates, power, rotation):
         pass
@@ -43,8 +101,3 @@ class Dice(Task):
     def restart_task(self):
         pass
 
-    def start(self):
-        self.navigation.start()
-    
-    def stop(self):
-        self.navigation.stop()
