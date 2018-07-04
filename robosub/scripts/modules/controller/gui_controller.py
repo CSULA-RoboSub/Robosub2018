@@ -6,7 +6,7 @@ class Controller():
 
     def __init__(self):
         self.AUV = AUV()
-        self.AUV.start  # Magnet killswitch = 1
+        self.AUV.start()  # Magnet killswitch = 1
 
     def load_default_params(self):
         """Change current parameters back to default parameters"""
@@ -24,14 +24,14 @@ class Controller():
 
         self.AUV.config.set_config('auv', 'start_auto_mode', value)
 
-    def auto_mode(self):
-        """Auto mode selected (CV)"""
-
-        print('auto mode')
-        pass
-
     def manual_mode(self):
         """Manual mode selected (Keyboard)"""
 
-        print('manual mode')
+        # task.cv_controller.stop()
+        pass
+
+    def manual_move(self, direction, power, depth):
+        """Manual movement of the sub based on button press"""
+
+        
         pass

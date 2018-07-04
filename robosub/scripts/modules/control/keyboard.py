@@ -160,6 +160,7 @@ class Keyboard():
             self.navigation.cancel_r_nav(self.r_power)
             self.navigation.cancel_m_nav(self.m_power)
         elif char == 'w':
+            print('w')
             self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'forward', self.m_power)
             # self.navigation.m_nav('distance', 'forward', self.m_power, 1)

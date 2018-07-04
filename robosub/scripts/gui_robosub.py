@@ -207,7 +207,19 @@ class Ui_MainWindow(object):
         self.load_default_button.clicked.connect(self.Controller.load_default_params)
         self.change_params_button.clicked.connect(self.Controller.change_params)
         self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
+        self.tab_state_changed()
         self.tabWidget.currentChanged.connect(self.tab_state_changed)
+
+        # manual mode buttons
+        self.forward.clicked.connect(lambda: self.Controller.manual_move('w', self.power.value, self.depth.value))
+        self.backward.clicked.connect(lambda: self.Controller.manual_move('s', self.power.value, self.depth.value))
+        self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('q', self.power.value, self.depth.value))
+        self.strafe_r.clicked.connect(lambda: self.Controller.manual_move('e', self.power.value, self.depth.value))
+        self.rotate_l.clicked.connect(lambda: self.Controller.manual_move('a', self.power.value, self.depth.value))
+        self.rotate_r.clicked.connect(lambda: self.Controller.manual_move('d', self.power.value, self.depth.value))
+        self.up.clicked.connect(lambda: self.Controller.manual_move('r', self.power.value, self.depth.value))
+        self.down.clicked.connect(lambda: self.Controller.manual_move('f', self.power.value, self.depth.value))
+        self.brake.clicked.connect(lambda: self.Controller.manual_move('`', self.power.value, self.depth.value))
 
     def checkbox_state_changed(self):
         if self.auto_checkbox.isChecked():
@@ -216,11 +228,11 @@ class Ui_MainWindow(object):
             self.Controller.start_auto_mode(0)
 
     def tab_state_changed(self):
-        print(self.tabWidget.currentIndex())
-        if self.tabWidget.currentIndex() == 0:
-            self.Controller.auto_mode()
-        else:
+        if self.tabWidget.currentIndex() == 1:
             self.Controller.manual_mode()
+
+    # def movement_button_pressed(self, direction):
+    #     self.Controller.manual_move(direction, self.power.value, self.depth.value)
 
         # self.tabWidget.setCurrentIndex(0)
         # self.camera0.clicked.connect(self.display0.update)
