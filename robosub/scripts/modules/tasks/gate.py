@@ -6,7 +6,6 @@ from modules.sensors.imu.gather_rotation import GetRotation
 from modules.control.navigation import Navigation
 from threading import Thread, Lock
 import time
-
 from collections import Counter
 from itertools import combinations
 
