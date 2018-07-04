@@ -78,5 +78,9 @@ class Qualify(Task):
 
     def restart_task(self): pass
 
+    
+    def search(self):
+        pass
+
     def detect(self, frame):
         return self.detector.detect(frame)
