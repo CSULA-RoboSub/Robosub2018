@@ -1,91 +1,97 @@
-
-from modules.sensors.computer_vision import DiceDetector as dd
-from modules.sensors.computer_vision import DicePlatformDetector as dpd
-
+from modules.sensors.computer_vision import DiceDetector
 from task import Task
+from modules.controller.cv_controller import CVController
+from modules.sensors.imu.gather_rotation import GetRotation
+from modules.control.navigation import Navigation
+from threading import Thread, Lock
+import time
+
+from collections import Counter
+from itertools import combinations
 
 class Dice(Task):
     
-    def __init__(self, Houston, navi):
+    def __init__(self, Houston):
         """ To initialize Dice """
         super(Dice, self).__init__()
 
+        ################ INSTANCES ################
         self.houston = Houston
-        self.dice_detector = dd.DiceDetector()
-        self.platform_detector = dpd.DicePlatformDetector()
-        self.coordinates = []
+        self.cvcontroller = CVController()
+        self.detectdice = None
+
+        ################ THRESHOLD VARIABLES ################
+        #self.found_threshold = 300
+
+        ################ FLAG VARIABLES ################
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
-        self.navigation = navi
+
+        ################ TIMER VARIABLES ################
         self.not_found_timer = 0
         self.found_timer = 0
-        self.task_complete = False
-        self.at_platform = False
-        self.sum = 7
-        self.dice_to_find = []
+
+        ################ DICTIONARIES ################
+        self.coordinates = []
+
+        ################ AUV MOBILITY VARIABLES ################
+        self.r_power=100
+        self.h_power=100
+        self.m_power=120
+
+        ################ THREAD VARIABLES ################  
+        self.thread_dice = None
+        self.mutex = Lock()
+
+
+    def reset(self):
+        self.detectdice = None
+
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
+        self.is_done = False
+
+        self.not_found_timer = 0
+        self.found_timer = 0
+
+        self.coordinates = []
+
+        self.thread_dice = None
+
+    def start(self, m_power=120, rotation=15):
+        self.navigation.start()
+        #self.run_detect_for_task(m_power, rotation)
+    
+    def stop(self):
+        self.navigation.stop()
+
+    def run_detect_for_task(self, m_power=120, rotation=15):
+        self.reset_thread()
+
+        self.thread_dice = Thread(target = self.detect, args = (m_power,rotation))
+        #self.thread_dice = Thread(target=self.test)
+        self.thread_dice.start()
+        #self.thread_dice.join()
+
+    def reset_thread(self):
+        if self.thread_dice:
+            self.thread_dice = None
 
     def detect(self, frame):
-        found, coordinates = self.dice_detector.detect()
-        return found, coordinates
+        print('detect_dice')
+        if not self.detectdice:
+            self.detectdice = DiceDetector.DiceDetector()
 
-    def find_platform(self, frame):
-        found, coords = self.platform_detector.detect(frame)
-        dice_found, _ = self.detect(frame)
-        return found, coords, dice_found
+        #found, coordinates = self.detectdice.detect()
 
-    def center(self,frame, x_die, y_die):
-        width, height, _ = frame.shape()
-        center = [width / 2 , height / 2]
-        x_buffer = center[0] / 7
-        y_buffer = center[1] / 7
-
-        '''
-            FIND THE CODE TO STRAFE 
-        '''
-        if x_die < center[0] - x_buffer:
-            self.coordinates[0] = -1
-        elif x_die > center[0] + x_buffer:
-            self.coordinates[0] = 1
-        else:
-            self.coordinates[0] = 0
-
-        if y_die < center[0] - y_buffer:
-            self.coordinates[0] = -1
-        elif y_die > center[0] + y_buffer:
-            self.coordinates[0] = 1
-        else:
-            self.coordinates[0] = 0
-
-        if self.coordinates == [0,0]:
-            return True
-        else:
-            #Command the sub to strafe in the directions found
-            return False
+        return self.detectdice.detect()
 
     def navigate(self, navigation, found, coordinates, power, rotation):
-        if found:
-            navigation.cancel_h_nav()
-            navigation.h_nav(0, self.depth_change, 100)
-
-            navigation.cancel_r_nav()
-            navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
-
-            navigation.cancel_m_nav()
-            navigation.m_nav('power', self.move_forward, power)
-
-        elif found == False and self.been_found == True:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
-            navigation.r_nav(self.rotation_direction, rotation, 50)
-        else:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
-            navigation.r_nav(self.rotation_direction, rotation, 50)
-
+        pass
+    
     def complete(self):
         pass
 
@@ -93,10 +99,4 @@ class Dice(Task):
         pass
 
     def restart_task(self):
-        pass
-
-    def start(self):
-        self.navigation.start()
-    
-    def stop(self):
-        self.navigation.stop()
+pass
