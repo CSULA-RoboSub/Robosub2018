@@ -193,3 +193,5 @@ class Waypoint():
         distance = math.sqrt(l1*l1 + l2*l2)
 
         return distance
+
+        
