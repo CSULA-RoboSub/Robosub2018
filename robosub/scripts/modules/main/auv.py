@@ -59,7 +59,10 @@ class AUV():
 
     def perform_tasks(self):
         """Has houston perform task"""
-        self.houston.do_task()
+        try:
+            self.houston.do_task()
+        except AttributeError:
+            print('houston not initialized')
 
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
@@ -68,7 +71,10 @@ class AUV():
         self.navigation.start()
         self.keyboard.start()
         self.status_logger.start()
-        self.houston.start()
+        try:
+            self.houston.start()
+        except AttributeError:
+            print('houston not initialized')
         # self.cv.start(self.tasks)
 
     def stop(self):
@@ -78,5 +84,7 @@ class AUV():
         self.navigation.stop()
         self.keyboard.stop()
         self.status_logger.stop()
-        self.houston.stop()
-
+        try:
+            self.houston.stop()
+        except AttributeError:
+            print('houston not initialized')
