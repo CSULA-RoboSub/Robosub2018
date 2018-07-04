@@ -12,8 +12,8 @@ class DiceClassifier:
 
     def __init__(self):
         self.minDim = 80
-        self.blockSize = (16,16)
-        self.blockStride = (8,8)
+        self.blockSize = (16, 16)
+        self.blockStride = (8, 8)
         self.cellSize = (8,8)
         self.nbins = 9
         self.derivAperture = 1
