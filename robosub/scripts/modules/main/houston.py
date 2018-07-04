@@ -172,7 +172,7 @@ class Houston():
                 # will run through whenever at least 1 second has passed
 
                 if (not self.msg.found):
-                    gate_search()
+                    #gate_search()
                     #most_occur_coords = self.get_most_occur_coordinates(self.last_reading, self.counts)
                     #self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation)
                     
@@ -187,8 +187,7 @@ class Houston():
                     break_loop += 1
                     if break_loop >= 30:
                         break
-                if()
-                    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 print 'task will stop in 30 secs'
                 print 'current count: {}'.format(break_loop)
                 print(coordinates)
@@ -209,6 +208,7 @@ class Houston():
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub` will navigate to it
     # rather than just going to last coordinates
+    '''
     def do_dice(self):
         self.setup_pipeline()
         self.thread = Thread(target=self.start_loop)
@@ -220,9 +220,6 @@ class Houston():
         coords = []
         prev_detected = False
         state =  self.states[2]
-        '''
-            these two check if each respective dice has been touched and moved.
-        '''
         die1 = False
         die6 = False
         platform_complete =  False
@@ -241,7 +238,6 @@ class Houston():
             finally:
                 buf.unmap(mapinfo)
             '''
-                This is the subtask of finding the dice with one dot.
             '''
             while not platform_complete:
                 self.msg.found, coords, dice_located =  self.state.find_platform(frame)
@@ -257,7 +253,67 @@ class Houston():
                     self.state.navigate(self.navigation, self.msg.found, coords, self.power, self.rotation)
             if die1 and die6:
                 self.state.task_complete = True
+    '''
+    def test_dice(self):
+        self.setup_pipeline()
+        self.thread = Thread(target=self.start_loop)
+        self.thread.start()
+        start_time = time.time()
+        navi = self.navigation
+        pow = self.power
+        rot = self.rotation
+        prev_detected = False
 
+        break_loop = 0
+        self.state = self.states[self.state_num]
+        print("setup pipeline")
+        self.setup_pipeline()
+        self.thread = Thread(target=self.start_loop)
+        self.thread.start()
+        # TODO must eventually move to CVController
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
+
+        while not self.state.is_done:
+            if self.sample:
+                buf = self.sample.get_buffer()
+                caps = self.sample.get_caps()
+                width = caps[0].get_value("width")
+                height = caps[0].get_value("height")
+
+                try:
+                    res, mapinfo = buf.map(Gst.MapFlags.READ)
+                    img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+                    frame = img_array.reshape((height, width, 3))
+                finally:
+                    buf.unmap(mapinfo)
+
+                self.outraw.write(frame)
+                self.msg.found, coordinates = self.state.detect(frame)
+                self.outprocessed.write(frame)
+
+                self.last_reading.append(coordinates)
+
+                if (not self.msg.found):
+                    self.last_time = time.time()
+
+                    break_loop += 1
+                    if break_loop >= 30:
+                        break
+                self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
+                print 'task will stop in 30 secs'
+                print 'current count: {}'.format(break_loop)
+                print(coordinates)
+
+        print("exit loop")
+        if self.state.is_detect_done:
+            self.state_num += 1
+
+        self.close_pipeline()
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_r_nav()
+        self.navigation.cancel_m_nav()
 
     '''
         Qualification task
