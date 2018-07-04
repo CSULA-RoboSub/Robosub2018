@@ -23,3 +23,15 @@ class Controller():
         """Checkbox to determine if AUV starts in auto mode when turned on"""
 
         self.AUV.config.set_config('auv', 'start_auto_mode', value)
+
+    def auto_mode(self):
+        """Auto mode selected (CV)"""
+
+        print('auto mode')
+        pass
+
+    def manual_mode(self):
+        """Manual mode selected (Keyboard)"""
+
+        print('manual mode')
+        pass

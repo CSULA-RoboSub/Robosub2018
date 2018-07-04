@@ -203,15 +203,24 @@ class Ui_MainWindow(object):
 
         # Controller connections
 
+        # mode selection
         self.load_default_button.clicked.connect(self.Controller.load_default_params)
         self.change_params_button.clicked.connect(self.Controller.change_params)
         self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
+        self.tabWidget.currentChanged.connect(self.tab_state_changed)
 
     def checkbox_state_changed(self):
         if self.auto_checkbox.isChecked():
             self.Controller.start_auto_mode(1)
         else:
             self.Controller.start_auto_mode(0)
+
+    def tab_state_changed(self):
+        print(self.tabWidget.currentIndex())
+        if self.tabWidget.currentIndex() == 0:
+            self.Controller.auto_mode()
+        else:
+            self.Controller.manual_mode()
 
         # self.tabWidget.setCurrentIndex(0)
         # self.camera0.clicked.connect(self.display0.update)
