@@ -113,6 +113,7 @@ class Houston():
         self.loop = GLib.MainLoop()
         self.thread = None
 
+    # do_task ##################################################################################
     def do_task(self):
         
         # self.thread=Thread(target=self.do_gate)
@@ -243,6 +244,7 @@ class Houston():
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
     # rather than just going to last coordinates
+    # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
         for sublist in last:
             counts.update(combinations(sublist, 2))
@@ -250,17 +252,20 @@ class Houston():
             most_occur = key
         return most_occur
 
+    # get_task ##################################################################################
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
 
+    # start ##################################################################################
     def start(self):
         self.get_task()
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = True
         self.navigation.start()
     
+    # stop ##################################################################################
     def stop(self):
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False

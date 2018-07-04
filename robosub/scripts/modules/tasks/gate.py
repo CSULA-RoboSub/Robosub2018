@@ -72,6 +72,7 @@ class Gate(Task):
         self.thread_gate = None
         self.mutex = Lock()
 
+    # reset ##################################################################################
     def reset(self):
         self.detectgate = None
 
@@ -97,13 +98,16 @@ class Gate(Task):
 
         self.gate_maneuver.reset()
 
+    # start ##################################################################################
     def start(self, navigation, m_power=120, rotation=15):
         self.run_detect_for_task(navigation, m_power, rotation)
 
+    # stop ##################################################################################
     def stop(self):
         #self.navigation.stop()
         pass
     
+    # run_detect_for_task ##################################################################################
     def run_detect_for_task(self, navigation, m_power=120, rotation=15):
         self.reset_thread()
 
@@ -112,10 +116,12 @@ class Gate(Task):
         self.thread_gate.start()
         #self.thread_gate.join()
 
+    # reset_thread ##################################################################################
     def reset_thread(self):
         if self.thread_gate:
             self.thread_gate = None
-        
+
+    # detect ##################################################################################   
     def detect(self, frame):
         #add frame when testing complete
         if not self.detectgate:
@@ -142,6 +148,7 @@ class Gate(Task):
         finally:
             self.mutex.release()'''
     
+    # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
@@ -174,9 +181,12 @@ class Gate(Task):
         navigation.cancel_r_nav()
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
+
+    # complete ##################################################################################
     def complete(self):
         pass
 
+    # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
         for sublist in last:
             counts.update(combinations(sublist, 2))
@@ -184,8 +194,10 @@ class Gate(Task):
             most_occur = key
         return most_occur
 
+    # bail_task ##################################################################################
     def bail_task(self):
         print 'bail gate'
 
+    # restart_task ##################################################################################
     def restart_task(self):
         print 'restart gate'
