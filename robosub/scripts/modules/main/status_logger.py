@@ -43,7 +43,9 @@ class StatusLogger():
             hStates = {
                 0: 'down',
                 1: 'staying',
-                2: 'up'
+                2: 'up',
+                4: 'unlock',
+                5: 'lock'
             }
 
             log = (
@@ -51,7 +53,7 @@ class StatusLogger():
                 % (hStates[data.state], data.depth, data.power)
             )
 
-            print(log)
+            # print(log)
             self.file.write(log + '\n')
 
     def printRControl(self, data):
@@ -71,7 +73,7 @@ class StatusLogger():
                 % (rStates[data.state], data.rotation, data.power)
             )
 
-            print(log)
+            # print(log)
             self.file.write(log + '\n')
 
     def printMControl(self, data):
@@ -100,11 +102,11 @@ class StatusLogger():
                 % (mStates[data.state], directions[data.mDirection], data.power, data.distance, data.runningTime)
             )
 
-            print(log)
+            # print(log)
             self.file.write(log + '\n')
 
     def start(self):
-        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + 'log.txt', 'w')
+        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'w')
 
     def stop(self):
         self.file.close()

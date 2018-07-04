@@ -1,9 +1,9 @@
 #include <ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
-#include <auv2018/HControl.h>
-#include <auv2018/RControl.h>
-#include <auv2018/MControl.h>
+#include <robosub/HControl.h>
+#include <robosub/RControl.h>
+#include <robosub/MControl.h>
 #include <ez_async_data/Rotation.h>
 #include <auv_cal_state_la_2017/FrontCamDistance.h>
 #include <auv_cal_state_la_2017/BottomCamDistance.h>
@@ -45,14 +45,14 @@ const byte DRDYG  = 49; // DRDYG  tells us when gyro data is ready
 //--------------------------------------------------------------------------------
 
 //Initialization of the Servo's for Blue Robotics Motors
-Servo T1;     //right front
-Servo T2;     //right back
-Servo T3;     //left front
-Servo T4;     //left back
-Servo T5;     //right front
-Servo T6;     //right back
-Servo T7;     //left front
-Servo T8;     //left back
+Servo T1;     //
+Servo T2;     //
+Servo T3;     //
+Servo T4;     //
+Servo T5;     //
+Servo T6;     //
+Servo T7;     //
+Servo T8;     //
 
 MS5837 sensor;
 
@@ -77,6 +77,7 @@ int reedVal = HIGH;  //reed switch value
 
 int i;
 int PWM_Motors_orient;
+float rotatePowerMax = 120;
 float abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
@@ -92,18 +93,20 @@ const float rotationUpperBound = 179;
 const float rotationLowerBound = -179;
 const float topDepth = 0.5;
 const float bottomDepth = 12;
+const float motorMax = 1700;
+const float motorMin = 1300;
 int mControlDirection;
 float mControlPower;
 float rControlPower;
 float mControlDistance;
 float mControlRunningTime;
 float mControlMode5Timer;
-float frontCamForwardDistance;
-float frontCamHorizontalDistance;
-float frontCamVerticalDistance;
-float bottomCamForwardDistance;
-float bottomCamHorizontalDistance;
-float bottomCamVerticalDistance;
+// float frontCamForwardDistance;
+// float frontCamHorizontalDistance;
+// float frontCamVerticalDistance;
+// float bottomCamForwardDistance;
+// float bottomCamHorizontalDistance;
+// float bottomCamVerticalDistance;
 float centerTimer;
 float rotationTimer;
 float rotationTime;
@@ -136,9 +139,9 @@ float positionY = 0;
 ros::NodeHandle nh;
 std_msgs::Float32 currentDepth;
 //std_msgs::Float32 currentRotation;
-auv2018::HControl hControlStatus;
-auv2018::RControl rControlStatus;
-auv2018::MControl mControlStatus;
+robosub::HControl hControlStatus;
+robosub::RControl rControlStatus;
+robosub::MControl mControlStatus;
 
 ros::Publisher hControlPublisher("height_control_status", &hControlStatus);     //int: state, float: depth
 ros::Publisher rControlPublisher("rotation_control_status", &rControlStatus);   //int: state, float: rotation
@@ -146,23 +149,23 @@ ros::Publisher mControlPublisher("movement_control_status", &mControlStatus);   
 ros::Publisher currentDepthPublisher("current_depth", &currentDepth);           //float: depth
 //ros::Publisher currentRotationPublisher("current_rotation", &currentRotation);  //float: rotation
 
-void hControlCallback(const auv2018::HControl& hControl);
-void rControlCallback(const auv2018::RControl& rControl);
-void mControlCallback(const auv2018::MControl& mControl);
+void hControlCallback(const robosub::HControl& hControl);
+void rControlCallback(const robosub::RControl& rControl);
+void mControlCallback(const robosub::MControl& mControl);
 
 void rotationCallback(const ez_async_data::Rotation& rotation);
 
-void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance);
-void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance);
+// void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance);
+// void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance);
 
-ros::Subscriber<auv2018::HControl> hControlSubscriber("height_control", &hControlCallback);   //int: state, float: depth
-ros::Subscriber<auv2018::RControl> rControlSubscriber("rotation_control", &rControlCallback); //int: state, float: rotation
-ros::Subscriber<auv2018::MControl> mControlSubscriber("movement_control", &mControlCallback);
+ros::Subscriber<robosub::HControl> hControlSubscriber("height_control", &hControlCallback);   //int: state, float: depth
+ros::Subscriber<robosub::RControl> rControlSubscriber("rotation_control", &rControlCallback); //int: state, float: rotation
+ros::Subscriber<robosub::MControl> mControlSubscriber("movement_control", &mControlCallback);
 
 ros::Subscriber<ez_async_data::Rotation> rotationSubscriber("current_rotation", &rotationCallback);
 
-ros::Subscriber<auv_cal_state_la_2017::FrontCamDistance> frontCamDistanceSubscriber("front_cam_distance", &frontCamDistanceCallback);
-ros::Subscriber<auv_cal_state_la_2017::BottomCamDistance> bottomCamDistanceSubscriber("bottom_cam_distance", &bottomCamDistanceCallback);
+//ros::Subscriber<auv_cal_state_la_2017::FrontCamDistance> frontCamDistanceSubscriber("front_cam_distance", &frontCamDistanceCallback);
+//ros::Subscriber<auv_cal_state_la_2017::BottomCamDistance> bottomCamDistanceSubscriber("bottom_cam_distance", &bottomCamDistanceCallback);
 
 //depth control variables
 // int pwm_submerge = 200;
@@ -177,7 +180,9 @@ const float base_thrust = 1500;
 // int base_thrust_3 = 1500;
 // int base_thrust_4 = 1500;
 
-float elapsedTime, time, timePrev;
+//time variables
+unsigned long elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
+const unsigned int loopInterval = 10;
 
 //the variable error will store the difference between the real_value_angle form IMU and desired_angle of 0 degrees. 
 // float PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
@@ -189,7 +194,7 @@ float pid_p_pitch=0;
 float pid_d_pitch=0;
 float pid_i_pitch=0;
 /////////////////PID_pitch constants/////////////////
-double kp_pitch=4;//11;//3.55;//3.55
+double kp_pitch=2;//11;//3.55;//3.55
 double kd_pitch=0.7;//0.75;//2.05;//2.05
 double ki_pitch=0.0003;//0.003
 ///////////////////////////////////////////////
@@ -199,7 +204,7 @@ float pid_p_roll=0;
 float pid_d_roll=0;
 float pid_i_roll=0;
 /////////////////PID_roll constants/////////////////
-double kp_roll=4;//11;//3.55;//3.55
+double kp_roll=2;//11;//3.55;//3.55
 double kd_roll=0.7;//0.75;//2.05;//2.05
 double ki_roll=0.0003;//0.003
 ///////////////////////////////////////////////
@@ -209,7 +214,7 @@ float pid_p_depth=0;
 float pid_d_depth=0;
 float pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
-double kp_depth=250;//11;//3.55;//3.55
+double kp_depth=170;//11;//3.55;//3.55
 double kd_depth=1;//0.75;//2.05;//2.05
 double ki_depth=0.0003;//0.003
 ///////////////////////////////////////////////
@@ -218,12 +223,8 @@ double ki_depth=0.0003;//0.003
 float desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hoover
-float threshold = 0.5;
+float threshold = 0.1;
 ///////////////////////////////////////////////
-
-//stabilization function
-void stabilization();
-// void heightControl();
 
 void setup() {
 
@@ -300,8 +301,8 @@ void setup() {
 
 
   Wire.begin();
-  Serial.begin(57600);
-  Serial.println("Serial 57600");
+  // Serial.begin(57600);
+  // Serial.println("Serial 57600");
 
   //Initialize ROS variable
   mControlDirection = 0;
@@ -311,12 +312,12 @@ void setup() {
   mControlDistance = 0;
   mControlRunningTime = 0;
   mControlMode5Timer = 0;
-  frontCamForwardDistance = 0;
-  frontCamHorizontalDistance = 0;
-  frontCamVerticalDistance = 0;
-  bottomCamForwardDistance = 0;
-  bottomCamHorizontalDistance = 0;
-  bottomCamVerticalDistance = 0;
+  // frontCamForwardDistance = 0;
+  // frontCamHorizontalDistance = 0;
+  // frontCamVerticalDistance = 0;
+  // bottomCamForwardDistance = 0;
+  // bottomCamHorizontalDistance = 0;
+  // bottomCamVerticalDistance = 0;
   centerTimer = 0;
   rotationTimer = 0;
   rotationTime = 10;
@@ -355,7 +356,7 @@ void setup() {
 //  assignedDepth = 0.2;
   //assignedYaw = -191.5;
   //subIsReady = true;
-  assignedYaw = 64.6;
+  // assignedYaw = 64.6;
 //  currentRotation.data = yaw;
 
   hControlStatus.state = 1;
@@ -375,13 +376,14 @@ void setup() {
   mControlStatus.distance = 0;
   mControlStatus.runningTime = 0;
 
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(hControlSubscriber);
   nh.subscribe(rControlSubscriber);
   nh.subscribe(mControlSubscriber);
   nh.subscribe(rotationSubscriber);
-  nh.subscribe(frontCamDistanceSubscriber);
-  nh.subscribe(bottomCamDistanceSubscriber);
+  // nh.subscribe(frontCamDistanceSubscriber);
+  // nh.subscribe(bottomCamDistanceSubscriber);
   nh.advertise(hControlPublisher);
   nh.advertise(rControlPublisher);
   nh.advertise(mControlPublisher);
@@ -393,90 +395,101 @@ void setup() {
   sensor.init();
   sensor.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
 
-  time = millis(); 
+  timeCur = millis();
+  loopTime = timeCur;
+  loopTimePrev = loopTime;
 //  nh.loginfo("Data is ready.");
+
+  delay(1000);
   nh.loginfo("Sub is staying. Waiting to receive data from master...\n");
 
 }
 
 void loop() {
+  nh.spinOnce();
+  loopTime = millis();  // actual time read
+  //  gettingRawData();
 
-//  gettingRawData();
+  if((loopTime-loopTimePrev) > loopInterval) {
+    loopTimePrev = loopTime;
     sensor.read();
 
-  //Set the display outputs for roll, pitch, and yaw
-  LcdXY(40, 0);
-  LcdWriteString(dtostrf(roll, 5, 2, string));
-  LcdXY(40, 2);
-  LcdWriteString(dtostrf(pitch, 5, 2, string));
-  LcdXY(40, 4);
-  LcdWriteString(dtostrf(yaw, 5, 2, string));
+    //Set the display outputs for roll, pitch, and yaw
+    // LcdXY(40, 0);
+    // LcdWriteString(dtostrf(roll, 5, 2, string));
+    // LcdXY(40, 2);
+    // LcdWriteString(dtostrf(pitch, 5, 2, string));
+    // LcdXY(40, 4);
+    // LcdWriteString(dtostrf(yaw, 5, 2, string));
 
-  //read reed switch
-  reedVal = digitalRead(REED);
+    //read reed switch
+    // reedVal = digitalRead(REED);
+    reedVal = LOW;
 
-  //Depth
-  //Testing----------------------
-  feetDepth_read =  sensor.depth() * 3.28 + 0.23;                                   //1 meter = 3.28 feet
-  // dutyCycl_depth = (abs(assignedDepth - feetDepth_read)/ 13.0);              //function to get a percentage of assigned height to the feet read
-  // PWM_Motors_Depth = dutyCycl_depth * 400;                                   //PWM for motors are between 1500 - 1900; difference is 400
+    //Depth
+    //Testing----------------------
+    feetDepth_read =  sensor.depth() * 3.28 + 0.23;                                   //1 meter = 3.28 feet
+    // dutyCycl_depth = (abs(assignedDepth - feetDepth_read)/ 13.0);              //function to get a percentage of assigned height to the feet read
+    // PWM_Motors_Depth = dutyCycl_depth * 400;                                   //PWM for motors are between 1500 - 1900; difference is 400
 
-  //Rotation
-  //duty cycle and PWM calculation for orientation
-  dutyCycl_orient = degreeToTurn() / 180.0;
-  PWM_Motors_orient = dutyCycl_orient * 400; //Maximum is 200
+    //Rotation
+    //duty cycle and PWM calculation for orientation
+    dutyCycl_orient = degreeToTurn() / 180.0;
+    PWM_Motors_orient = dutyCycl_orient * 400; //Maximum is 200
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  // DEBUG
-//  assignedYaw = yaw;
-  
-  /////////////////////////////////////////////////////////////////////////////////////////////
-  
-  if(subIsReady){
-    if(reedVal == LOW){
-      // heightControl();
-      stabilization();
-      rotationControl();
-      movementControl();
-    }else{
-      killSwitch();
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // DEBUG
+    // assignedYaw = yaw;
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    
+    if(subIsReady){
+      if(reedVal == LOW){
+        // heightControl();
+        nh.spinOnce();
+        heightControl();
+        nh.spinOnce();
+        movementControl();
+        nh.spinOnce();
+        rotationControl();
+        nh.spinOnce();
+      }else{
+        killSwitch();
+      }
     }
-  }
 
-  //Update and publish current data to master
-  currentDepth.data = feetDepth_read;
-  currentDepthPublisher.publish(&currentDepth);
+    //Update and publish current data to master
+    currentDepth.data = feetDepth_read;
+    // currentDepthPublisher.publish(&currentDepth);
+    // nh.spinOnce();
+  }
 //  currentRotation.data = yaw;
 //  currentRotationPublisher.publish(&currentRotation);
-  
-//  Serial.pr/intln("Serial print test");
-  nh.spinOnce();
-
-  delay(10);
+  // delay(10);
 }
 
 
 void rotationCallback(const ez_async_data::Rotation& rotation){
-  if(firstIMUReading){
-    assignedYaw = rotation.yaw;
-    firstIMUReading = false;
-  }
   yaw = rotation.yaw;
   roll = -rotation.roll;
   pitch = -(rotation.pitch + 2.56);
+  if(firstIMUReading){
+    firstIMUReading = false;
+    assignedYaw = rotation.yaw;
+  }
 }
 
 
-void hControlCallback(const auv2018::HControl& hControl) {
+void hControlCallback(const robosub::HControl& hControl) {
   if(reedVal == HIGH){
     return;
   }
   int hState = hControl.state;
   float hDepth = hControl.depth;
-  char depthChar[6];
   float depth = hControl.depth;
-  dtostrf(depth, 4, 2, depthChar);
+  // char depthChar[6];
+  // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
 
   if(hControl.state == 0){
@@ -487,18 +500,27 @@ void hControlCallback(const auv2018::HControl& hControl) {
         assignedDepth = assignedDepth + depth;
       isGoingDown = true;
       nh.loginfo("Going down...");
-      nh.loginfo(depthChar);
-      nh.loginfo("ft...(-1 means infinite)\n");
+      // nh.loginfo(depthChar);
+      // nh.loginfo("ft...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still running. Command abort.");
   }
   else if(hControl.state == 1){
     if(isGoingUp || isGoingDown){
+      assignedDepth = feetDepth_read;
       isGoingUp = false;
       isGoingDown = false;
       nh.loginfo("Height control is now cancelled\n");
     }
-    assignedDepth = feetDepth_read;
+    // nh.loginfo();
+    // char assignedDepthChar[6];
+    // dtostrf(assignedDepth, 4, 2, assignedDepthChar);
+    // char feetDepth_readChar[6];
+    // dtostrf(feetDepth_read, 4, 2, feetDepth_readChar);
+    // nh.loginfo("assignedDepth:");
+    // nh.loginfo(assignedDepthChar);
+    // nh.loginfo("feetDepth_read:");
+    // nh.loginfo(feetDepth_readChar);
   }
   else if(hControl.state == 2){
     if(!isGoingUp && !isGoingDown){
@@ -508,17 +530,18 @@ void hControlCallback(const auv2018::HControl& hControl) {
         assignedDepth = assignedDepth - depth;
       isGoingUp = true;
       nh.loginfo("Going up...");
-      nh.loginfo(depthChar);
-      nh.loginfo("ft...(-1 means infinite)\n");
+      // nh.loginfo(depthChar);
+      // nh.loginfo("ft...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still running. Command abort.");
   }
   else if(hControl.state == 4){
+    assignedYaw = yaw;
+    assignedDepth = feetDepth_read;
     if(!subIsReady){
       subIsReady = true;
       nh.loginfo("Motors unlocked.");
     }
-    assignedDepth = feetDepth_read;
     //assignedDepth = 0.1;
   }
   else if(hControl.state == 5){
@@ -547,14 +570,14 @@ void hControlCallback(const auv2018::HControl& hControl) {
 }
 
 
-void rControlCallback(const auv2018::RControl& rControl){
+void rControlCallback(const robosub::RControl& rControl){
   if(reedVal == HIGH){
     return;
   }
 
-  char rotationChar[11];
   float rotation = rControl.rotation;
-  dtostrf(rotation, 4, 2, rotationChar);
+  // char rotationChar[11];
+  // dtostrf(rotation, 4, 2, rotationChar);
   rControlPower = rControl.power;
 
   if(rControl.state == 0){
@@ -572,8 +595,8 @@ void rControlCallback(const auv2018::RControl& rControl){
       }
       isTurningLeft = true;
       nh.loginfo("Turning left...");
-      nh.loginfo(rotationChar);
-      nh.loginfo("degree...(-1 means infinite)\n");
+      // nh.loginfo(rotationChar);
+      // nh.loginfo("degree...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still rotating. Command abort.");
   }
@@ -604,8 +627,8 @@ void rControlCallback(const auv2018::RControl& rControl){
       }
       isTurningRight = true;
       nh.loginfo("Turning right...");
-      nh.loginfo(rotationChar);
-      nh.loginfo("degree...(-1 means infinite)\n");
+      // nh.loginfo(rotationChar);
+      // nh.loginfo("degree...(-1 means infinite)\n");
     }else
       nh.loginfo("Sub is still rotating.Command abort.");
   }
@@ -652,20 +675,21 @@ void killSwitch(){
 // direction => 0: none, 1: forward, 2: right, 3: backward, 4: left
 // power => 0: none, x: x power add to the motors
 // distance => 0: none, x: x units away from the object
-void mControlCallback(const auv2018::MControl& mControl){
+void mControlCallback(const robosub::MControl& mControl){
   if(reedVal == HIGH){
     return;
   }
-  String directionStr;
-  char powerChar[11];
-  char distanceChar[11];
-  char timeChar[11];
   float power = mControl.power;
   float distance = mControl.distance;
   float mode5Time = mControl.runningTime;
-  dtostrf(power, 4, 2, powerChar);
-  dtostrf(distance, 4, 2, distanceChar);
-  dtostrf(mode5Time, 4, 2, timeChar);
+
+  String directionStr;
+  // char powerChar[11];
+  // char distanceChar[11];
+  // char timeChar[11];
+  // dtostrf(power, 4, 2, powerChar);
+  // dtostrf(distance, 4, 2, distanceChar);
+  // dtostrf(mode5Time, 4, 2, timeChar);
 
 
   if(mControl.state == 0){
@@ -716,8 +740,8 @@ void mControlCallback(const auv2018::MControl& mControl){
 
       directionStr = "Moving " + directionStr + " with power...";
       nh.loginfo(directionStr.c_str());
-      nh.loginfo(powerChar);
-      nh.loginfo("...\n");
+      // nh.loginfo(powerChar);
+      // nh.loginfo("...\n");
 
       //Testing -----------------------------------------------------------
       movementTimer = 0;
@@ -734,8 +758,8 @@ void mControlCallback(const auv2018::MControl& mControl){
       nh.loginfo("Invalid direction with state 2. Please check the program and try again.\n");
     else{
       nh.loginfo("Adjusting distance to...");
-      nh.loginfo(distanceChar);
-      nh.loginfo("away from the target.../n");
+      // nh.loginfo(distanceChar);
+      // nh.loginfo("away from the target.../n");
 
       mControlMode2 = true;
       mControlPower = 0;
@@ -787,10 +811,10 @@ void mControlCallback(const auv2018::MControl& mControl){
 
       directionStr = "Moving " + directionStr + " with power...";
       nh.loginfo(directionStr.c_str());
-      nh.loginfo(powerChar);
-      nh.loginfo("for...");
-      nh.loginfo(timeChar);
-      nh.loginfo("seconds...\n");
+      // nh.loginfo(powerChar);
+      // nh.loginfo("for...");
+      // nh.loginfo(timeChar);
+      // nh.loginfo("seconds...\n");
 
       mControlMode5 = true;
       mControlMode5Timer = 0;
@@ -811,12 +835,12 @@ void mControlCallback(const auv2018::MControl& mControl){
 
 //roll left is negative roll right is positive (roll currently inverted of this)
 //pitch backward is positive pitch forward is negative
-void stabilization(){
-  if(roll == 999){ return; }
+void heightControl(){
+  if(!subIsReady){ return; }
 
-  timePrev = time;  // the previous time is stored before the actual time read
-  time = millis();  // actual time read
-  elapsedTime = (time - timePrev) /1500;      //1500; 
+  timePrev = timeCur;  // the previous time is stored before the actual time read
+  timeCur = millis();  // actual time read
+  elapsedTime = (timeCur - timePrev) /1500;      //1500; 
   
   /*///////////////////////////P I Ds///////////////////////////////////*/
   
@@ -860,25 +884,6 @@ void stabilization(){
   if(PID_depth < -hControlPower){PID_depth = -hControlPower;}
   //positive for emerge
   if(PID_depth > hControlPower){PID_depth = hControlPower;}
-
-  //   //Stabilization sum
-  // pwmThruster_1 = base_thrust_1 - PID_pitch - PID_roll;
-  // pwmThruster_2 = base_thrust_2 + PID_pitch - PID_roll;
-  // pwmThruster_3 = base_thrust_3 + PID_pitch + PID_roll;
-  // pwmThruster_4 = base_thrust_4 - PID_pitch + PID_roll;
-  
-  // //Thruster_1
-  // if(pwmThruster_1 < 1100){pwmThruster_1 = 1100;}
-  // if(pwmThruster_1 > 1900){pwmThruster_1 = 1900;}
-  // //Thruster_2
-  // if(pwmThruster_2 < 1100){pwmThruster_2 = 1100;}
-  // if(pwmThruster_2 > 1900){pwmThruster_2 = 1900;}
-  // //Thruster_3
-  // if(pwmThruster_3 < 1100){pwmThruster_3 = 1100;}
-  // if(pwmThruster_3 > 1900){pwmThruster_3 = 1900;}
-  // //Thruster_4
-  // if(pwmThruster_4 < 1100){pwmThruster_4 = 1100;}
-  // if(pwmThruster_4 > 1900){pwmThruster_4 = 1900;}
   
   //Emerging and submerging thruster pwm requirments:
   /*Submerging: pwmThruster_1 > 1500 
@@ -922,32 +927,32 @@ void stabilization(){
     pwmThruster_4 = base_thrust + PID_pitch + PID_roll;
 
     hControlStatus.state = 1;
-    hControlStatus.depth = 0;
+    hControlStatus.depth = feetDepth_read;
     hControlStatus.power = hControlPower;
     hControlPublisher.publish(&hControlStatus);
   }
 
   ///////////Thruster power buffer//////////////
   //Thruster_1
-  if(pwmThruster_1 < 1100){pwmThruster_1= 1100;}
-  if(pwmThruster_1 > 1900){pwmThruster_1=1900;}
+  if(pwmThruster_1 < motorMin){pwmThruster_1= motorMin;}
+  if(pwmThruster_1 > motorMax){pwmThruster_1=motorMax;}
   //Thruster_2
-  if(pwmThruster_2 < 1100){pwmThruster_2= 1100;}
-  if(pwmThruster_2 > 1900){pwmThruster_2=1900;}
+  if(pwmThruster_2 < motorMin){pwmThruster_2= motorMin;}
+  if(pwmThruster_2 > motorMax){pwmThruster_2=motorMax;}
   //Thruster_3
-  if(pwmThruster_3 < 1100){pwmThruster_3= 1100;}
-  if(pwmThruster_3 > 1900){pwmThruster_3=1900;}
+  if(pwmThruster_3 < motorMin){pwmThruster_3= motorMin;}
+  if(pwmThruster_3 > motorMax){pwmThruster_3=motorMax;}
   //Thruster_4
-  if(pwmThruster_4 < 1100){pwmThruster_4= 1100;}
-  if(pwmThruster_4 > 1900){pwmThruster_4=1900;}
+  if(pwmThruster_4 < motorMin){pwmThruster_4= motorMin;}
+  if(pwmThruster_4 > motorMax){pwmThruster_4=motorMax;}
           
   prev_error_pitch = error_pitch;
   prev_error_roll = error_roll;
   prev_error_depth = error_depth;
   
-  char temp[8];
-  dtostrf(pwmThruster_1, 8, 0, temp);
-  nh.loginfo(temp);
+  // char temp[8];
+  // dtostrf(pwmThruster_1, 8, 0, temp);
+  // nh.loginfo(temp);
 
   /*Create the PWM pulses with the calculated width for each pulse*/
   T1.writeMicroseconds(pwmThruster_1);
@@ -1028,65 +1033,75 @@ void rotationControl(){
   float delta = degreeToTurn();
   float rotationError = 3;
   int fixedPower = rControlPower;
+  if(fixedPower > rotatePowerMax) fixedPower = rotatePowerMax;
 
   //boundry from -245 to 245
-  if(rControlMode4){
-    if(frontCamHorizontalDistance != 999){
-      float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
-      if(mode3Power > 300) mode3Power = 300;
-      if(frontCamHorizontalDistance > 0){
-        T5.writeMicroseconds(1500 - mode3Power);
-        T7.writeMicroseconds(1500 + mode3Power);
-        nh.loginfo("turn right");
-      }
-      else if(frontCamHorizontalDistance < 0){
-        T5.writeMicroseconds(1500 + mode3Power);
-        T7.writeMicroseconds(1500 - mode3Power);
-        nh.loginfo("turn left");
-      }
-      assignedYaw = yaw;
-    }
-    else{
-      nh.loginfo("Invalid frontCamHorizontalDistance value.");
-    }
-  }
-  if(rControlMode3){
+//   if(rControlMode4){
+//     if(frontCamHorizontalDistance != 999){
+//       float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
+//       if(mode3Power > 200) mode3Power = 200;
+//       if(frontCamHorizontalDistance > 0){
+//         T5.writeMicroseconds(1500 - mode3Power);
+//         T7.writeMicroseconds(1500 + mode3Power);
+//         nh.loginfo("turn right");
+//       }
+//       else if(frontCamHorizontalDistance < 0){
+//         T5.writeMicroseconds(1500 + mode3Power);
+//         T7.writeMicroseconds(1500 - mode3Power);
+//         nh.loginfo("turn left");
+//       }
+//       assignedYaw = yaw;
+//     }
+//     else{
+//       nh.loginfo("Invalid frontCamHorizontalDistance value.");
+//     }
+//   }
+//   if(rControlMode3){
     
-    if(frontCamHorizontalDistance != 999){
-      float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
-      if(mode3Power > 300) mode3Power = 300;
-//      char rChar[11];
-//      dtostrf(rotationTimer, 4, 2, rChar);
-//      nh.loginfo(rChar);
-      if(frontCamHorizontalDistance > 0){
-        T5.writeMicroseconds(1500 - mode3Power);
-        T7.writeMicroseconds(1500 + mode3Power);
-        nh.loginfo("turn right");
-      }
-      else if(frontCamHorizontalDistance < 0){
-        T5.writeMicroseconds(1500 + mode3Power);
-        T7.writeMicroseconds(1500 - mode3Power);
-        nh.loginfo("turn left");
-      }
-      if(frontCamHorizontalDistance < 30 && frontCamHorizontalDistance > -30){
-        rotationTimer += 0.05;
-        if(rotationTimer >= rotationTime){
-          nh.loginfo("Times up");
-          rControlMode3 = false;
-        }
-      }
-      else rotationTimer = 0;
-      assignedYaw = yaw;
+//     if(frontCamHorizontalDistance != 999){
+//       float mode3Power = abs(frontCamHorizontalDistance) / 245 * 200 + 40;
+//       if(mode3Power > 200) mode3Power = 200;
+// //      char rChar[11];
+// //      dtostrf(rotationTimer, 4, 2, rChar);
+// //      nh.loginfo(rChar);
+//       if(frontCamHorizontalDistance > 0){
+//         T5.writeMicroseconds(1500 - mode3Power);
+//         T7.writeMicroseconds(1500 + mode3Power);
+//         nh.loginfo("turn right");
+//       }
+//       else if(frontCamHorizontalDistance < 0){
+//         T5.writeMicroseconds(1500 + mode3Power);
+//         T7.writeMicroseconds(1500 - mode3Power);
+//         nh.loginfo("turn left");
+//       }
+//       if(frontCamHorizontalDistance < 30 && frontCamHorizontalDistance > -30){
+//         rotationTimer += 0.05;
+//         if(rotationTimer >= rotationTime){
+//           nh.loginfo("Times up");
+//           rControlMode3 = false;
+//         }
+//       }
+//       else rotationTimer = 0;
+//       assignedYaw = yaw;
+//     }
+//     else{
+//       nh.loginfo("Invalid frontCamHorizontalDistance value.");
+//     }
+//   }
+  if(keepTurningLeft){
+    // //Turn on left rotation motor with fixed power
+    // T5.writeMicroseconds(1500 + fixedPower);
+    // T7.writeMicroseconds(1500 - fixedPower);
+    if( ((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+      T6.writeMicroseconds(1500 + fixedPower);
+      T8.writeMicroseconds(1500 + fixedPower);
     }
     else{
-      nh.loginfo("Invalid frontCamHorizontalDistance value.");
+      T5.writeMicroseconds(1500 - fixedPower);
+      T7.writeMicroseconds(1500 + fixedPower);
     }
-  }
-  else if(keepTurningLeft){
-    //Turn on left rotation motor with fixed power
-    T5.writeMicroseconds(1500 + fixedPower);
-    T7.writeMicroseconds(1500 - fixedPower);
     assignedYaw = yaw;
+
     //Testing----------------------------
 //    rotationTimer += 0.01;
 //    if(rotationTimer > rotationTime)
@@ -1097,8 +1112,16 @@ void rotationControl(){
   }
   else if(keepTurningRight){
     //Turn on right rotation motor with fixed power
-    T5.writeMicroseconds(1500 - fixedPower);
-    T7.writeMicroseconds(1500 + fixedPower);
+    // T5.writeMicroseconds(1500 - fixedPower);
+    // T7.writeMicroseconds(1500 + fixedPower);
+    if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+      T6.writeMicroseconds(1500 - fixedPower);
+      T8.writeMicroseconds(1500 - fixedPower);
+    }
+    else{
+      T5.writeMicroseconds(1500 + fixedPower);
+      T7.writeMicroseconds(1500 - fixedPower);
+    }
     assignedYaw = yaw;
     //Testing----------------------------
 //    rotationTimer += 0.01;
@@ -1110,22 +1133,43 @@ void rotationControl(){
   }
   // AutoRotation to the assignedYaw with 1 degree error tolerance
   else if(delta > 2){
-    if(yaw + delta > rotationUpperBound){
-      if(yaw - delta == assignedYaw)
+    if(isTurningRight){
+      // nh.loginfo("isTurningRight");
+      rotateRightDynamically();
+    }
+    else if(isTurningLeft){
+      // nh.loginfo("isTurningLeft");
+      rotateLeftDynamically();
+    }
+    else if(yaw + delta > rotationUpperBound){
+      // nh.loginfo("yaw + delta > rotationUpperBound");
+      if(yaw - delta == assignedYaw){
+        // nh.loginfo("aw - delta == assignedYaw");
         rotateLeftDynamically();
-      else
+      }else{
+        // nh.loginfo("aw - delta == assignedYaw else");
         rotateRightDynamically();
+      }
     }
     else if(yaw - delta < rotationLowerBound){
-      if(yaw + delta == assignedYaw)
+      // nh.loginfo("yaw - delta < rotationUpperBound");
+      if(yaw + delta == assignedYaw){
+        // nh.loginfo("yaw + delta == assignedYaw");
         rotateRightDynamically();
-      else
+      }
+      else{
+        // nh.loginfo("yaw + delta == assignedYaw else");
         rotateLeftDynamically();
+      }
     }
-    else if(yaw < assignedYaw)
+    else if(yaw < assignedYaw){
+      // nh.loginfo("yaw < assignedYaw");
       rotateRightDynamically();
-    else
+    }
+    else if(yaw > assignedYaw){
+      // nh.loginfo("yaw < assignedYaw else");
       rotateLeftDynamically();
+    }
   }
   //No rotation
  if(!keepTurningRight && !keepTurningLeft && !rControlMode3 && !rControlMode4 && delta < rotationError){
@@ -1150,32 +1194,34 @@ void movementControl(){
   if(reedVal == HIGH){
     return;
   }
+  float mControlPowerTemp = mControlPower;
+  if(mControlPowerTemp > 200) mControlPowerTemp = 200;
 
   if(mControlMode1){
     if(keepMovingForward){
-      T6.writeMicroseconds(1500 + mControlPower);
-      T8.writeMicroseconds(1500 - mControlPower);
+      T6.writeMicroseconds(1500 + mControlPowerTemp);
+      T8.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionY += 0.05;
       //nh.loginfo("moving forward...");
     }
     else if(keepMovingRight){
-      T5.writeMicroseconds(1500 - mControlPower);
-      T7.writeMicroseconds(1500 - mControlPower);
+      T5.writeMicroseconds(1500 + mControlPowerTemp);
+      T7.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionX += 0.05;
       //nh.loginfo("moving right...");
     }
     else if(keepMovingBackward){
-      T6.writeMicroseconds(1500 - mControlPower);
-      T8.writeMicroseconds(1500 + mControlPower);
+      T6.writeMicroseconds(1500 - mControlPowerTemp);
+      T8.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionY -= 0.05;
       //nh.loginfo("moving backward...");
     }
     else if(keepMovingLeft){
-      T5.writeMicroseconds(1500 + mControlPower);
-      T7.writeMicroseconds(1500 + mControlPower);
+      T5.writeMicroseconds(1500 - mControlPowerTemp);
+      T7.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionX -= 0.05;
       //nh.loginfo("moving left...");
@@ -1195,155 +1241,155 @@ void movementControl(){
 //      nh.loginfo("Mode 1 finished.\n");
 //    }
   }
-  else if(mControlMode2){
-    float error = 0.5;
-    float distanceToReach = frontCamForwardDistance - mControlDistance;
-    if(distanceToReach > 0){
-      //Turn on the front motors with a proportional speed to the distanceToReach
-      //Greater the distanceToReach, greater the power
+  // else if(mControlMode2){
+  //   float error = 0.5;
+  //   float distanceToReach = frontCamForwardDistance - mControlDistance;
+  //   if(distanceToReach > 0){
+  //     //Turn on the front motors with a proportional speed to the distanceToReach
+  //     //Greater the distanceToReach, greater the power
 
-      //Testing-----------------------------
-      //positionY += 0.01;
-    }else if(distanceToReach < 0){
-      //Turn on the back motors with a proportional speed to the distanceToReach
-      //Smaller the distanceToReach, greater the power
+  //     //Testing-----------------------------
+  //     //positionY += 0.01;
+  //   }else if(distanceToReach < 0){
+  //     //Turn on the back motors with a proportional speed to the distanceToReach
+  //     //Smaller the distanceToReach, greater the power
 
-      //Testing-----------------------------
-      //positionY -= 0.01;
-    }
-    //Timer
-    if(distanceToReach > error){
-      centerTimer = 0;
-    }
-    else if(distanceToReach < error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.01;
-      if(centerTimer >= 5){
-        mControlMode2 = false;
-        nh.loginfo("Target distance reached.\n");
-      }
-    }
+  //     //Testing-----------------------------
+  //     //positionY -= 0.01;
+  //   }
+  //   //Timer
+  //   if(distanceToReach > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(distanceToReach < error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.01;
+  //     if(centerTimer >= 5){
+  //       mControlMode2 = false;
+  //       nh.loginfo("Target distance reached.\n");
+  //     }
+  //   }
 
-  }
-  else if(mControlMode3){
-    float error = 0.5;
-    if(frontCamHorizontalDistance > 0){
-      //Turn on the right motors with a proportional speed to the frontCamHorizontalDistance
-      //Greater the frontCamHorizontalDistance, greater the power
+  // }
+  // else if(mControlMode3){
+  //   float error = 0.5;
+  //   if(frontCamHorizontalDistance > 0){
+  //     //Turn on the right motors with a proportional speed to the frontCamHorizontalDistance
+  //     //Greater the frontCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX += 0.1;
-    }
-    else if(frontCamHorizontalDistance < 0){
-      //Turn on the left motors with a proportional speed to the frontCamHorizontalDistance
-      //Smaller the frontCamHorizontalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX += 0.1;
+  //   }
+  //   else if(frontCamHorizontalDistance < 0){
+  //     //Turn on the left motors with a proportional speed to the frontCamHorizontalDistance
+  //     //Smaller the frontCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX -= 0.1;
-    }
-    //Timer
-    if(frontCamHorizontalDistance > error){
-      centerTimer = 0;
-    }
-    else if(frontCamHorizontalDistance < -error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.05;
-      if(centerTimer >= 5){
-        mControlMode3 = false;
-        nh.loginfo("Target center reached.\n");
-      }
-    }
-  }
-  else if(mControlMode4){
-    float error = 0.5;
-    if(bottomCamHorizontalDistance > 0){
-      //Turn on the right motors with a proportional speed to the bottomCamHorizontalDistance
-      //Greater the bottomCamHorizontalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX -= 0.1;
+  //   }
+  //   //Timer
+  //   if(frontCamHorizontalDistance > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(frontCamHorizontalDistance < -error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.05;
+  //     if(centerTimer >= 5){
+  //       mControlMode3 = false;
+  //       nh.loginfo("Target center reached.\n");
+  //     }
+  //   }
+  // }
+  // else if(mControlMode4){
+  //   float error = 0.5;
+  //   if(bottomCamHorizontalDistance > 0){
+  //     //Turn on the right motors with a proportional speed to the bottomCamHorizontalDistance
+  //     //Greater the bottomCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX += 0.1;
-    }
-    else if(bottomCamHorizontalDistance < 0){
-      //Turn on the left motors with a proportional speed to the bottomCamHorizontalDistance
-      //Smaller the bottomCamHorizontalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX += 0.1;
+  //   }
+  //   else if(bottomCamHorizontalDistance < 0){
+  //     //Turn on the left motors with a proportional speed to the bottomCamHorizontalDistance
+  //     //Smaller the bottomCamHorizontalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionX -= 0.1;
-    }
-    if(bottomCamHorizontalDistance > error){
-      centerTimer = 0;
-    }
-    else if(bottomCamHorizontalDistance < -error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.05;
-      if(centerTimer >= 5){
-        mControlMode4 = false;
-        nh.loginfo("Target center reached.\n");
-      }
-    }
-    if(bottomCamVerticalDistance > 0){
-      //Turn on the front motors with a proportional speed to the bottomCamVerticalDistance
-      //Greater the bottomCamVerticalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionX -= 0.1;
+  //   }
+  //   if(bottomCamHorizontalDistance > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(bottomCamHorizontalDistance < -error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.05;
+  //     if(centerTimer >= 5){
+  //       mControlMode4 = false;
+  //       nh.loginfo("Target center reached.\n");
+  //     }
+  //   }
+  //   if(bottomCamVerticalDistance > 0){
+  //     //Turn on the front motors with a proportional speed to the bottomCamVerticalDistance
+  //     //Greater the bottomCamVerticalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionY += 0.1;
-    }
-    else if(bottomCamVerticalDistance < 0){
-      //Turn on the back motors with a proportional speed to the bottomCamVerticalDistance
-      //Smaller the bottomCamVerticalDistance, greater the power
+  //     //Testing-----------------------------
+  //     //positionY += 0.1;
+  //   }
+  //   else if(bottomCamVerticalDistance < 0){
+  //     //Turn on the back motors with a proportional speed to the bottomCamVerticalDistance
+  //     //Smaller the bottomCamVerticalDistance, greater the power
 
-      //Testing-----------------------------
-      //positionT -= 0.1;
-    }
-    if(bottomCamVerticalDistance > error){
-      centerTimer = 0;
-    }
-    else if(bottomCamVerticalDistance < -error){
-      centerTimer = 0;
-    }
-    else{
-      centerTimer += 0.05;
-      if(centerTimer >= 5){
-        mControlMode4 = false;
-        nh.loginfo("Target center reached.\n");
-      }
-    }
-  }
+  //     //Testing-----------------------------
+  //     //positionT -= 0.1;
+  //   }
+  //   if(bottomCamVerticalDistance > error){
+  //     centerTimer = 0;
+  //   }
+  //   else if(bottomCamVerticalDistance < -error){
+  //     centerTimer = 0;
+  //   }
+  //   else{
+  //     centerTimer += 0.05;
+  //     if(centerTimer >= 5){
+  //       mControlMode4 = false;
+  //       nh.loginfo("Target center reached.\n");
+  //     }
+  //   }
+  // }
   else if(mControlMode5){
     //forward
     if(mControlDirection == 1){
-      T6.writeMicroseconds(1500 + mControlPower + 10);
-      T8.writeMicroseconds(1500 - mControlPower);
+      T6.writeMicroseconds(1500 + mControlPowerTemp);
+      T8.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionY += 0.05;
       nh.loginfo("moving forward...");
     }
     //right
     else if(mControlDirection == 2){
-      T5.writeMicroseconds(1500 - mControlPower);
-      T7.writeMicroseconds(1500 - mControlPower);
+      T5.writeMicroseconds(1500 + mControlPowerTemp);
+      T7.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionX += 0.05;
       nh.loginfo("moving right...");
     }
     //backward
     else if(mControlDirection == 3){
-      T6.writeMicroseconds(1500 - mControlPower);
-      T8.writeMicroseconds(1500 + mControlPower);
+      T6.writeMicroseconds(1500 - mControlPowerTemp);
+      T8.writeMicroseconds(1500 + mControlPowerTemp);
       //Testing-------------------
       positionY -= 0.05;
       nh.loginfo("moving backward...");
     }
     //left
     else if(mControlDirection == 4){
-      T5.writeMicroseconds(1500 + mControlPower);
-      T7.writeMicroseconds(1500 + mControlPower);
+      T5.writeMicroseconds(1500 - mControlPowerTemp);
+      T7.writeMicroseconds(1500 - mControlPowerTemp);
       //Testing-------------------
       positionX -= 0.05;
       nh.loginfo("moving left...");
@@ -1380,18 +1426,18 @@ void movementControl(){
 }
 
 
-void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance){
-  frontCamForwardDistance = frontCamDistance.frontCamForwardDistance;
-  frontCamHorizontalDistance = frontCamDistance.frontCamHorizontalDistance;
-  frontCamVerticalDistance = frontCamDistance.frontCamVerticalDistance;
-}
+// void frontCamDistanceCallback(const auv_cal_state_la_2017::FrontCamDistance& frontCamDistance){
+//   frontCamForwardDistance = frontCamDistance.frontCamForwardDistance;
+//   frontCamHorizontalDistance = frontCamDistance.frontCamHorizontalDistance;
+//   frontCamVerticalDistance = frontCamDistance.frontCamVerticalDistance;
+// }
 
 
-void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance){
-  bottomCamForwardDistance = bottomCamDistance.bottomCamForwardDistance;
-  bottomCamHorizontalDistance = bottomCamDistance.bottomCamHorizontalDistance;
-  bottomCamVerticalDistance = bottomCamDistance.bottomCamVerticalDistance;
-}
+// void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& bottomCamDistance){
+//   bottomCamForwardDistance = bottomCamDistance.bottomCamForwardDistance;
+//   bottomCamHorizontalDistance = bottomCamDistance.bottomCamHorizontalDistance;
+//   bottomCamVerticalDistance = bottomCamDistance.bottomCamVerticalDistance;
+// }
 
 
 //&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1408,17 +1454,17 @@ void bottomCamDistanceCallback(const auv_cal_state_la_2017::BottomCamDistance& b
 //    T7.writeMicroseconds(1500 + PWM_Motors);
 //  }
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * 4.5;
-  if(rotatePower > 300) rotatePower = 300;
-  if((mControlMode5 && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+  float rotatePower = PWM_Motors_orient * 4.0;
+  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
+  if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     T6.writeMicroseconds(1500 + rotatePower);
     T8.writeMicroseconds(1500 + rotatePower);
   }
   else{
-    T5.writeMicroseconds(1500 + rotatePower);
-    T7.writeMicroseconds(1500 - rotatePower);
+    T5.writeMicroseconds(1500 - rotatePower);
+    T7.writeMicroseconds(1500 + rotatePower);
   }
-  nh.loginfo("rotate left");
+  // nh.loginfo("rotate left");
   //Testing----------------------------
   //yaw += 1;
   //if(yaw > rotationUpperBound) yaw -= 360;
@@ -1426,17 +1472,17 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * 4.5;
-  if(rotatePower > 300) rotatePower = 300;
-  if((mControlMode5 && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+  float rotatePower = PWM_Motors_orient * 4.0;
+  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
+  if(((mControlMode5 || mControlMode1) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
     T6.writeMicroseconds(1500 - rotatePower);
     T8.writeMicroseconds(1500 - rotatePower);
   }
   else{
-    T5.writeMicroseconds(1500 - rotatePower);
-    T7.writeMicroseconds(1500 + rotatePower);
+    T5.writeMicroseconds(1500 + rotatePower);
+    T7.writeMicroseconds(1500 - rotatePower);
   }
-  nh.loginfo("rotate right");
+  // nh.loginfo("rotate right");
   //Testing----------------------------
   //yaw -= 1;
   //if(yaw < rotationLowerBound) yaw +=360;

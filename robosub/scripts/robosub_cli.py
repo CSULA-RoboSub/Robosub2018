@@ -40,11 +40,13 @@ class CLI(cmd.Cmd):
         if arg.lower() == 'view':
             print(AUV.tasks)
         elif arg.lower() == 'set':
+            # AUV.config.set_config('auv', 'tasks', response)
+            # AUV.read_config()
             # TODO set tasks
             # AUV.set_config('tasks', '0 1 2 3 4 5 6 7 8')
             print('test')
         elif arg.lower() == 'reset':
-            AUV.set_config('tasks', '', True)
+            AUV.config.reset_option('auv', 'tasks')
         else:
             print(AUV.tasks)
 
@@ -66,9 +68,9 @@ class CLI(cmd.Cmd):
          \n[state] or no argument to print current state'
 
         if arg.lower() == 'on' or arg == '1':
-            AUV.motor.toggle_state(1)
+            AUV.motor.toggle_state(4)
         elif arg.lower() == 'off' or arg == '0':
-            AUV.motor.toggle_state(0)
+            AUV.motor.toggle_state(5)
         elif arg.lower() == 'toggle':
             AUV.motor.toggle_state()
         else:
@@ -89,7 +91,8 @@ class CLI(cmd.Cmd):
          \n[keyboard] keyboard manual navigation'
 
         if arg.lower() == 'cv' or arg.lower() == 'tm':
-            # TODO cv taskmanager
+            # temp method for testing purposes
+            AUV.perform_tasks()
             print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()
@@ -120,7 +123,6 @@ class CLI(cmd.Cmd):
         else:
             AUV.model_picker.get_model()
 
-
     # auto-complete CV model picker
     def complete_model(self, text, line, start_index, end_index):
         args = ['view']
@@ -129,7 +131,6 @@ class CLI(cmd.Cmd):
             return [arg for arg in args if arg.startswith(text)]
         else:
             return args
-
 
     # status logger ####################################################################################################
     def do_logging(self, arg):
@@ -166,29 +167,44 @@ class CLI(cmd.Cmd):
 
 
 def parse(arg):
-    'Convert a series of zero or more numbers to an argument tuple'
+    """Convert a series of zero or more numbers to an argument tuple"""
     return tuple(map(int, arg.split()))
 
 
+def start_roscore():
+    """Check if roscore is running. If not starts roscore"""
+
+    name = 'roscore'
+    ps = os.popen('ps -Af').read()
+
+    if name not in ps:
+        # open roscore in subprocess
+        print('Setting up roscore.')
+        os.system('killall -9 roscore')
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')
+
+        roscore = subprocess.Popen('roscore')
+        time.sleep(1)
+        return roscore
+
+    return False
+
+
 if __name__ == '__main__':
-    # open roscore in subprocess
-    print('Setting up roscore.')
-    os.system('killall -9 roscore')
-    os.system('killall -9 rosmaster')
-    os.system('killall -9 rosout')
-    roscore = subprocess.Popen('roscore')
-    time.sleep(1)
+    roscore = start_roscore()
 
     AUV = AUV()  # initialize AUV() class
 
     print('\n***Plug in magnet after setting up configurations to start AUV.***')
     print('\n***Set motor state to 1 to start motors.***')
 
-    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1#############################################################
+    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1 #########################
 
     CLI().cmdloop()  # run AUV command interpreter
 
-    # close roscore and rosmaster on exit
-    subprocess.Popen.kill(roscore)
-    os.system('killall -9 rosmaster')
-    os.system('killall -9 rosout')
+    # close roscore and rosmaster on exit if opened by CLI
+    if(roscore):
+        subprocess.Popen.kill(roscore)
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')

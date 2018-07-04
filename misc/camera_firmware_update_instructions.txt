@@ -1,0 +1,16 @@
+https://github.com/TheImagingSource/tiscamera/tree/documentation-2.0/tools/firmware-update
+
+use documentation-2.0 branch on tiscamera github navigate to the tools/firmware-update/ folder
+in terminal type: make
+
+https://github.com/TheImagingSource/tiscamera/tree/master/data/firmware/usb2
+get firmware for camera (our current one is dfk22uc03 ignore the missing a)
+
+drop it into the firmware-update folder where you compiled
+first do this to get camera serial number
+sudo ./firmware-update -l
+
+actual firmware install example:
+sudo ./firmware-update -ud07714031 -fdfk22uc03_3017.euvc
+sudo ./firmware-update -ud<serial> -f<filename>
+note: no space after the -ud and the -f
