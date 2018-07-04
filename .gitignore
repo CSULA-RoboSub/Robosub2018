@@ -124,3 +124,5 @@ video_output/
 
 #ignore cv models
 *.pkl
+#ignore vim
+*.swp

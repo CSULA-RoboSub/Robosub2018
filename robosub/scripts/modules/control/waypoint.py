@@ -148,8 +148,8 @@ class Waypoint():
             dvl_yaw = direction_degree - 90
         else:
             dvl_yaw = direction_degree + 270
-        print('dvl_yaw: %.2f' %(dvl_yaw))
-        print('current_yaw %.2f' %self.yaw)
+        # print('dvl_yaw: %.2f' %(dvl_yaw))
+        # print('current_yaw %.2f' %self.yaw)
         yaw_diff = dvl_yaw - self.yaw
 
         l1 = max(x1,x2) - min(x1,x2)
@@ -176,8 +176,8 @@ class Waypoint():
             direction = 'staying'
 
 
-        print('degree: %.2f' % degree)
-        print('direction: ' + direction)
+        # print('degree: %.2f' % degree)
+        # print('direction: ' + direction)
 
         return direction, degree, distance
 
