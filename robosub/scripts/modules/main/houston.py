@@ -225,7 +225,7 @@ class Houston():
                 print '--------------------------------------------'
 
         # TODO will be used later when cv_controller has been completed
-        # self.state.start(self.power, self.rotation)
+        # self.state.start(self. navigation, self.power, self.rotation)
         # if self.state.is_detect_done:
         #     self.state_num += 1
         #     self.state.stop()

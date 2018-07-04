@@ -2,7 +2,6 @@ from modules.sensors.computer_vision import DiceDetector
 from task import Task
 from modules.controller.cv_controller import CVController
 from modules.sensors.imu.gather_rotation import GetRotation
-from modules.control.navigation import Navigation
 from threading import Thread, Lock
 import time
 
@@ -62,11 +61,11 @@ class Dice(Task):
         self.thread_dice = None
 
     def start(self, m_power=120, rotation=15):
-        self.navigation.start()
+        #self.navigation.start()
         #self.run_detect_for_task(m_power, rotation)
     
     def stop(self):
-        self.navigation.stop()
+        #self.navigation.stop()
 
     def run_detect_for_task(self, m_power=120, rotation=15):
         self.reset_thread()

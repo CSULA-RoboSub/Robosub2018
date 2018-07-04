@@ -3,7 +3,6 @@ from task import Task
 from gate_maneuver import GateManeuver
 from modules.controller.cv_controller import CVController
 from modules.sensors.imu.gather_rotation import GetRotation
-from modules.control.navigation import Navigation
 from threading import Thread, Lock
 import time
 from collections import Counter
@@ -20,7 +19,6 @@ class Gate(Task):
         self.gate_maneuver = GateManeuver()
         self.getrotation = GetRotation()
         self.cvcontroller = CVController()
-        self.navigation = Navigation()
         self.detectgate = None
 
         ################ THRESHOLD VARIABLES ################
@@ -99,17 +97,16 @@ class Gate(Task):
 
         self.gate_maneuver.reset()
 
-    def start(self, m_power=120, rotation=15):
-        self.navigation.start()
-        self.run_detect_for_task(m_power, rotation)
+    def start(self, navigation, m_power=120, rotation=15):
+        self.run_detect_for_task(navigation, m_power, rotation)
 
     def stop(self):
-        self.navigation.stop()
+        #self.navigation.stop()
     
-    def run_detect_for_task(self, m_power=120, rotation=15):
+    def run_detect_for_task(self, navigation, m_power=120, rotation=15):
         self.reset_thread()
 
-        self.thread_gate = Thread(target = self.detect, args = (m_power,rotation))
+        self.thread_gate = Thread(target = self.detect, args = (navigation, m_power,rotation))
         #self.thread_gate = Thread(target=self.test)
         self.thread_gate.start()
         #self.thread_gate.join()
@@ -125,7 +122,7 @@ class Gate(Task):
 
         return self.detectgate.detect(frame)
 
-    '''def detect(self, m_power=120, rotation=15):
+    '''def detect(self, navigation, m_power=120, rotation=15):
         self.last_time = time.time()
         self.mutex.acquire()
         try:
@@ -134,7 +131,7 @@ class Gate(Task):
             self.direction_list.append(directions)
             if (time.time()-self.last_time > 0.05):
                 most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
-                self.navigate(self.navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                 
                 self.counts = Counter()
                 self.direction_list = []
