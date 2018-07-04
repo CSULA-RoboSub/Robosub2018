@@ -7,9 +7,17 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from modules.controller.gui_controller import Controller
+import subprocess
+import time
+import os
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+
+        self.Controller = Controller()  # Initialize gui controller
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1432, 850)
         self.central_widget = QtWidgets.QWidget(MainWindow)
@@ -192,6 +200,11 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.central_widget)
 
         self.retranslateUi(MainWindow)
+
+        # Controller connections
+
+        self.load_default_button.clicked.connect(self.Controller.load_default_params)
+
         self.tabWidget.setCurrentIndex(0)
         self.camera0.clicked.connect(self.display0.update)
         self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
@@ -232,7 +245,30 @@ class Ui_MainWindow(object):
         self.label_2.setText(_translate("MainWindow", "Depth"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.controls), _translate("MainWindow", "Manual mode"))
 
+
+def start_roscore():
+    """Check if roscore is running. If not starts roscore"""
+
+    name = 'roscore'
+    ps = os.popen('ps -Af').read()
+
+    if name not in ps:
+        # open roscore in subprocess
+        print('Setting up roscore.')
+        os.system('killall -9 roscore')
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')
+
+        roscore = subprocess.Popen('roscore')
+        time.sleep(1)
+        return roscore
+
+    return False
+
+
 if __name__ == "__main__":
+    roscore = start_roscore()
+
     import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
@@ -241,3 +277,7 @@ if __name__ == "__main__":
     MainWindow.show()
     sys.exit(app.exec_())
 
+    if(roscore):
+        subprocess.Popen.kill(roscore)
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')

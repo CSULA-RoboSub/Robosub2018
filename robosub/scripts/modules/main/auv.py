@@ -8,7 +8,10 @@ from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
 from modules.main.status_logger import StatusLogger
 
-from houston import Houston
+try:
+    from houston import Houston
+except ValueError:
+    print('Required hardware not detected.')
 
 
 class AUV():
@@ -30,7 +33,11 @@ class AUV():
         self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard()  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
-        self.houston = Houston() # initialize Houston() class
+
+        try:
+            self.houston = Houston() # initialize Houston() class
+        except NameError:
+            print('Houston is not initialized.')
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -49,6 +56,10 @@ class AUV():
         """Navigate the robosub using keyboard controls"""
 
         self.keyboard.getch()
+
+    def perform_tasks(self):
+        """Has houston perform task"""
+        self.houston.do_task()
 
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
@@ -69,5 +80,3 @@ class AUV():
         self.status_logger.stop()
         self.houston.stop()
 
-    def perform_tasks(self):
-        self.houston.do_task()
