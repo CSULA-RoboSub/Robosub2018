@@ -48,21 +48,7 @@ class Houston():
     
     def __init__(self):
         """ To initilize Houston """
-        self.is_killswitch_on = False
-        self.navigation = Navigation()
-        self.config = Config()
-        self.coordinates = []
-        self.counts = Counter()
-
-        # will eventually move variables to task modules
-        self.task_timer = 300
-        self.last_time = time.time()
-
-        self.rotation = 15
-        self.power = 120
-
-        # setting class instances of the tasks to none
-        # to be used to prevent mutiple instances of same class
+        ################ INSTANCES ################
         self.gate = Gate(self)
         self.path_1 = Path(self)
         self.dice = Dice(self)
@@ -74,8 +60,22 @@ class Houston():
         self.pinger_a = PingerA(self)
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
-        #self.buoy = Buoy(Houston)
+        #self.buoy = Buoy(self)
+        self.navigation = Navigation()
+        self.config = Config()
+        self.counts = Counter()
 
+        ################ THRESHOLD VARIABLES ################
+        self.task_timer = 300
+         self.break_timer = 600
+
+        ################ FLAG VARIABLES ################
+        self.is_killswitch_on = False
+
+        ################ TIMER/COUNTER VARIABLES ################
+        self.last_time = time.time()
+
+        ################ DICTIONARIES ################
         """
         self.tasks values listed below
         'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
@@ -93,12 +93,13 @@ class Houston():
                         self.roulette, 
                         self.pinger_b, 
                         self.cash_in]
-    
-        self.queue_direction = []
 
+        ################ AUV MOBILITY VARIABLES ################
         #self.rotational_movement = {-1: }
         self.height = 1
-        self.break_timer = 600
+        self.queue_direction = []
+        self.rotation = 15
+        self.power = 120
 
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
@@ -432,4 +433,3 @@ class Houston():
         self.loop.run()
         # except KeyboardInterrupt:
         #     print("Ctrl-C pressed, terminating")
-

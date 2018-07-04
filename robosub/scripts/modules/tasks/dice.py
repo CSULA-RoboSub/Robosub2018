@@ -63,9 +63,11 @@ class Dice(Task):
     def start(self, m_power=120, rotation=15):
         #self.navigation.start()
         #self.run_detect_for_task(m_power, rotation)
+        pass
     
     def stop(self):
         #self.navigation.stop()
+        pass
 
     def run_detect_for_task(self, m_power=120, rotation=15):
         self.reset_thread()
@@ -99,4 +101,12 @@ class Dice(Task):
 
     def restart_task(self):
         pass
+        
+    def run_detect_for_task(self):
+        pass
 
+    def reset_thread(self):
+        pass
+
+    def get_most_occur_coordinates(self): 
+        pass 

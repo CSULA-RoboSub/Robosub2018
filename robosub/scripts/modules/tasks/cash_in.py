@@ -48,7 +48,16 @@ class CashIn(Task):
         pass
 
     def start(self):
-        self.navigation.start()
+        pass
     
     def stop(self):
-        self.navigation.stop()
+        pass
+        
+    def run_detect_for_task(self):
+        pass
+
+    def reset_thread(self):
+        pass
+
+    def get_most_occur_coordinates(self): 
+        pass 

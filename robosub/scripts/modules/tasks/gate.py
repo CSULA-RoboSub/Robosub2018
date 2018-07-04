@@ -102,6 +102,7 @@ class Gate(Task):
 
     def stop(self):
         #self.navigation.stop()
+        pass
     
     def run_detect_for_task(self, navigation, m_power=120, rotation=15):
         self.reset_thread()
@@ -174,38 +175,7 @@ class Gate(Task):
         navigation.cancel_m_nav()
         navigation.cancel_h_nav()
     def complete(self):
-        #code below is not needed anymore
-        '''if (self.gate_circle_loc < 2*math.pi):
-            self.gate_circle_loc += math.pi/100
-            x = math.sin(self.gate_circle_loc)
-            y = math.cos(self.gate_circle_loc)
-            lower_bound = -.33
-            upper_bound = .33
-
-            if (x >= upper_bound):
-                coord_x = 1
-            elif (x < upper_bound and x >= lower_bound):
-                coord_x = 0
-            elif (x < lower_bound):
-                coord_x = -1
-
-            if (y >= upper_bound):
-                coord_y = 1
-            elif (y < upper_bound and y >= lower_bound):
-                coord_y = 0
-            elif (y < lower_bound):
-                coord_y = -1
-        else:
-            self.is_gate_done = True
-            print('circling gate completed')
-            coord_x = 0
-            coord_y = 0
-        
-        return True, [coord_x, coord_y]
-        '''
         pass
-        #code will be used to navigate to the pole and then circle(square)
-        #around it
 
     def get_most_occur_coordinates(self, last, counts):
         for sublist in last:
