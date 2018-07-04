@@ -476,24 +476,8 @@
   <connection>
    <sender>tabWidget</sender>
    <signal>currentChanged(int)</signal>
-   <receiver>start_tasks</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1070</x>
-     <y>441</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1070</x>
-     <y>140</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>tabWidget</sender>
-   <signal>currentChanged(int)</signal>
    <receiver>forward</receiver>
-   <slot>click()</slot>
+   <slot>animateClick()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>1070</x>
@@ -524,16 +508,16 @@
   <connection>
    <sender>power</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>messages</receiver>
-   <slot>paste()</slot>
+   <receiver>forward</receiver>
+   <slot>animateClick()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>990</x>
      <y>252</y>
     </hint>
     <hint type="destinationlabel">
-     <x>360</x>
-     <y>708</y>
+     <x>990</x>
+     <y>454</y>
     </hint>
    </hints>
   </connection>
