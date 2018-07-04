@@ -99,6 +99,9 @@ class Gate(Task):
 
         self.gate_maneuver.reset()
 
+    def search(self):
+        pass
+
     def start(self, m_power=120, rotation=15):
         self.navigation.start()
         self.run_detect_for_task(m_power, rotation)
@@ -219,4 +222,4 @@ class Gate(Task):
         print 'bail gate'
 
     def restart_task(self):
-print 'restart gate'
+        print 'restart gate'

@@ -97,6 +97,9 @@ class Dice(Task):
 
     def bail_task(self):
         pass
+        
+    def search(self):
+        pass
 
     def restart_task(self):
-pass
+        pass
