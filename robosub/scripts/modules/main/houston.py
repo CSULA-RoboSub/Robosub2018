@@ -98,7 +98,7 @@ class Houston():
 
         #self.rotational_movement = {-1: }
         self.height = 1
-        self.break_timer = 300
+        self.break_timer = 600
 
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
@@ -201,7 +201,7 @@ class Houston():
                 #     break
 
                 # will run through whenever at least 1 second has passed
-                if (time.time()-self.last_time > 0.1):# and not self.msg.found):
+                if (time.time()-self.last_time > 0.05):# and not self.msg.found):
                     most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
                     self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
@@ -218,15 +218,19 @@ class Houston():
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
                 
-                print 'task will stop in 300'
+                print 'task will stop in 600'
                 print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                 print 'current count: {}'.format(break_loop)
                 print 'coordinates: {}'.format(coordinates)
                 print '--------------------------------------------'
 
+        # TODO will be used later when cv_controller has been completed
+        # self.state.start(self.power, self.rotation)
+        # if self.state.is_detect_done:
+        #     self.state_num += 1
+        #     self.state.stop()
+        
         print("exit loop")
-        #if self.state.is_detect_done:
-        #    self.state_num += 1
 
         self.foundcoord = None
         self.closePipline()
