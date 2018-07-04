@@ -65,10 +65,6 @@ class GateDetector:
         else:
             x, y, w, h = gate
             cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
-<<<<<<< HEAD
             self.directions = utils.get_directions(center, x, y, w, h)
-=======
-            self.directions = utils.get_directions( center, x, y, w, h )
->>>>>>> 2055e4f24c543828803d1e45ee1f2d56fe9ecf71
             self.found = True
         return (self.found, self.directions, gate_shape, (w, h))
