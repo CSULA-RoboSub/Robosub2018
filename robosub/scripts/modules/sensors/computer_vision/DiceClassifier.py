@@ -36,9 +36,13 @@ class DiceClassifier:
     '''
     def get_lsvm(self):
 
-        lsvm = joblib.load('DiceSVMstd.pkl')
-        
-        if lsvm == None:
+        lsvm = None
+
+        try:
+            lsvm = joblib.load('DiceSVMstd.pkl')
+
+        except IOError:
+            print("SVM not found \n Building SVM")
             pos_imgs = []
             neg_imgs = []
 
