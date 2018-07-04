@@ -3,6 +3,7 @@ import glob
 import numpy as np
 import utils as ut
 from sklearn import svm
+from sklearn.externals import joblib
 from random import shuffle
 import Classifier
 
@@ -29,50 +30,52 @@ class DiceClassifier:
         return cv2.HOGDescriptor(self.dims, self.blockSize, self.blockStride, self.cellSize, self.nbins, self.derivAperture, self.winSigma, self.histogramNormType, self.L2HysThreshold, self.gammaCorrection, self.nlevels)
 
     def get_lsvm(self):
-        pos_imgs = []
-        neg_imgs = []
+        lsvm = joblib.load('../DiceSVMstd.pkl')
 
-        for img in glob.glob('./pos_dice/*.jpg'):
-            n = cv2.imread(img)
-            resized = cv2.resize(n, self.dims)
-            pos_imgs.append(resized)
+        '''
+        if lsvm == None:
+            pos_imgs = []
+            neg_imgs = []
 
-        for img in glob.glob('./neg_images/*.jpg'):
-            n = cv2.imread(img)
-            neg_imgs.append(n)
+            for img in glob.glob('./pos_dice/*.jpg'):
+                n = cv2.imread(img)
+                resized = cv2.resize(n, self.dims)
+                pos_imgs.append(resized)
 
-        def getFeaturesWithLabel(imgData, hog, dims, label):
-            data = []
-            for img in imgData:
-                img = cv2.resize(img, dims)
-                #for images with transparency layer, reduce to 3 layers
-                feat = hog.compute(img[:,:,:3])
-                data.append((feat, label))
-            return data
+            for img in glob.glob('./neg_images/*.jpg'):
+                n = cv2.imread(img)
+                neg_imgs.append(n)
 
-        pdata = getFeaturesWithLabel(pos_imgs, self.hog, self.dims, 1)
-        ndata = getFeaturesWithLabel(neg_imgs, self.hog, self.dims, 0)
+            def getFeaturesWithLabel(imgData, hog, dims, label):
+                data = []
+                for img in imgData:
+                    img = cv2.resize(img, dims)
+                    #for images with transparency layer, reduce to 3 layers
+                    feat = hog.compute(img[:,:,:3])
+                    data.append((feat, label))
+                return data
 
-        data = pdata + ndata
-        shuffle(data)
+            pdata = getFeaturesWithLabel(pos_imgs, self.hog, self.dims, 1)
+            ndata = getFeaturesWithLabel(neg_imgs, self.hog, self.dims, 0)
 
-        feat, labels =  map(list, zip(*data))
-        feat = [x.flatten() for x in feat]
+            data = pdata + ndata
+            shuffle(data)
 
-        sample_size = len(feat)
-        train_size = int(round(0.8*sample_size))
+            feat, labels =  map(list, zip(*data))
+            feat = [x.flatten() for x in feat]
 
-        train_feat = np.array(feat[:train_size], np.float32)
-        test_feat = np.array(feat[train_size: sample_size], np.float32)
-        train_label = np.array(labels[:train_size])
-        test_label = np.array(labels[train_size:sample_size])
-        lsvm = svm.SVC(gamma=5, C= .5 , kernel="linear", probability=True)
-        lsvm.fit(train_feat, train_label)
+            sample_size = len(feat)
+            train_size = int(round(0.8*sample_size))
 
-        print lsvm.score(train_feat, train_label)
-        result = lsvm.predict(test_feat)
-        print "test accuracy ", lsvm.score(test_feat, test_label)
+            train_feat = np.array(feat[:train_size], np.float32)
+            test_feat = np.array(feat[train_size: sample_size], np.float32)
+            train_label = np.array(labels[:train_size])
+            test_label = np.array(labels[train_size:sample_size])
+            lsvm = svm.SVC(gamma=5, C= .5 , kernel="linear", probability=True)
+            lsvm.fit(train_feat, train_label)
 
+            result = lsvm.predict(test_feat)
+        '''
         return lsvm
 
     def classify(self,frame,roi): #roi = regions of interest

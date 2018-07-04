@@ -99,5 +99,4 @@ class Dice(Task):
         pass
 
     def restart_task(self):
-        pass
-
+pass

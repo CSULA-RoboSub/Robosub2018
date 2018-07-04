@@ -6,6 +6,7 @@ from auv_cal_state_la_2017.msg import CVOut
 import BuoyDetector
 import DiceDetector
 import GateDetector
+from modules.sensors.computer_vision import 
 #from modules.control.navigation import Navigation
 
 class TaskManager:

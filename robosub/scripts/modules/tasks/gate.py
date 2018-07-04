@@ -184,14 +184,12 @@ class Gate(Task):
             y = math.cos(self.gate_circle_loc)
             lower_bound = -.33
             upper_bound = .33
-
             if (x >= upper_bound):
                 coord_x = 1
             elif (x < upper_bound and x >= lower_bound):
                 coord_x = 0
             elif (x < lower_bound):
                 coord_x = -1
-
             if (y >= upper_bound):
                 coord_y = 1
             elif (y < upper_bound and y >= lower_bound):
@@ -221,4 +219,4 @@ class Gate(Task):
         print 'bail gate'
 
     def restart_task(self):
-        print 'restart gate'
+print 'restart gate'

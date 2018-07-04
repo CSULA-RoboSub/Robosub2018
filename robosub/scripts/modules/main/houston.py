@@ -1,3 +1,4 @@
+
 import rospy
 import cv2
 import sys
@@ -391,7 +392,6 @@ class Houston():
 
     def select_format(self, source):
         """Helper function that prompts the user to select a video format.
-
         Returns: Gst.Structure of format
         """
         formats = self.list_formats(source)
