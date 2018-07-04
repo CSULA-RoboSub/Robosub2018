@@ -1,5 +1,5 @@
 from modules.main.auv import AUV  # Import auv
-
+import os
 
 class Controller():
     """Controller for GUI"""
@@ -17,4 +17,9 @@ class Controller():
     def change_params(self):
         """Opens the config file"""
 
-        pass
+        os.system('gedit config/config.ini')
+
+    def start_auto_mode(self, value):
+        """Checkbox to determine if AUV starts in auto mode when turned on"""
+
+        self.AUV.config.set_config('auv', 'start_auto_mode', value)

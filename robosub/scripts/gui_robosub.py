@@ -204,13 +204,21 @@ class Ui_MainWindow(object):
         # Controller connections
 
         self.load_default_button.clicked.connect(self.Controller.load_default_params)
+        self.change_params_button.clicked.connect(self.Controller.change_params)
+        self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
 
-        self.tabWidget.setCurrentIndex(0)
-        self.camera0.clicked.connect(self.display0.update)
-        self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
-        self.auto_checkbox.stateChanged['int'].connect(self.start_tasks.animateClick)
-        self.power.valueChanged['int'].connect(self.forward.animateClick)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+    def checkbox_state_changed(self):
+        if self.auto_checkbox.isChecked():
+            self.Controller.start_auto_mode(1)
+        else:
+            self.Controller.start_auto_mode(0)
+
+        # self.tabWidget.setCurrentIndex(0)
+        # self.camera0.clicked.connect(self.display0.update)
+        # self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
+        # self.auto_checkbox.stateChanged['int'].connect(self.start_tasks.animateClick)
+        # self.power.valueChanged['int'].connect(self.forward.animateClick)
+        # QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
