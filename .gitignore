@@ -110,6 +110,8 @@ robosub/scripts/scripts/sources_backup.list
 robosub/scripts/config/config.ini
 robosub/scripts/logs/*.txt
 
+# vim
+.swp
 # emacs
 *~
 /#*\#
