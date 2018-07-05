@@ -34,10 +34,10 @@ class AUV():
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
 
-        try:
-            self.houston = Houston() # initialize Houston() class
-        except NameError:
-            print('Houston is not initialized.')
+        # try:
+        self.houston = Houston() # initialize Houston() class
+        # except NameError:
+        #     print('Houston is not initialized.')
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -59,10 +59,10 @@ class AUV():
 
     def perform_tasks(self):
         """Has houston perform task"""
-        try:
-            self.houston.do_task()
-        except AttributeError:
-            print('houston not initialized')
+        # try:
+        self.houston.do_task()
+        # except AttributeError:
+        #     print('houston not initialized')
 
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
@@ -71,10 +71,10 @@ class AUV():
         self.navigation.start()
         self.keyboard.start()
         self.status_logger.start()
-        try:
-            self.houston.start()
-        except AttributeError:
-            print('houston not initialized')
+        # try:
+        self.houston.start()
+        # except AttributeError:
+        #     print('houston not initialized')
         # self.cv.start(self.tasks)
 
     def stop(self):
@@ -84,7 +84,7 @@ class AUV():
         self.navigation.stop()
         self.keyboard.stop()
         self.status_logger.stop()
-        try:
-            self.houston.stop()
-        except AttributeError:
-            print('houston not initialized')
+        # try:
+        self.houston.stop()
+        # except AttributeError:
+        #     print('houston not initialized')

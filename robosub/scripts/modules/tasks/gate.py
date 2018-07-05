@@ -154,9 +154,10 @@ class Gate(Task):
     
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
-        navigation.cancel_r_nav()
-        navigation.cancel_m_nav()
-        navigation.cancel_h_nav()
+        if not self.gate_maneuver.is_moving_forward:
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
         '''if self.forward_counter >= 2:
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
