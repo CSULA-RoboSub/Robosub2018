@@ -133,24 +133,27 @@ class Gate(Task):
 
         return self.detectgate.detect(frame)
 
-    '''def detect(self, navigation, m_power=120, rotation=15):
-        self.last_time = time.time()
-        self.mutex.acquire()
-        try:
-            self.cvcontroller.start()
-            found, directions, gate_shape, width_height = self.cvcontroller.detect('gate')
-            self.direction_list.append(directions)
-            if (time.time()-self.last_time > 0.05):
-                most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
-                
-                self.counts = Counter()
-                self.direction_list = []
-                self.last_time = time.time()
+    # def detect(self, navigation, m_power=120, rotation=15):
+    #     self.last_time = time.time()
+    #     self.mutex.acquire()
+    #     try:
+    #         print 'try detect'
+    #         self.cvcontroller.start()
+    #         for i in range (0, 100):
+    #             found, directions, gate_shape, width_height = self.cvcontroller.detect('gate')
+    #             self.direction_list.append(directions)
+    #             if (time.time()-self.last_time > 0.05):
+    #                 most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counts)
+    #                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                    
+    #                 self.counts = Counter()
+    #                 self.direction_list = []
+    #                 self.last_time = time.time()
 
-            self.cvcontroller.stop()
-        finally:
-            self.mutex.release()'''
+
+    #         self.cvcontroller.stop()
+    #     finally:
+    #         self.mutex.release()
     
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):

@@ -8,10 +8,11 @@ from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
 from modules.main.status_logger import StatusLogger
 
-try:
-    from houston import Houston
-except ValueError:
-    print('Required hardware not detected.')
+# try:
+#     from houston import Houston
+# except ValueError:q
+#     print('Required hardware not detected.')
+from houston import Houston
 
 
 class AUV():
@@ -34,10 +35,11 @@ class AUV():
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
 
-        try:
-            self.houston = Houston() # initialize Houston() class
-        except NameError:
-            print('Houston is not initialized.')
+        # try:
+        #     self.houston = Houston() # initialize Houston() class
+        # except NameError:
+        #     print('Houston is not initialized.')
+        self.houston = Houston()
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -59,10 +61,11 @@ class AUV():
 
     def perform_tasks(self):
         """Has houston perform task"""
-        try:
-            self.houston.do_task()
-        except AttributeError:
-            print('houston not initialized')
+        # try:
+        #     self.houston.do_task()
+        # except AttributeError:
+        #     print('houston not initialized')
+        self.houston.do_task()
 
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
@@ -71,10 +74,11 @@ class AUV():
         self.navigation.start()
         self.keyboard.start()
         self.status_logger.start()
-        try:
-            self.houston.start()
-        except AttributeError:
-            print('houston not initialized')
+        # try:
+        #     self.houston.start()
+        # except AttributeError:
+        #     print('houston not initialized')
+        self.houston.start()
         # self.cv.start(self.tasks)
 
     def stop(self):
@@ -84,7 +88,8 @@ class AUV():
         self.navigation.stop()
         self.keyboard.stop()
         self.status_logger.stop()
-        try:
-            self.houston.stop()
-        except AttributeError:
-            print('houston not initialized')
+        # try:
+        #     self.houston.stop()
+        # except AttributeError:
+        #     print('houston not initialized')
+        self.houston.stop()

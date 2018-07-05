@@ -16,10 +16,10 @@ from modules.sensors.computer_vision import GateDetector
 #from modules.sensors.computer_vision import BuoyDetector
 #from modules.sensors.computer_vision import DiceDetector
 
-gi.require_version("Tcam", "0.1")
-gi.require_version("Gst", "1.0")
+# gi.require_version("Tcam", "0.1")
+# gi.require_version("Gst", "1.0")
 
-from gi.repository import Tcam, Gst, GLib
+# from gi.repository import Tcam, Gst, GLib
 
 
 class CVController():
@@ -50,7 +50,10 @@ class CVController():
         rospy.loginfo(rospy.get_caller_id() +( "testing: %s", data.data)'''
     def start(self):
         self.cap = None
-        self.cap = cv2.VideoCapture(0)
+        try:
+            self.cap = cv2.VideoCapture(0)
+        except:
+            print 'camera not found for cv controller'
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self.out = cv2.VideoWriter('video_output/gate-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
         #self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
@@ -63,7 +66,10 @@ class CVController():
         print 'start cvcontroller'
 
     def stop(self):
-        self.cap.release()
+        try:
+            self.cap.release()
+        except:
+            print 'cannot release since no camera detected'
         cv2.destroyAllWindows()
         print 'stop cvcontroller'
 

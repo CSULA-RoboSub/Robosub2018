@@ -6,7 +6,7 @@ class GateManeuver():
         self.sweep_timer = 60
 
         ################ TIMER/COUNTER VARIABLES ################
-        self.sweep_forward = 0
+        # self.sweep_forward = 0
         self.sweep_forward_counter = 0
         self.sweep_switcher = 0
         self.sweep_counter = 0
@@ -40,7 +40,7 @@ class GateManeuver():
         self.sweep_direction = {0: self.sweep_right,
                                 1: self.sweep_left,
                                 2: self.sweep_right,
-                                3: self.sweep_forward_counter}
+                                3: self.sweep_forward}
 
         self.move_forward = 'forward'
         self.move_backward = 'backward'
@@ -63,7 +63,7 @@ class GateManeuver():
     def reset(self):
         self.sweep_switcher = 0
         self.sweep_counter = 0
-        self.sweep_forward = 0
+        # self.sweep_forward = 0
         self.sweep_forward_counter = 0
         
         self.strafe_direction = 0
@@ -122,20 +122,22 @@ class GateManeuver():
             self.sweep_forward_counter = 0'''
 
         self.sweep_direction[self.sweep_switcher](navigation, power, rotation)
+        self.sweep_counter += 1
         if self.sweep_counter >= self.sweep_timer:
             self.sweep_switcher += 1
-            if self.sweep_sitcher >= 4:
-                self.sweep_sitcher = 0
+            self.sweep_counter = 0            
+            if self.sweep_switcher >= 4:
+                self.sweep_switcher = 0
 
-    def sweep_right(self, navigation, power):
+    def sweep_right(self, navigation, power, rotation):
         # navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
         navigation.r_nav('right', 45, 50)
     
-    def sweep_left(self, navigation, power):
+    def sweep_left(self, navigation, power, rotation):
         # navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
         navigation.r_nav('left', 90, 60)
 
-    def sweep_forward(self, navigation, power):
+    def sweep_forward(self, navigation, power, rotation):
         navigation.m_nav('power', self.move_forward, power)
 
     def strafe_to_square(self, navigation, power, rotation, width):
@@ -192,7 +194,6 @@ class GateManeuver():
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, heading):
         if heading is None:
-            # self.sweep(navigation, 60, rotation)
-            pass
+            self.sweep(navigation, 60, rotation)
         else:
             self.go_under_gate(navigation, coordinates, power)

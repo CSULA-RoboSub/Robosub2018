@@ -1,4 +1,3 @@
-
 import rospy
 import cv2
 import sys
@@ -49,7 +48,21 @@ class Houston():
     
     def __init__(self):
         """ To initilize Houston """
-        ################ INSTANCES ################
+        self.is_killswitch_on = False
+        self.navigation = Navigation()
+        self.config = Config()
+        self.coordinates = []
+        self.counts = Counter()
+
+        # will eventually move variables to task modules
+        self.task_timer = 300
+        self.last_time = time.time()
+
+        self.rotation = 15
+        self.power = 120
+
+        # setting class instances of the tasks to none
+        # to be used to prevent mutiple instances of same class
         self.gate = Gate(self)
         self.path_1 = Path(self)
         self.dice = Dice(self)
@@ -61,22 +74,8 @@ class Houston():
         self.pinger_a = PingerA(self)
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
-        #self.buoy = Buoy(self)
-        self.navigation = Navigation()
-        self.config = Config()
-        self.counts = Counter()
+        #self.buoy = Buoy(Houston)
 
-        ################ THRESHOLD VARIABLES ################
-        self.task_timer = 300
-        self.break_timer = 600
-
-        ################ FLAG VARIABLES ################
-        self.is_killswitch_on = False
-
-        ################ TIMER/COUNTER VARIABLES ################
-        self.last_time = time.time()
-
-        ################ DICTIONARIES ################
         """
         self.tasks values listed below
         'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
@@ -94,13 +93,12 @@ class Houston():
                         self.roulette, 
                         self.pinger_b, 
                         self.cash_in]
+    
+        self.queue_direction = []
 
-        ################ AUV MOBILITY VARIABLES ################
         #self.rotational_movement = {-1: }
         self.height = 1
-        self.queue_direction = []
-        self.rotation = 15
-        self.power = 120
+        self.break_timer = 600
 
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
@@ -114,7 +112,6 @@ class Houston():
         self.loop = GLib.MainLoop()
         self.thread = None
 
-    # do_task ##################################################################################
     def do_task(self):
         
         # self.thread=Thread(target=self.do_gate)
@@ -185,7 +182,7 @@ class Houston():
                 finally:
                     buf.unmap(mapinfo)
                     
-                # if self.msg.found:
+
                 self.queue_direction.append(coordinates)
 
                 # TODO must eventually move to CVController
@@ -205,11 +202,7 @@ class Houston():
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.05):# and not self.msg.found):
-                    # most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
-                    try:
-                        most_occur_coords = self.queue_direction[-1]
-                    except:
-                        pass
+                    most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
                     self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
                     """break_loop used for temp breaking of loop"""
@@ -219,6 +212,8 @@ class Houston():
                     self.queue_direction = []
                     self.last_time = time.time()
 
+                    if self.msg.found:
+                        self.foundcoord = coordinates
                     break_loop += 1
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
@@ -230,7 +225,7 @@ class Houston():
                 print '--------------------------------------------'
 
         # TODO will be used later when cv_controller has been completed
-        # self.state.start(self. navigation, self.power, self.rotation)
+        # self.state.start(self.power, self.rotation)
         # if self.state.is_detect_done:
         #     self.state_num += 1
         #     self.state.stop()
@@ -242,34 +237,29 @@ class Houston():
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
-        # self.state.reset()    
+        self.state.reset()
+    
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
     # rather than just going to last coordinates
-    # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
-        # if not last:
-        #     most_occur = [0,0]
         for sublist in last:
             counts.update(combinations(sublist, 2))
         for key, count in counts.most_common(1):
             most_occur = key
         return most_occur
 
-    # get_task ##################################################################################
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
 
-    # start ##################################################################################
     def start(self):
         self.get_task()
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = True
         self.navigation.start()
     
-    # stop ##################################################################################
     def stop(self):
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
@@ -401,6 +391,7 @@ class Houston():
 
     def select_format(self, source):
         """Helper function that prompts the user to select a video format.
+
         Returns: Gst.Structure of format
         """
         formats = self.list_formats(source)
@@ -441,3 +432,4 @@ class Houston():
         self.loop.run()
         # except KeyboardInterrupt:
         #     print("Ctrl-C pressed, terminating")
+
