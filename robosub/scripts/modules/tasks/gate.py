@@ -219,4 +219,4 @@ class Gate(Task):
         print 'bail gate'
 
     def restart_task(self):
-print 'restart gate'
+        print 'restart gate'
