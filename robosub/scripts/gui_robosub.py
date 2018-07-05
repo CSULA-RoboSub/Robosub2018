@@ -203,14 +203,43 @@ class Ui_MainWindow(object):
 
         # Controller connections
 
+        # mode selection
         self.load_default_button.clicked.connect(self.Controller.load_default_params)
+        self.change_params_button.clicked.connect(self.Controller.change_params)
+        self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
+        self.tab_state_changed()
+        self.tabWidget.currentChanged.connect(self.tab_state_changed)
 
-        self.tabWidget.setCurrentIndex(0)
-        self.camera0.clicked.connect(self.display0.update)
-        self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
-        self.auto_checkbox.stateChanged['int'].connect(self.start_tasks.animateClick)
-        self.power.valueChanged['int'].connect(self.forward.animateClick)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        # manual mode buttons
+        self.forward.clicked.connect(lambda: self.Controller.manual_move('w', self.power.value, self.depth.value))
+        self.backward.clicked.connect(lambda: self.Controller.manual_move('s', self.power.value, self.depth.value))
+        self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('q', self.power.value, self.depth.value))
+        self.strafe_r.clicked.connect(lambda: self.Controller.manual_move('e', self.power.value, self.depth.value))
+        self.rotate_l.clicked.connect(lambda: self.Controller.manual_move('a', self.power.value, self.depth.value))
+        self.rotate_r.clicked.connect(lambda: self.Controller.manual_move('d', self.power.value, self.depth.value))
+        self.up.clicked.connect(lambda: self.Controller.manual_move('r', self.power.value, self.depth.value))
+        self.down.clicked.connect(lambda: self.Controller.manual_move('f', self.power.value, self.depth.value))
+        self.brake.clicked.connect(lambda: self.Controller.manual_move('`', self.power.value, self.depth.value))
+
+    def checkbox_state_changed(self):
+        if self.auto_checkbox.isChecked():
+            self.Controller.start_auto_mode(1)
+        else:
+            self.Controller.start_auto_mode(0)
+
+    def tab_state_changed(self):
+        if self.tabWidget.currentIndex() == 1:
+            self.Controller.manual_mode()
+
+    # def movement_button_pressed(self, direction):
+    #     self.Controller.manual_move(direction, self.power.value, self.depth.value)
+
+        # self.tabWidget.setCurrentIndex(0)
+        # self.camera0.clicked.connect(self.display0.update)
+        # self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
+        # self.auto_checkbox.stateChanged['int'].connect(self.start_tasks.animateClick)
+        # self.power.valueChanged['int'].connect(self.forward.animateClick)
+        # QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
