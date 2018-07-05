@@ -177,10 +177,6 @@ class Gate(Task):
         if self.gate_maneuver.under_timer > self.under_threshold:
             self.passed_gate = 1
             print 'sub has gone under and past gate'
-        
-        navigation.cancel_r_nav()
-        navigation.cancel_m_nav()
-        navigation.cancel_h_nav()
 
     # complete ##################################################################################
     def complete(self):
