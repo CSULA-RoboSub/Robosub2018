@@ -68,7 +68,7 @@ class Houston():
 
         ################ THRESHOLD VARIABLES ################
         self.task_timer = 300
-         self.break_timer = 600
+        self.break_timer = 600
 
         ################ FLAG VARIABLES ################
         self.is_killswitch_on = False

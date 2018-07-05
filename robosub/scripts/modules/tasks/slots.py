@@ -65,3 +65,5 @@ class Slots(Task):
 
     def get_most_occur_coordinates(self): 
         pass 
+        
+    def reset(self): pass
