@@ -9,7 +9,7 @@ class GateManeuver():
         self.start_pole = False
         self.rotation_angle = 15
         self.pole_rotation = 80
-        self.depth_change = 2
+        self.depth_change = 1
         self.depth = -1
         self.sweep_timer = 20
         self.sweep_switcher = 0
@@ -41,10 +41,10 @@ class GateManeuver():
         self.under_gate = 0
         self.under_timer = 0
 
-    def move_forward_method(self, navigation, coordinates, power, rotation):
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
-        navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
-        navigation.m_nav('power', self.move_forward, power)
+    # def move_forward_method(self, navigation, coordinates, power, rotation):
+    #     navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+    #     navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
+    #     navigation.m_nav('power', self.move_forward, power)
 
     def pole(self, navigation, power):
         navigation.r_nav('right', 45, self.pole_rotation)
@@ -87,15 +87,15 @@ class GateManeuver():
         # else:
         #     navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
 
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
-        navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
+        # navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
+        # navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
         
         '''while loop added just for 2 iterations
         so that m_nav is able to strafe before it moves forward'''
         #while self.change_m_nav_timer < 1:
         #    self.change_m_nav_timer += 1
         #self.change_m_nav_timer = 0
-        navigation.cancel_m_nav()
+        # navigation.cancel_m_nav()
         navigation.m_nav('power', self.move_forward, power)
 
     def sweep(self, navigation, power, rotation):
@@ -103,7 +103,7 @@ class GateManeuver():
         # sub will begin by turning right for 2 seconds, moving forward 2 seconds then left 2 seconds
         # the cycle will restart thereafter
         if self.sweep_forward == 0:
-            navigation.r_nav(self.sweep_direction[self.sweep_switcher], rotation, 50)
+            navigation.r_nav(self.sweep_direction[self.sweep_switcher], rotation, power)
             self.sweep_counter += 1
         else:
             navigation.m_nav('power', self.move_forward, power)
@@ -136,14 +136,18 @@ class GateManeuver():
     def center_square(self, navigation, coordinates, power):
         # just to focus on the center of the gate to verify if sub wants to go through gate
         navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+
+        if coordinates[1] == 0:
+            navigation.cancel_h_nav()
+        else:
+            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
 
     def go_under_gate(self, navigation, coordinates, power):
         # once gate is found, along with square, and heading, sub will go towards gate
         # sub will lower height by 1 only once to help with clearance
         # there is a heading correction added, but we may not need it at the moment
-        if not self.under_gate > 1:
-            navigation.h_nav(self.vertical_movement[-1], self.depth_change, self.h_power)
+        # if self.under_gate < 1:
+            # navigation.h_nav(self.vertical_movement[-1], self.depth_change, self.h_power)
         
         # get_rot.update_rot()
         # yaw_change = heading - get_rot.get_yaw()
@@ -156,7 +160,7 @@ class GateManeuver():
         #     navigation.r_nav('staying', self.heading_rot_change, self.heading_rot_power)
 
         navigation.m_nav('power', self.move_forward, power)
-        self.under_gate += 1
+        # self.under_gate += 1
 
     def completed_gate(self):
         print 'sub has passed gate'
@@ -167,6 +171,7 @@ class GateManeuver():
     def vertical(self, navigation, coordinates, power, rotation, width_height, heading):
         if heading is None:
             self.strafe_to_square(navigation, power, rotation, width_height[0])
+            # pass
         else:
             self.go_under_gate(navigation, coordinates, power)
             self.under_timer += 1
@@ -187,6 +192,7 @@ class GateManeuver():
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, heading):
         if heading is None:
-            self.sweep(navigation, power, rotation)
+            # self.sweep(navigation, 60, rotation)
+            pass
         else:
             self.go_under_gate(navigation, coordinates, power)
