@@ -1,11 +1,11 @@
 #include <ros.h>
-#include <auv_cal_state_la_2017/Hydrophone.h>
+#include <robosub/Hydrophone.h>
 #include <SoftwareSerial.h>
 
 ros::NodeHandle nh;
 SoftwareSerial mySerial(10, 11); //rx, tx
 
-auv_cal_state_la_2017::Hydrophone hStatus;
+robosub::Hydrophone hStatus;
 
 ros::Publisher hStatusPublisher("hydrophone_status", &hStatus);
 

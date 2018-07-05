@@ -25,7 +25,7 @@ class Gate(Task):
 
         ################ THRESHOLD VARIABLES ################
         self.phase_threshold = 100
-        self.heading_verify_threshold = 40
+        self.heading_verify_threshold = 200
         self.under_threshold = 100
         
         ################ FLAG VARIABLES ################
@@ -99,6 +99,9 @@ class Gate(Task):
 
         self.gate_maneuver.reset()
 
+    def search(self):
+        pass
+
     def start(self, m_power=120, rotation=15):
         self.navigation.start()
         self.run_detect_for_task(m_power, rotation)
@@ -152,11 +155,11 @@ class Gate(Task):
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
         #TODO need to get rid of if statements and clean up code
-        if found and gate_shape == 'square':
+        if found and gate_shape == 'horizontal':
             self.heading_verify_count += 1
             if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
-                self.getrotation.update_rot()
-                self.heading = self.getrotation.get_yaw()
+                # self.getrotation.update_rot()
+                self.heading = True
 
             if self.heading is None:
                 self.gate_maneuver.center_square(navigation, coordinates, power)
@@ -173,9 +176,9 @@ class Gate(Task):
             self.passed_gate = 1
             print 'sub has gone under and past gate'
         
-        navigation.cancel_r_nav()
-        navigation.cancel_m_nav()
-        navigation.cancel_h_nav()
+        # navigation.cancel_r_nav()
+        # navigation.cancel_m_nav()
+        # navigation.cancel_h_nav()
     def complete(self):
         #code below is not needed anymore
         '''if (self.gate_circle_loc < 2*math.pi):

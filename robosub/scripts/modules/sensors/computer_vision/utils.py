@@ -37,20 +37,25 @@ def get_directions(center, x, y, w, h):
     h_pad = h / 7
     cx = center[0]
     cy = center[1]
-    if cx < x + (3*w_pad):
-        if cx > x + (4 * w_pad):
+    # print('x range: %d to %d, y range: %d to %d' %(x + (3*w_pad),x + (4 * w_pad), y + (3*h_pad),y + (4 * h_pad)))
+    # print('cx: %d, cy: %d' %(cx,cy))
+    if x + (3*w_pad) < cx:
+        if cx < x + (4 * w_pad):
             directions[0] = 0
         else:
-            directions[0] = 1
+            directions[0] = -1
     else:
-        directions[0] = -1
-    if cy > y + (3*h_pad):
-        if cy < y + (4 * h_pad):
+        directions[0] = 1
+
+    if y + (6*h_pad) < cy:
+        if cy < y + (7 * h_pad):
             directions[1] = 0
         else:
             directions[1] = 1
     else:
         directions[1] = -1
+    
+    # print('x: %d, y: %d' %(directions[0],directions[1]))
     return directions
 
 

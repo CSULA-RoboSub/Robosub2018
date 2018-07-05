@@ -269,8 +269,8 @@ void hControlCallback(const robosub::HControl& hControl) {
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
+      assignedDepth = feetDepth_read;
     }
-    // assignedDepth = feetDepth_rade;
     // ROS_INFO();
     // ROS_INFO("assignedDepth:");
     // ROS_INFO(assignedDepthChar);
@@ -355,6 +355,7 @@ void rControlCallback(const robosub::RControl& rControl){
       rControlStatus.rotation = 0;
       rControlStatus.power = rControlPower;
       rControlPublisher.publish(rControlStatus);
+      assignedYaw = yaw;
     }
     isTurningRight = false;
     isTurningLeft = false;
@@ -362,7 +363,6 @@ void rControlCallback(const robosub::RControl& rControl){
     keepTurningLeft = false;
     rControlMode3 = false;
     rControlMode4 = false;
-    assignedYaw = yaw;
   }
   else if(rControl.state == 2){
     if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
