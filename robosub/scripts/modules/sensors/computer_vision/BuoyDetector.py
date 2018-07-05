@@ -10,7 +10,6 @@ class BuoyDetector:
     def __init__(self):
         self.classifier = bc.BuoyClassifier()
         self.found =  False;
-        self.cap = cv2.VideoCapture(0)
         self.preprocess = bp.BuoyPreprocessor()
         self.hog = self.classifier.get_hog()
         self.lsvm = self.classifier.get_lsvm()

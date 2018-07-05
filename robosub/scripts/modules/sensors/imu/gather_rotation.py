@@ -1,5 +1,5 @@
 import rospy
-from robosub.msg import Rotation
+from ez_async_data.msg import Rotation
 
 ''' created class to subscribe to IMU only once then save values'''
 class GetRotation():
