@@ -49,21 +49,7 @@ class Houston():
     
     def __init__(self):
         """ To initilize Houston """
-        self.is_killswitch_on = False
-        self.navigation = Navigation()
-        self.config = Config()
-        self.coordinates = []
-        self.counts = Counter()
-
-        # will eventually move variables to task modules
-        self.task_timer = 300
-        self.last_time = time.time()
-
-        self.rotation = 90
-        self.power = 120
-
-        # setting class instances of the tasks to none
-        # to be used to prevent mutiple instances of same class
+        ################ INSTANCES ################
         self.gate = Gate(self)
         self.path_1 = Path(self)
         self.dice = Dice(self)
@@ -75,8 +61,22 @@ class Houston():
         self.pinger_a = PingerA(self)
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
-        #self.buoy = Buoy(Houston)
+        #self.buoy = Buoy(self)
+        self.navigation = Navigation()
+        self.config = Config()
+        self.counts = Counter()
 
+        ################ THRESHOLD VARIABLES ################
+        self.task_timer = 300
+         self.break_timer = 600
+
+        ################ FLAG VARIABLES ################
+        self.is_killswitch_on = False
+
+        ################ TIMER/COUNTER VARIABLES ################
+        self.last_time = time.time()
+
+        ################ DICTIONARIES ################
         """
         self.tasks values listed below
         'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
@@ -94,12 +94,13 @@ class Houston():
                         self.roulette, 
                         self.pinger_b, 
                         self.cash_in]
-    
-        self.queue_direction = []
 
+        ################ AUV MOBILITY VARIABLES ################
         #self.rotational_movement = {-1: }
         self.height = 1
-        self.break_timer = 600
+        self.queue_direction = []
+        self.rotation = 15
+        self.power = 120
 
         # TODO move to CVcontroller
         # self.cap = cv2.VideoCapture(0)
@@ -113,6 +114,7 @@ class Houston():
         self.loop = GLib.MainLoop()
         self.thread = None
 
+    # do_task ##################################################################################
     def do_task(self):
         
         # self.thread=Thread(target=self.do_gate)
@@ -228,7 +230,7 @@ class Houston():
                 print '--------------------------------------------'
 
         # TODO will be used later when cv_controller has been completed
-        # self.state.start(self.power, self.rotation)
+        # self.state.start(self. navigation, self.power, self.rotation)
         # if self.state.is_detect_done:
         #     self.state_num += 1
         #     self.state.stop()
@@ -244,6 +246,7 @@ class Houston():
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
     # rather than just going to last coordinates
+    # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
         # if not last:
         #     most_occur = [0,0]
@@ -253,17 +256,20 @@ class Houston():
             most_occur = key
         return most_occur
 
+    # get_task ##################################################################################
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
 
+    # start ##################################################################################
     def start(self):
         self.get_task()
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = True
         self.navigation.start()
     
+    # stop ##################################################################################
     def stop(self):
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
@@ -435,4 +441,3 @@ class Houston():
         self.loop.run()
         # except KeyboardInterrupt:
         #     print("Ctrl-C pressed, terminating")
-
