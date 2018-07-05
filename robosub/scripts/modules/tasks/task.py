@@ -5,16 +5,16 @@ class Task(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def detect(self): pass
+    def detect(self, frame): pass
 
     @abstractmethod
-    def navigate(self): pass
+    def navigate(self, **k): pass
 
     @abstractmethod
-    def complete(self): pass
+    def search(self, **k): pass
 
     @abstractmethod
-    def bail_task(self): pass
+    def complete(self, **k): pass
 
     @abstractmethod
     def restart_task(self): pass

@@ -32,6 +32,9 @@ class Chip(Task):
 
     def restart_task(self):
         pass
+        
+    def search(self):
+        pass
 
     def start(self):
         pass

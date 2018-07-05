@@ -1,3 +1,4 @@
+
 import rospy
 import cv2
 import sys
@@ -184,7 +185,7 @@ class Houston():
                 finally:
                     buf.unmap(mapinfo)
                     
-
+                # if self.msg.found:
                 self.queue_direction.append(coordinates)
 
                 # TODO must eventually move to CVController
@@ -204,7 +205,11 @@ class Houston():
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.05):# and not self.msg.found):
-                    most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                    # most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                    try:
+                        most_occur_coords = self.queue_direction[-1]
+                    except:
+                        pass
                     self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
                     """break_loop used for temp breaking of loop"""
@@ -214,8 +219,6 @@ class Houston():
                     self.queue_direction = []
                     self.last_time = time.time()
 
-                    if self.msg.found:
-                        self.foundcoord = coordinates
                     break_loop += 1
                 #else:
                 #    self.state.navigate(self.navigation, self.msg.found, coordinates, self.power, self.rotation)
@@ -239,13 +242,14 @@ class Houston():
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
-        self.state.reset()
-    
+        # self.state.reset()    
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
     # rather than just going to last coordinates
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
+        # if not last:
+        #     most_occur = [0,0]
         for sublist in last:
             counts.update(combinations(sublist, 2))
         for key, count in counts.most_common(1):
@@ -397,7 +401,6 @@ class Houston():
 
     def select_format(self, source):
         """Helper function that prompts the user to select a video format.
-
         Returns: Gst.Structure of format
         """
         formats = self.list_formats(source)

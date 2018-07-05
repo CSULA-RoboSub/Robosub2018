@@ -54,6 +54,10 @@ class Path(Task):
     def restart_task(self):
         print 'restart task path'
 
+
+    def search(self):
+        pass
+        
     def start(self):
         pass
     

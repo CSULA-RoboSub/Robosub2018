@@ -23,7 +23,7 @@ class Gate(Task):
 
         ################ THRESHOLD VARIABLES ################
         self.phase_threshold = 100
-        self.heading_verify_threshold = 40
+        self.heading_verify_threshold = 200
         self.under_threshold = 100
         
         ################ FLAG VARIABLES ################
@@ -97,14 +97,18 @@ class Gate(Task):
         self.thread_gate = None
 
         self.gate_maneuver.reset()
-
+        
     # start ##################################################################################
     def start(self, navigation, m_power=120, rotation=15):
         self.run_detect_for_task(navigation, m_power, rotation)
+     
 
     # stop ##################################################################################
     def stop(self):
         #self.navigation.stop()
+        pass
+      
+    def search(self):
         pass
     
     # run_detect_for_task ##################################################################################
@@ -157,11 +161,11 @@ class Gate(Task):
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
         #TODO need to get rid of if statements and clean up code
-        if found and gate_shape == 'square':
+        if found and gate_shape == 'horizontal':
             self.heading_verify_count += 1
             if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
-                self.getrotation.update_rot()
-                self.heading = self.getrotation.get_yaw()
+                # self.getrotation.update_rot()
+                self.heading = True
 
             if self.heading is None:
                 self.gate_maneuver.center_square(navigation, coordinates, power)
@@ -177,7 +181,7 @@ class Gate(Task):
         if self.gate_maneuver.under_timer > self.under_threshold:
             self.passed_gate = 1
             print 'sub has gone under and past gate'
-
+            
     # complete ##################################################################################
     def complete(self):
         pass

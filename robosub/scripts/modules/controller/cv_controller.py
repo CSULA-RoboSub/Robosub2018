@@ -3,6 +3,11 @@ import math
 import cv2
 import time
 
+import gi
+import threading
+
+from threading import Thread
+
 # TODO create following msgs for subscriber and publisher
 #from robosub.msg import Task
 #from robosub.msg import CVData
@@ -11,10 +16,10 @@ from modules.sensors.computer_vision import GateDetector
 #from modules.sensors.computer_vision import BuoyDetector
 #from modules.sensors.computer_vision import DiceDetector
 
-'''gi.require_version("Tcam", "0.1")
+gi.require_version("Tcam", "0.1")
 gi.require_version("Gst", "1.0")
 
-from gi.repository import Tcam, Gst, GLib'''
+from gi.repository import Tcam, Gst, GLib
 
 
 class CVController():
@@ -294,3 +299,4 @@ class CVController():
             _unused_field, values, _unsued_remain = re.split("{|}", substr, maxsplit=3)
             rates = [x.strip() for x in values.split(",")]
         return rates'''
+

@@ -8,7 +8,10 @@ from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
 from modules.main.status_logger import StatusLogger
 
-from houston import Houston
+try:
+    from houston import Houston
+except ValueError:
+    print('Required hardware not detected.')
 
 
 class AUV():
@@ -28,9 +31,13 @@ class AUV():
 
         self.motor = Motor(self.motor_state)  # initialize Motor() class
         self.navigation = Navigation()  # initialize Navigation() class
-        self.keyboard = Keyboard()  # initialize Keyboard() class
+        self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
-        self.houston = Houston() # initialize Houston() class
+
+        try:
+            self.houston = Houston() # initialize Houston() class
+        except NameError:
+            print('Houston is not initialized.')
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -50,6 +57,13 @@ class AUV():
 
         self.keyboard.getch()
 
+    def perform_tasks(self):
+        """Has houston perform task"""
+        try:
+            self.houston.do_task()
+        except AttributeError:
+            print('houston not initialized')
+
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
 
@@ -57,7 +71,10 @@ class AUV():
         self.navigation.start()
         self.keyboard.start()
         self.status_logger.start()
-        self.houston.start()
+        try:
+            self.houston.start()
+        except AttributeError:
+            print('houston not initialized')
         # self.cv.start(self.tasks)
 
     def stop(self):
@@ -67,7 +84,7 @@ class AUV():
         self.navigation.stop()
         self.keyboard.stop()
         self.status_logger.stop()
-        self.houston.stop()
-
-    def perform_tasks(self):
-        self.houston.do_task()
+        try:
+            self.houston.stop()
+        except AttributeError:
+            print('houston not initialized')
