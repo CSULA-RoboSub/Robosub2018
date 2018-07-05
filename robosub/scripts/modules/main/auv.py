@@ -31,7 +31,7 @@ class AUV():
 
         self.motor = Motor(self.motor_state)  # initialize Motor() class
         self.navigation = Navigation()  # initialize Navigation() class
-        self.keyboard = Keyboard()  # initialize Keyboard() class
+        self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
 
         try:
