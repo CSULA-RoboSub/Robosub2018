@@ -203,7 +203,7 @@ class Houston():
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.05):# and not self.msg.found):
                     self.last_time = time.time()
-                    
+
                     try:
                         most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
                         self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
@@ -443,9 +443,5 @@ class Houston():
             rates = [x.strip() for x in values.split(",")]
         return rates
     def start_loop(self):
-        print("start loop")
-
-        # try:
+        # print("start loop")
         self.loop.run()
-        # except KeyboardInterrupt:
-        #     print("Ctrl-C pressed, terminating")
