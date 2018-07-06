@@ -117,8 +117,6 @@ class Houston():
     # do_task ##################################################################################
     def do_task(self):
         
-        # self.thread=Thread(target=self.do_gate)
-        # self.thread.start()
         try:
             self.do_gate()
         except KeyboardInterrupt:
@@ -126,7 +124,6 @@ class Houston():
             self.state.is_detect_done = True
         
         self.state.reset()
-        # self.start_loop()
 
     def do_gate(self):
         # when state_num is > 10, there will be no more tasks to complete
@@ -136,7 +133,7 @@ class Houston():
         break_loop = 0
         self.state = self.states[self.state_num]
         print("setup pipeline")
-        self.setupPipline()
+        self.setup_pipline()
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         # TODO must eventually move to CVController
@@ -238,7 +235,7 @@ class Houston():
         print("exit loop")
 
         self.foundcoord = None
-        self.closePipline()
+        self.close_pipeline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
@@ -282,7 +279,7 @@ class Houston():
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
         self.display_input.emit("push-buffer", new_buf)
 
-    def setupPipline(self):
+    def setup_pipline(self):
         Gst.init(sys.argv)  # init gstreamer
 
         # We create a source element to retrieve a device list through it
@@ -361,7 +358,7 @@ class Houston():
 
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
-    def closePipline(self):
+    def close_pipeline(self):
         self.outraw.release()
         self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
