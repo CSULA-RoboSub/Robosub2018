@@ -269,7 +269,7 @@ void hControlCallback(const robosub::HControl& hControl) {
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
-      assignedDepth = feetDepth_read;
+      assignedDepth = feetDepth_read+0.5;
     }
     // ROS_INFO();
     // ROS_INFO("assignedDepth:");
