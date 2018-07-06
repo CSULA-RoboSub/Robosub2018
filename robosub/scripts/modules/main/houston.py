@@ -182,8 +182,8 @@ class Houston():
                 finally:
                     buf.unmap(mapinfo)
                     
-                # if self.msg.found:
-                self.queue_direction.append(coordinates)
+                if self.msg.found:
+                    self.queue_direction.append(coordinates)
 
                 # TODO must eventually move to CVController
                 # try:
@@ -202,19 +202,30 @@ class Houston():
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.05):# and not self.msg.found):
-                    # most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                    self.last_time = time.time()
+                    
                     try:
-                        most_occur_coords = self.queue_direction[-1]
+                        most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                        self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
+                    
+                        """break_loop used for temp breaking of loop"""
+                        #print 'press q to quit task or wait 30 secs'
+
+                        self.counts = Counter()
+                        self.queue_direction = []
+                    # try:
+                    #     most_occur_coords = self.queue_direction[-1]
+                        # self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
+                    
+                        # """break_loop used for temp breaking of loop"""
+                        # #print 'press q to quit task or wait 30 secs'
+
+                        # self.counts = Counter()
+                        # self.queue_direction = []
+                        # self.last_time = time.time()
                     except:
                         pass
-                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
-                    """break_loop used for temp breaking of loop"""
-                    #print 'press q to quit task or wait 30 secs'
-
-                    self.counts = Counter()
-                    self.queue_direction = []
-                    self.last_time = time.time()
 
                     break_loop += 1
                 #else:
