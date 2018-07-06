@@ -3,7 +3,6 @@ from task import Task
 from gate_maneuver import GateManeuver
 from modules.controller.cv_controller import CVController
 from modules.sensors.imu.gather_rotation import GetRotation
-from modules.control.navigation import Navigation
 from threading import Thread, Lock
 import time
 from collections import Counter
@@ -20,7 +19,6 @@ class Gate(Task):
         self.gate_maneuver = GateManeuver()
         self.getrotation = GetRotation()
         self.cvcontroller = CVController()
-        self.navigation = Navigation()
         self.detectgate = None
 
         ################ THRESHOLD VARIABLES ################
@@ -74,6 +72,7 @@ class Gate(Task):
         self.thread_gate = None
         self.mutex = Lock()
 
+    # reset ##################################################################################
     def reset(self):
         self.detectgate = None
 
@@ -98,29 +97,35 @@ class Gate(Task):
         self.thread_gate = None
 
         self.gate_maneuver.reset()
+        
+    # start ##################################################################################
+    def start(self, navigation, m_power=120, rotation=15):
+        self.run_detect_for_task(navigation, m_power, rotation)
+     
 
+    # stop ##################################################################################
+    def stop(self):
+        #self.navigation.stop()
+        pass
+      
     def search(self):
         pass
-
-    def start(self, m_power=120, rotation=15):
-        self.navigation.start()
-        self.run_detect_for_task(m_power, rotation)
-
-    def stop(self):
-        self.navigation.stop()
     
-    def run_detect_for_task(self, m_power=120, rotation=15):
+    # run_detect_for_task ##################################################################################
+    def run_detect_for_task(self, navigation, m_power=120, rotation=15):
         self.reset_thread()
 
-        self.thread_gate = Thread(target = self.detect, args = (m_power,rotation))
+        self.thread_gate = Thread(target = self.detect, args = (navigation, m_power,rotation))
         #self.thread_gate = Thread(target=self.test)
         self.thread_gate.start()
         #self.thread_gate.join()
 
+    # reset_thread ##################################################################################
     def reset_thread(self):
         if self.thread_gate:
             self.thread_gate = None
-        
+
+    # detect ##################################################################################   
     def detect(self, frame):
         #add frame when testing complete
         if not self.detectgate:
@@ -128,7 +133,7 @@ class Gate(Task):
 
         return self.detectgate.detect(frame)
 
-    '''def detect(self, m_power=120, rotation=15):
+    '''def detect(self, navigation, m_power=120, rotation=15):
         self.last_time = time.time()
         self.mutex.acquire()
         try:
@@ -137,7 +142,7 @@ class Gate(Task):
             self.direction_list.append(directions)
             if (time.time()-self.last_time > 0.05):
                 most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
-                self.navigate(self.navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                 
                 self.counts = Counter()
                 self.direction_list = []
@@ -147,10 +152,12 @@ class Gate(Task):
         finally:
             self.mutex.release()'''
     
+    # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
-        navigation.cancel_r_nav()
-        navigation.cancel_m_nav()
-        navigation.cancel_h_nav()
+        if not self.gate_maneuver.is_moving_forward:
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
         '''if self.forward_counter >= 2:
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
@@ -175,42 +182,12 @@ class Gate(Task):
         if self.gate_maneuver.under_timer > self.under_threshold:
             self.passed_gate = 1
             print 'sub has gone under and past gate'
-        
-        # navigation.cancel_r_nav()
-        # navigation.cancel_m_nav()
-        # navigation.cancel_h_nav()
+            
+    # complete ##################################################################################
     def complete(self):
-        #code below is not needed anymore
-        '''if (self.gate_circle_loc < 2*math.pi):
-            self.gate_circle_loc += math.pi/100
-            x = math.sin(self.gate_circle_loc)
-            y = math.cos(self.gate_circle_loc)
-            lower_bound = -.33
-            upper_bound = .33
-            if (x >= upper_bound):
-                coord_x = 1
-            elif (x < upper_bound and x >= lower_bound):
-                coord_x = 0
-            elif (x < lower_bound):
-                coord_x = -1
-            if (y >= upper_bound):
-                coord_y = 1
-            elif (y < upper_bound and y >= lower_bound):
-                coord_y = 0
-            elif (y < lower_bound):
-                coord_y = -1
-        else:
-            self.is_gate_done = True
-            print('circling gate completed')
-            coord_x = 0
-            coord_y = 0
-        
-        return True, [coord_x, coord_y]
-        '''
         pass
-        #code will be used to navigate to the pole and then circle(square)
-        #around it
 
+    # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
         for sublist in last:
             counts.update(combinations(sublist, 2))
@@ -218,8 +195,10 @@ class Gate(Task):
             most_occur = key
         return most_occur
 
+    # bail_task ##################################################################################
     def bail_task(self):
         print 'bail gate'
 
+    # restart_task ##################################################################################
     def restart_task(self):
         print 'restart gate'
