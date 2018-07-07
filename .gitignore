@@ -120,7 +120,8 @@ robosub/scripts/logs/*.txt
 # danny's workspace
 robosub/scripts/modules/sensors/computer_vision/main.py
 robosub/scripts/modules/sensors/computer_vision/gate_testing/
-
+# olin test folder
+robosub/scripts/modules/sensors/computer_vision/processing_testing
 # video output folder
 video_output/
 
