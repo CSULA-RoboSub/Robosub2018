@@ -48,7 +48,6 @@ class CVController():
         self.camera_detect = {0: self.default_camera_detect,
                             1: self.sub_driver_camera_detect}
 
-
         try:
             self.loop = GLib.MainLoop()
             self.sample = None
@@ -60,9 +59,6 @@ class CVController():
             self.cap = cv2.VideoCapture(0)
             self.sub_camera_found = 0
             print('*******unable to initialize Glib.MainLoop()*******')
-
-    '''def HoustonCallback(data):
-        rospy.loginfo(rospy.get_caller_id() +( "testing: %s", data.data)'''
 
     def start(self, task_name):
         self.camera_start_dictionary[self.sub_camera_found](task_name)

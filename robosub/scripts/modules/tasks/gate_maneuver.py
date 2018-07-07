@@ -71,6 +71,7 @@ class GateManeuver():
         self.sweep_left_rotation_power = 80
         self.sweep_left_angle = 90
 
+    # reset ##################################################################################
     def reset(self):
         self.sweep_switcher = 0
         self.sweep_counter = 0
@@ -86,11 +87,13 @@ class GateManeuver():
 
         self.nothing_found_counter = 0
 
+    # move_forward_method ##################################################################################
     def move_forward_method(self, navigation, coordinates, power, rotation):
         navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
         navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
         navigation.m_nav('power', self.move_forward, power)
     
+    # move_to_gate ##################################################################################
     def move_to_gate(self, navigation, coordinates, power):
         print 'move_forward_method'
         # get_rot.update_rot()
@@ -109,28 +112,9 @@ class GateManeuver():
             self.is_moving_forward = True
             navigation.m_nav('power', self.move_forward, power)
             navigation.h_nav('down', self.depth_change, self.h_power)
-
+            
+    # sweep ##################################################################################
     def sweep(self, navigation, power, rotation):
-        # used to sweep the area in front of the sub when nothing of interest is found
-        # sub will begin by turning right for 2 seconds, moving forward 2 seconds then left 2 seconds
-        # the cycle will restart thereafter
-        '''if self.sweep_forward == 0:
-            navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
-            self.sweep_counter += 1
-        else:
-            navigation.m_nav('power', self.move_forward, power)
-            self.sweep_forward_counter += 1
-
-
-        if self.sweep_counter >= self.sweep_timer:
-            self.sweep_switcher = 1 - self.sweep_switcher
-            self.sweep_forward = 1
-            self.sweep_counter = 0
-        
-        if self.sweep_forward_counter >= self.sweep_timer:
-            self.sweep_forward = 0
-            self.sweep_forward_counter = 0'''
-
         self.sweep_direction[self.sweep_switcher](navigation, power, rotation)
         self.sweep_counter += 1
         if self.sweep_counter >= self.sweep_timer:
@@ -139,17 +123,21 @@ class GateManeuver():
             if self.sweep_switcher >= 4:
                 self.sweep_switcher = 0
 
+    # sweep_right ##################################################################################
     def sweep_right(self, navigation, power, rotation):
         # navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
         navigation.r_nav('right', self.sweep_right_angle, self.sweep_right_rotation_power)
     
+    # sweep_left ##################################################################################
     def sweep_left(self, navigation, power, rotation):
         # navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
         navigation.r_nav('left', self.sweep_left_angle, self.sweep_left_rotation_power)
 
+    # sweep_forward ##################################################################################
     def sweep_forward(self, navigation, power, rotation):
         navigation.m_nav('power', self.move_forward, power)
 
+    # strafe_to_square ##################################################################################
     def strafe_to_square(self, navigation, power, rotation, width):
         # to change direction of strafe if previous width is larger than current
         if self.previous_width > width:
@@ -160,11 +148,13 @@ class GateManeuver():
         navigation.r_nav(self.strafe_rotate[self.strafe_direction], rotation, 50)
         self.previous_width = width
     
+    # backup_to_square ##################################################################################
     def backup_to_square(self, navigation, power):
         # the sub may return a horizontal rectangle is the sub is too close to the gate
         # if the gate is actuallt a horizontal rectangle, need to tweak buffer in gateDetector.py
         navigation.m_nav('power', self.move_backward, power)
 
+    # center_square ##################################################################################
     def center_square(self, navigation, coordinates, power):
         # just to focus on the center of the gate to verify if sub wants to go through gate
         self.nothing_found_counter = 0
@@ -173,16 +163,18 @@ class GateManeuver():
         if not coordinates[1] == 0:
             navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
 
+    # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
         navigation.r_nav(self.rotation_direction, rotation, power)
         
-
+    # completed_gate ##################################################################################
     def completed_gate(self):
         print 'sub has passed gate'
         #if heading is not None
         #if self.passed_gate = 1
         #return True
 
+    # vertical ##################################################################################
     def vertical(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         if not self.is_heading_correct:
             # self.strafe_to_square(navigation, power, rotation, width_height[0])
@@ -192,6 +184,7 @@ class GateManeuver():
             self.under_timer += 1
         # print 'performing vertical'
     
+    # horizontal ##################################################################################
     def horizontal(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         # if not is_heading_correct:
         #     self.backup_to_square(navigation, power)
@@ -210,7 +203,7 @@ class GateManeuver():
             self.move_to_gate(navigation, coordinates, power)
         # print 'performing horizontal'
 
-        
+    # square ##################################################################################    
     def square(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         #self.heading_verify_count += 1
 
@@ -229,6 +222,7 @@ class GateManeuver():
 
         # print 'performing square'
 
+    # no_shape_found ##################################################################################
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         if not self.is_heading_correct:
             if self.nothing_found_counter >= self.nothing_found_threashold:
