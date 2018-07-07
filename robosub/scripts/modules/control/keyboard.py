@@ -22,13 +22,16 @@ class Keyboard():
     x: exit
     """
 
-    def __init__(self):
+    def __init__(self, navigation = None):
         self.is_killswitch_on = False
         self.multiplier = 40
         self.r_multiplier = 18.0
         # self.waypoint = Waypoint()
         # self.navigation = Navigation(self.waypoint)
-        self.navigation = Navigation()
+        if navigation:
+            self.navigation = navigation
+        else:
+            self.navigation = Navigation()
         self.h_power = 100
         self.m_power = 100
         self.r_power = 100
