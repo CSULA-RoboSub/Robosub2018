@@ -150,7 +150,7 @@ if __name__ == '__main__':
     AUV = AUV()  # initialize AUV() class
 
     print('\n***Plug in magnet after setting up configurations to start AUV.***')
-    print('\n***Set motor state to 1 to start motors.***')
+    print('\n***Set motor state to on (4) to start motors.***')
 
     AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1 ########################
 
