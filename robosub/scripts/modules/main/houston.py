@@ -1,9 +1,7 @@
-
 import rospy
 import cv2
 import sys
 import time
-
 import gi
 import threading
 
@@ -34,20 +32,16 @@ from modules.tasks.cash_in import CashIn
 from modules.tasks.buoy import Buoy
 from modules.tasks.task import Task
 
-from modules.control.navigation import Navigation
-
 #will need to move CVControll
 from modules.controller.cv_controller import CVController
 
 from collections import Counter
 from itertools import combinations
 
-# TODO houston will communicate with CV controller through ROS
-# houston will interpet the coordinates and then send it to navigation
 class Houston():
     # implements(Task)
     
-    def __init__(self):
+    def __init__(self, navigation):
         """ To initilize Houston """
         ################ INSTANCES ################
         self.gate = Gate(self)
@@ -62,7 +56,7 @@ class Houston():
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
         #self.buoy = Buoy(self)
-        self.navigation = Navigation()
+        self.navigation = navigation
         self.config = Config()
         self.counts = Counter()
 

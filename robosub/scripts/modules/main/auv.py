@@ -36,7 +36,7 @@ class AUV():
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
 
         # try:
-        self.houston = Houston() # initialize Houston() class
+        self.houston = Houston(self.navigation) # initialize Houston() class
         # except NameError:
         #     print('Houston is not initialized.')
 

@@ -40,16 +40,9 @@ class Gate(Task):
         self.passed_gate = 0
         self.heading_verify_count = 0
         self.last_time = 0
-        self.counts = Counter()
+        self.counter = Counter()
 
-        ################ DICTIONARIES ################
-        self.mState = {'off': 0,
-                        'power': 1,
-                        'distance': 2,
-                        'front_cam_center': 3,
-                        'bot_cam_center': 4,
-                        'motor_time': 5}
-        
+        ################ DICTIONARIES ################        
         self.movement_to_square = {'vertical': 'right',
                                 'horizontal': 'backward'}
                                 
@@ -61,7 +54,7 @@ class Gate(Task):
         ################ AUV MOBILITY VARIABLES ################
         self.depth_change = 1
         self.rotation_angle = 15
-        self.heading = None
+        self.is_heading_correct = False
         self.previous_width_height = (0,0)
         self.direction_list = []
         self.r_power=100
@@ -88,9 +81,9 @@ class Gate(Task):
         self.passed_gate = 0
         self.heading_verify_count = 0
         self.last_time = 0
-        self.counts = Counter()
+        self.counter = Counter()
 
-        self.heading = None
+        self.is_heading_correct = False
         self.previous_width_height = (0,0)
         self.direction_list = []
 
@@ -100,12 +93,14 @@ class Gate(Task):
         
     # start ##################################################################################
     def start(self, navigation, m_power=120, rotation=15):
+        self.cvcontroller.start('gate')
         self.run_detect_for_task(navigation, m_power, rotation)
      
 
     # stop ##################################################################################
     def stop(self):
         #self.navigation.stop()
+        self.cvcontroller.stop()
         pass
       
     def search(self):
@@ -138,22 +133,31 @@ class Gate(Task):
     #     self.mutex.acquire()
     #     try:
     #         print 'try detect'
-    #         self.cvcontroller.start()
     #         for i in range (0, 100):
     #             found, directions, gate_shape, width_height = self.cvcontroller.detect('gate')
-    #             self.direction_list.append(directions)
+    #             if found:
+    #                 self.direction_list.append(directions)
+
     #             if (time.time()-self.last_time > 0.05):
-    #                 most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counts)
+
+    #                 try:
+    #                     most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+    #                 except:
+    #                     most_occur_coords = [0,0]
+
+    #                 print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+    #                 print 'current count: {}'.format(i)
+    #                 print 'coordinates: {}'.format(most_occur_coords)
+    #                 print '--------------------------------------------'
     #                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
-    #                 self.counts = Counter()
+    #                 self.counter = Counter()
     #                 self.direction_list = []
     #                 self.last_time = time.time()
 
-
-    #         self.cvcontroller.stop()
     #     finally:
     #         self.mutex.release()
+    #     print()
     
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
@@ -165,19 +169,20 @@ class Gate(Task):
             self.is_detect_done = True'''            
         # self.gate_maneuver.sweep_forward = 0
         #TODO need to get rid of if statements and clean up code
-        if found and gate_shape == 'horizontal':
-            self.heading_verify_count += 1
-            if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
-                # self.getrotation.update_rot()
-                self.heading = True
+        # if found and gate_shape == 'horizontal':
+        #     self.heading_verify_count += 1
+        #     if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold:
+        #         # self.getrotation.update_rot()
+        #         self.is_heading_correct = True
 
-            if self.heading is None:
-                self.gate_maneuver.center_square(navigation, coordinates, power)
+        #     if not self.is_heading_correct:
+        #         self.gate_maneuver.center_square(navigation, coordinates, power)
 
-            else:
-                self.gate_maneuver.move_to_gate(navigation, coordinates, power)
-        else:
-            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.heading)
+        #     else:
+        #         self.gate_maneuver.move_to_gate(navigation, coordinates, power)
+        # else:
+        #     self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
+        self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
 
                     
         self.previous_width_height = width_height
@@ -191,17 +196,19 @@ class Gate(Task):
         pass
 
     # get_most_occur_coordinates ##################################################################################
-    def get_most_occur_coordinates(self, last, counts):
-        for sublist in last:
-            counts.update(combinations(sublist, 2))
-        for key, count in counts.most_common(1):
+    def get_most_occur_coordinates(self, direction_list, counter):
+        for sublist in direction_list:
+            counter.update(combinations(sublist, 2))
+        for key, count in counter.most_common(1):
             most_occur = key
         return most_occur
 
+    # TODO implement
     # bail_task ##################################################################################
     def bail_task(self):
         print 'bail gate'
 
+    # TODO implement
     # restart_task ##################################################################################
     def restart_task(self):
         print 'restart gate'
