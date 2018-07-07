@@ -111,8 +111,6 @@ class Houston():
     # do_task ##################################################################################
     def do_task(self):
         
-        # self.thread=Thread(target=self.do_gate)
-        # self.thread.start()
         try:
             self.do_gate()
         except KeyboardInterrupt:
@@ -120,7 +118,6 @@ class Houston():
             self.state.is_detect_done = True
         
         self.state.reset()
-        # self.start_loop()
 
     def do_gate(self):
         # when state_num is > 10, there will be no more tasks to complete
@@ -130,7 +127,7 @@ class Houston():
         break_loop = 0
         self.state = self.states[self.state_num]
         print("setup pipeline")
-        self.setupPipline()
+        self.setup_pipline()
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         # TODO must eventually move to CVController
@@ -179,8 +176,8 @@ class Houston():
                 finally:
                     buf.unmap(mapinfo)
                     
-                # if self.msg.found:
-                self.queue_direction.append(coordinates)
+                if self.msg.found:
+                    self.queue_direction.append(coordinates)
 
                 # TODO must eventually move to CVController
                 # try:
@@ -199,19 +196,30 @@ class Houston():
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.05):# and not self.msg.found):
-                    # most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                    self.last_time = time.time()
+
                     try:
-                        most_occur_coords = self.queue_direction[-1]
+                        most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
+                        self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
+                    
+                        """break_loop used for temp breaking of loop"""
+                        #print 'press q to quit task or wait 30 secs'
+
+                        self.counts = Counter()
+                        self.queue_direction = []
+                    # try:
+                    #     most_occur_coords = self.queue_direction[-1]
+                        # self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
+                    
+                        # """break_loop used for temp breaking of loop"""
+                        # #print 'press q to quit task or wait 30 secs'
+
+                        # self.counts = Counter()
+                        # self.queue_direction = []
+                        # self.last_time = time.time()
                     except:
                         pass
-                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
-                    """break_loop used for temp breaking of loop"""
-                    #print 'press q to quit task or wait 30 secs'
-
-                    self.counts = Counter()
-                    self.queue_direction = []
-                    self.last_time = time.time()
 
                     break_loop += 1
                 #else:
@@ -232,7 +240,7 @@ class Houston():
         print("exit loop")
 
         self.foundcoord = None
-        self.closePipline()
+        self.close_pipeline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
@@ -276,7 +284,7 @@ class Houston():
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
         self.display_input.emit("push-buffer", new_buf)
 
-    def setupPipline(self):
+    def setup_pipline(self):
         Gst.init(sys.argv)  # init gstreamer
 
         # We create a source element to retrieve a device list through it
@@ -355,7 +363,7 @@ class Houston():
 
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
-    def closePipline(self):
+    def close_pipeline(self):
         self.outraw.release()
         self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
@@ -429,9 +437,5 @@ class Houston():
             rates = [x.strip() for x in values.split(",")]
         return rates
     def start_loop(self):
-        print("start loop")
-
-        # try:
+        # print("start loop")
         self.loop.run()
-        # except KeyboardInterrupt:
-        #     print("Ctrl-C pressed, terminating")
