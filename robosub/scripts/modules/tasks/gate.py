@@ -112,12 +112,14 @@ class Gate(Task):
                     try:
                         most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
                     except:
-                        most_occur_coords = [0,0]
+                        most_occur_coords = (0, 0)
 
                     print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                     print 'current count: {}'.format(count)
                     print 'coordinates: {}'.format(most_occur_coords)
                     print '--------------------------------------------'
+                    print 'type: navigation cv 0, to cancel task'
+                    print 'can use navi(tab) autocomplete to finish navi type or (up + backspace + 0 -> enter)'
                     self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
                     self.counter = Counter()
@@ -126,18 +128,17 @@ class Gate(Task):
 
             finally:
                 self.mutex.release()
-        self.cvcontroller.stop()
-     
+        self.cvcontroller.stop()     
 
     # stop ##################################################################################
     def stop(self):
         #self.navigation.stop()
         self.cvcontroller.stop()
-        pass
       
     def search(self):
         pass
     
+    # TODO do not need follow method anymore, will remove after testing
     # run_detect_for_task ##################################################################################
     def run_detect_for_task(self, navigation, m_power=120, rotation=15):
         self.reset_thread()
@@ -147,6 +148,7 @@ class Gate(Task):
         self.thread_gate.start()
         #self.thread_gate.join()
 
+    # TODO do not need following method anymore, will remove after testing
     # reset_thread ##################################################################################
     def reset_thread(self):
         if self.thread_gate:

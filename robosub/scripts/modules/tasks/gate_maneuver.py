@@ -185,8 +185,8 @@ class GateManeuver():
 
     def vertical(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         if not self.is_heading_correct:
-            self.strafe_to_square(navigation, power, rotation, width_height[0])
-            # pass
+            # self.strafe_to_square(navigation, power, rotation, width_height[0])
+            self.strafe_to_square(navigation, 50, 50, width_height[0])
         else:
             self.move_to_gate(navigation, coordinates, power)
             self.under_timer += 1
