@@ -87,12 +87,15 @@ class CLI(cmd.Cmd):
 
     # navigation #######################################################################################################
     def do_navigation(self, arg):
-        '\n[cv] toggle computer vision task manager\
+        '\n[cv] toggle computer vision (start/1 or stop/0)\
          \n[keyboard] keyboard manual navigation'
 
-        if arg.lower() == 'cv' or arg.lower() == 'tm':
+        if arg.lower() == 'cv start' or arg.lower() == 'cv 1':
             # temp method for testing purposes
             AUV.perform_tasks()
+            print(arg)
+        elif arg.lower() == 'cv stop' or arg.lower() == 'cv 0':
+            AUV.stop_tasks()
             print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()
@@ -100,7 +103,7 @@ class CLI(cmd.Cmd):
         #     AUV.navigation.navigate(*parse(arg))
         else:
             print(
-                '\n[cv] toggle computer vision task manager\
+                '\n[cv] toggle computer vision (start/1 or stop/0)\
                  \n[keyboard] keyboard manual navigation'
             )
 

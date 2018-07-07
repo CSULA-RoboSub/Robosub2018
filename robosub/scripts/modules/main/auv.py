@@ -65,6 +65,10 @@ class AUV():
         # except AttributeError:
         #     print('houston not initialized')
 
+    def stop_tasks(self):
+        """Has houston stop task"""
+        self.houston.stop_task()
+
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
 

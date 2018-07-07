@@ -190,7 +190,7 @@ class GateManeuver():
         else:
             self.move_to_gate(navigation, coordinates, power)
             self.under_timer += 1
-        print 'performing vertical'
+        # print 'performing vertical'
     
     def horizontal(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         # if not is_heading_correct:
@@ -208,7 +208,7 @@ class GateManeuver():
 
         else:
             self.move_to_gate(navigation, coordinates, power)
-        print 'performing horizontal'
+        # print 'performing horizontal'
 
         
     def square(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
@@ -227,7 +227,7 @@ class GateManeuver():
         else:
             self.move_to_gate(navigation, coordinates, power)
 
-        print 'performing square'
+        # print 'performing square'
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         if not self.is_heading_correct:
@@ -237,4 +237,4 @@ class GateManeuver():
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)
-        print 'performing no shape'
+        # print 'performing no shape'

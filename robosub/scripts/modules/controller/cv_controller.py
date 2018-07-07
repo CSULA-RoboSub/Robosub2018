@@ -43,11 +43,12 @@ class CVController():
         #rospy.pub_cv_data = rospy.Publisher('cv_to_houston', CVData)
         #rospy.init_node('CV_talker', anonymous=True)
         try:
+            self.loop = GLib.MainLoop()
             self.sample = None
             self.pipeline = None
-            self.loop = GLib.MainLoop()
             self.thread = None
         except:
+            self.cap = cv2.VideoCapture(0)
             print('unable to initialize Glib.MainLoop()')
 
     '''def HoustonCallback(data):
@@ -77,6 +78,12 @@ class CVController():
             print 'cannot release since no camera detected'
         cv2.destroyAllWindows()
         print 'stop cvcontroller'
+
+    def driver_camera(self):
+        pass
+
+    def default_camera(self):
+        pass
 
     
     # TODO implement methods for cv_controller
@@ -140,12 +147,13 @@ class CVController():
         #    break
         #self.cap.release
 
-        try:
-            self.setupPipline()
-            self.thread=Thread(target=self.start_loop)
-            self.thread.start()
-        except:
-            print('unable to set upPipline()')
+        # try:
+        #     self.setupPipline()
+        #     self.thread=Thread(target=self.start_loop)
+        #     self.thread.start()
+        # except:
+        #     pass
+            # print('unable to set upPipline()')
         
         return found, directions, gate_shape, width_height
 

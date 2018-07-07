@@ -8,10 +8,10 @@ import threading
 from threading import Thread
 import numpy as np
 
-gi.require_version("Tcam", "0.1")
-gi.require_version("Gst", "1.0")
+# gi.require_version("Tcam", "0.1")
+# gi.require_version("Gst", "1.0")
 
-from gi.repository import Tcam, Gst, GLib
+# from gi.repository import Tcam, Gst, GLib
 
 from robosub.msg import CVIn
 from robosub.msg import CVOut
@@ -97,27 +97,48 @@ class Houston():
         self.power = 120
 
         # TODO move to CVcontroller
-        # self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0)
 
         # init_node only needs to be ran once, which is already called in auv.py
         #rospy.init_node('cv_talker', anonymous=True)
         self.r = rospy.Rate(30) #30hz
         self.msg = CVIn()
         self.sample = None
-        self.pipeline = None
-        self.loop = GLib.MainLoop()
-        self.thread = None
+        # self.pipeline = None
+        # self.loop = GLib.MainLoop()
+        # self.thread = None
+        self.task_thread = None
 
     # do_task ##################################################################################
     def do_task(self):
         
-        try:
-            self.do_gate()
-        except KeyboardInterrupt:
-            print('keyboard interrupt on cv')
-            self.state.is_detect_done = True
+        # self.thread=Thread(target=self.do_gate)
+        # self.thread.start()
+        # try:
+        #     self.do_gate()
+        # except KeyboardInterrupt:
+        #     print('keyboard interrupt on cv')
+        #     self.state.is_detect_done = True
         
+        # self.state.reset()
+        # self.start_loop()
+        if self.state_num > 10:
+            print 'no more tasks to complete'
+        
+        self.state = self.states[self.state_num]
         self.state.reset()
+        print 'doing task: {}'.format(self.tasks[self.state_num])
+        self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.power, self.rotation)
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_m_nav()
+        self.navigation.cancel_r_nav()
+
+    def stop_task(self):
+        self.state = self.states[self.state_num]
+        self.state.stop_task = True
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_m_nav()
+        self.navigation.cancel_r_nav()
 
     def do_gate(self):
         # when state_num is > 10, there will be no more tasks to complete
@@ -127,7 +148,7 @@ class Houston():
         break_loop = 0
         self.state = self.states[self.state_num]
         print("setup pipeline")
-        self.setup_pipline()
+        self.setupPipline()
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         # TODO must eventually move to CVController
@@ -176,8 +197,8 @@ class Houston():
                 finally:
                     buf.unmap(mapinfo)
                     
-                if self.msg.found:
-                    self.queue_direction.append(coordinates)
+                # if self.msg.found:
+                self.queue_direction.append(coordinates)
 
                 # TODO must eventually move to CVController
                 # try:
@@ -196,30 +217,19 @@ class Houston():
 
                 # will run through whenever at least 1 second has passed
                 if (time.time()-self.last_time > 0.05):# and not self.msg.found):
-                    self.last_time = time.time()
-
+                    # most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
                     try:
-                        most_occur_coords = self.get_most_occur_coordinates(self.queue_direction, self.counts)
-                        self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
-                    
-                        """break_loop used for temp breaking of loop"""
-                        #print 'press q to quit task or wait 30 secs'
-
-                        self.counts = Counter()
-                        self.queue_direction = []
-                    # try:
-                    #     most_occur_coords = self.queue_direction[-1]
-                        # self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
-                    
-                        # """break_loop used for temp breaking of loop"""
-                        # #print 'press q to quit task or wait 30 secs'
-
-                        # self.counts = Counter()
-                        # self.queue_direction = []
-                        # self.last_time = time.time()
+                        most_occur_coords = self.queue_direction[-1]
                     except:
                         pass
+                    self.state.navigate(self.navigation, self.msg.found, most_occur_coords, self.power, self.rotation, gate_shape, width_height)
                     
+                    """break_loop used for temp breaking of loop"""
+                    #print 'press q to quit task or wait 30 secs'
+
+                    self.counts = Counter()
+                    self.queue_direction = []
+                    self.last_time = time.time()
 
                     break_loop += 1
                 #else:
@@ -232,7 +242,12 @@ class Houston():
                 print '--------------------------------------------'
 
         # TODO will be used later when cv_controller has been completed
-        # self.state.start(self. navigation, self.power, self.rotation)
+        # try:
+        #     self.state.start(self.navigation, self.power, self.rotation)
+        #     self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.power, self.rotation)
+        # except KeyboardInterrupt:
+        #     print('keyboard interrupt on cv')
+
         # if self.state.is_detect_done:
         #     self.state_num += 1
         #     self.state.stop()
@@ -240,7 +255,7 @@ class Houston():
         print("exit loop")
 
         self.foundcoord = None
-        self.close_pipeline()
+        self.closePipline()
         self.navigation.cancel_h_nav()
         self.navigation.cancel_r_nav()
         self.navigation.cancel_m_nav()
@@ -248,6 +263,18 @@ class Houston():
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
     # rather than just going to last coordinates
+    
+    # task_thread_start ##################################################################################
+    def task_thread_start(self, task_call, task_name, navigation, power, rotation):
+        self.reset_thread()
+        self.task_thread = Thread(target = task_call.start, args = (task_name, navigation, power, rotation))
+        self.task_thread.start()
+
+    # reset_thread ##################################################################################
+    def reset_thread(self):
+        if self.task_thread:
+            self.task_thread = None
+
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):
         # if not last:
@@ -284,7 +311,7 @@ class Houston():
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
         self.display_input.emit("push-buffer", new_buf)
 
-    def setup_pipline(self):
+    def setupPipline(self):
         Gst.init(sys.argv)  # init gstreamer
 
         # We create a source element to retrieve a device list through it
@@ -363,7 +390,7 @@ class Houston():
 
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
-    def close_pipeline(self):
+    def closePipline(self):
         self.outraw.release()
         self.outprocessed.release()
         self.pipeline.set_state(Gst.State.NULL)
@@ -437,5 +464,9 @@ class Houston():
             rates = [x.strip() for x in values.split(",")]
         return rates
     def start_loop(self):
-        # print("start loop")
+        print("start loop")
+
+        # try:
         self.loop.run()
+        # except KeyboardInterrupt:
+        #     print("Ctrl-C pressed, terminating")

@@ -31,6 +31,7 @@ class Gate(Task):
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
+        self.stop_task = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
@@ -88,13 +89,44 @@ class Gate(Task):
         self.direction_list = []
 
         self.thread_gate = None
+        self.stop_task = False
 
         self.gate_maneuver.reset()
         
     # start ##################################################################################
-    def start(self, navigation, m_power=120, rotation=15):
-        self.cvcontroller.start('gate')
-        self.run_detect_for_task(navigation, m_power, rotation)
+    def start(self, task_name, navigation, m_power=120, rotation=15):
+        self.cvcontroller.start(task_name)
+        count = 0
+        #self.run_detect_for_task(navigation, m_power, rotation)
+        while not self.stop_task:
+            self.last_time = time.time()
+            count += 1
+            self.mutex.acquire()
+            try:
+                found, directions, gate_shape, width_height = self.cvcontroller.detect(task_name)
+                if found:
+                    self.direction_list.append(directions)
+
+                if (time.time()-self.last_time > 0.05):
+
+                    try:
+                        most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                    except:
+                        most_occur_coords = [0,0]
+
+                    print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+                    print 'current count: {}'.format(count)
+                    print 'coordinates: {}'.format(most_occur_coords)
+                    print '--------------------------------------------'
+                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                    
+                    self.counter = Counter()
+                    self.direction_list = []
+                    self.last_time = time.time()
+
+            finally:
+                self.mutex.release()
+        self.cvcontroller.stop()
      
 
     # stop ##################################################################################
