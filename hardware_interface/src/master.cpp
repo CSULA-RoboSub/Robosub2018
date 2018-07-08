@@ -1086,7 +1086,7 @@ void movementControl(){
 
 //position keeping control
 void positionControl(){
-  if(mControlMode1 || mControlMode2 || mControlMode5)
+  if(mControlMode1 || mControlMode2 || mControlMode3 || mControlMode4 || mControlMode5)
     return;
 
   float pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
