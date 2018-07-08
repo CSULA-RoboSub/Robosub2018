@@ -12,45 +12,18 @@ class CLI(cmd.Cmd):
     intro = '\nType help or ? to list commands.'
     prompt = 'auv> '
 
-    # test #############################################################################################################
-    def do_test(self, arg):
-        '\n[movement] to test movement\
-         \n[cv] to test cv direction finder'
-
-        # if arg.lower() == 'movement':
-        #     test_movement.main()
-
-        # TODO finish test
-
-    # auto-complete test
-    def complete_test(self, text, line, start_index, end_index):
-        args = ['movement', 'cv']
-
-        if text:
-            return [arg for arg in args if arg.startswith(text)]
-        else:
-            return args
-
     # tasks ############################################################################################################
     def do_tasks(self, arg):
         '\n[view] to view tasks\
-         \n[set] to set tasks list\
          \n[reset] to reset tasks list'
 
         if arg.lower() == 'view':
             print(AUV.tasks)
-        elif arg.lower() == 'set':
-            # AUV.config.set_config('auv', 'tasks', response)
-            # AUV.read_config()
-            # TODO set tasks
-            # AUV.set_config('tasks', '0 1 2 3 4 5 6 7 8')
             print('test')
         elif arg.lower() == 'reset':
             AUV.config.reset_option('auv', 'tasks')
         else:
             print(AUV.tasks)
-
-        # TODO make a config file for default tasks
 
     # auto-complete tasks
     def complete_tasks(self, text, line, start_index, end_index):
@@ -63,14 +36,17 @@ class CLI(cmd.Cmd):
 
     # motor ############################################################################################################
     def do_motor(self, arg):
-        '\n[on/off] or [1/0] Turn on or off motors\
+        '\n[on/off] Turn on or off motors\
          \n[toggle] to toggle the current state\
          \n[state] or no argument to print current state'
 
-        if arg.lower() == 'on' or arg == '1':
-            AUV.motor.toggle_state(4)
-        elif arg.lower() == 'off' or arg == '0':
-            AUV.motor.toggle_state(5)
+        MOTOR_ON = 4
+        MOTOR_OFF = 5
+
+        if arg.lower() == 'on':
+            AUV.motor.toggle_state(MOTOR_ON)
+        elif arg.lower() == 'off':
+            AUV.motor.toggle_state(MOTOR_OFF)
         elif arg.lower() == 'toggle':
             AUV.motor.toggle_state()
         else:
@@ -90,17 +66,11 @@ class CLI(cmd.Cmd):
         '\n[cv] toggle computer vision (start/1 or stop/0)\
          \n[keyboard] keyboard manual navigation'
 
-        if arg.lower() == 'cv start' or arg.lower() == 'cv 1':
-            # temp method for testing purposes
+
+        if arg.lower() == 'cv':
             AUV.perform_tasks()
-            print(arg)
-        elif arg.lower() == 'cv stop' or arg.lower() == 'cv 0':
-            AUV.stop_tasks()
-            print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()
-        # elif len(arg.split()) == 4:
-        #     AUV.navigation.navigate(*parse(arg))
         else:
             print(
                 '\n[cv] toggle computer vision (start/1 or stop/0)\
@@ -110,25 +80,6 @@ class CLI(cmd.Cmd):
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):
         args = ['cv', 'keyboard']
-
-        if text:
-            return [arg for arg in args if arg.startswith(text)]
-        else:
-            return args
-
-    # CV model picker ##################################################################################################
-    def do_model(self, arg):
-        '\n[0/1/2/3/4] Change to a specific CV model\
-         \n[view] view current CV model'
-
-        if arg >= 0 and arg <= 4:
-            AUV.model_picker.change_model(arg)
-        else:
-            AUV.model_picker.get_model()
-
-    # auto-complete CV model picker
-    def complete_model(self, text, line, start_index, end_index):
-        args = ['view']
 
         if text:
             return [arg for arg in args if arg.startswith(text)]
@@ -200,9 +151,9 @@ if __name__ == '__main__':
     AUV = AUV()  # initialize AUV() class
 
     print('\n***Plug in magnet after setting up configurations to start AUV.***')
-    print('\n***Set motor state to 1 to start motors.***')
+    print('\n***Set motor state to on (4) to start motors.***')
 
-    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1 #########################
+    AUV.start()  # TESTING PURPOSES ONLY. REMOVE AFTER TESTING (simulates magnet killswitch = 1 ########################
 
     CLI().cmdloop()  # run AUV command interpreter
 
