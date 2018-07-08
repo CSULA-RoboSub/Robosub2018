@@ -1,13 +1,12 @@
-/*
+/*-------------------------------------------------------------------------------------------
 This is a quick translation of the old arduino code from level_with_motors.ino to c++
 hardware_interface is a much faster version of the arduino node.
 Arduino cannot operate as a node that receives the amount of data we send
+-------------------------------------------------------------------------------------------*/
 
-*/
-
-#include "ros/ros.h"
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
+#include "ros/ros.h"
 #include <robosub/HControl.h>
 #include <robosub/RControl.h>
 #include <robosub/MControl.h>
@@ -56,13 +55,7 @@ float mControlPower;
 float rControlPower;
 float mControlDistance;
 float mControlRunningTime;
-double mControlMode5Timer;
-// float frontCamForwardDistance;
-// float frontCamHorizontalDistance;
-// float frontCamVerticalDistance;
-// float bottomCamForwardDistance;
-// float bottomCamHorizontalDistance;
-// float bottomCamVerticalDistance;
+double mControlMode5Timer; //time variable for timed movement
 float centerTimer;
 float rotationTimer;
 float rotationTime;
@@ -75,6 +68,7 @@ bool isTurningRight;
 bool isTurningLeft;
 bool keepTurningRight;
 bool keepTurningLeft;
+//bool flags for control modes
 bool rControlMode3;
 bool rControlMode4;
 bool mControlMode1;
@@ -82,7 +76,7 @@ bool mControlMode2;
 bool mControlMode3;
 bool mControlMode4;
 bool mControlMode5;
-int mControlMode5Direction;
+//bool flags for infinite movement
 bool keepMovingForward;
 bool keepMovingRight;
 bool keepMovingBackward;
@@ -115,13 +109,11 @@ ros::Publisher mHorizontalPublisher;
 ros::Publisher mVerticalPublisher;
 
 ros::Subscriber currentDepthSubscriber;
-// ros::Subscriber dvlHeadingSubscriber;
 ros::Subscriber hControlSubscriber;   //int: state, float: depth
 ros::Subscriber rControlSubscriber; //int: state, float: rotation
 ros::Subscriber mControlSubscriber;
 ros::Subscriber rotationSubscriber;
 ros::Subscriber dvlSubscriber;
-// ros::AsyncSpinner spinner;
 
 //depth control variables
 // int pwm_submerge = 200;
@@ -129,12 +121,6 @@ ros::Subscriber dvlSubscriber;
 float hControlPower;
 //thrusters off value does not change
 const float base_thrust = 1500;
-
-//base thrust variables to be offset by base_thrust
-// int base_thrust_1 = base_thrust;
-// int base_thrust_2 = base_thrust;
-// int base_thrust_3 = base_thrust;
-// int base_thrust_4 = base_thrust;
 
 //time variables
 double elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
@@ -831,6 +817,7 @@ void rotationControl(){
 
 }
 
+//publish finished movement
 void movementControlFinish(){
   centerTimer = 0;
   // movementTimer = 0;
@@ -997,19 +984,7 @@ void movementControl(){
 
 }
 
-//&&&&&&&&&&&&&&&&&&&&&&&&&&
-//NOTE: I FORGOT WHAT IS THE ROTATION ON THE MOTORS IN THE BOT TO SEE WHAT DIRECTION OF MOVEMENT
-//WHEN I RETURN TO THE ROOM I CAN FIND OUT AND EDIT THIS CODE.
-//  if (yaw < assignedYaw){
-//    //turn on motos to go down
-//    T5.writeMicroseconds(base_thrust + PWM_Motors);
-//    T7.writeMicroseconds(base_thrust - PWM_Motors);
-//  }
-//  else if (yaw > assignedYaw){
-//    //turn on motors to go up
-//    T5.writeMicroseconds(base_thrust - PWM_Motors);
-//    T7.writeMicroseconds(base_thrust + PWM_Motors);
-//  }
+//dynamic rotations left/right
 void rotateLeftDynamically(){
   float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
 
@@ -1086,7 +1061,7 @@ void setup() {
   mHorizontal.t7 = base_thrust;
   mHorizontal.t8 = base_thrust;
 
-  //Initialize ROS variable
+  //Initialize variables
   mControlDirection = 0;
   mControlPower = 0;
   rControlPower = 0;
@@ -1094,17 +1069,9 @@ void setup() {
   mControlDistance = 0;
   mControlRunningTime = 0;
   mControlMode5Timer = 0;
-  // frontCamForwardDistance = 0;
-  // frontCamHorizontalDistance = 0;
-  // frontCamVerticalDistance = 0;
-  // bottomCamForwardDistance = 0;
-  // bottomCamHorizontalDistance = 0;
-  // bottomCamVerticalDistance = 0;
   centerTimer = 0;
   rotationTimer = 0;
   rotationTime = 10;
-  // movementTimer = 0;
-  // movementTime = 10;
   subIsReady = false;
   isGoingUp = false;
   isGoingDown = false;
@@ -1175,20 +1142,17 @@ void setup() {
 
 
 void loop() {
-  // ros::spinOnce();
   loopTime = millis();  // actual time read
-  //  gettingRawData();
+
   // Rotation
   // duty cycle and PWM calculation for orientation
   dutyCycl_orient = degreeToTurn() / 180.0;
   PWM_Motors_orient = dutyCycl_orient * 400; //Maximum is 200
   
   if(subIsReady){
-    // ros::spinOnce();
     // heightControl();
     movementControl();
     // rotationControl();
-    // ros::spinOnce();
   } else {
     motorsOff();
   }
@@ -1205,11 +1169,9 @@ void loop() {
     // if(subIsReady)    
 
     if(subIsReady){
-      // ros::spinOnce();
       heightControl();
       // movementControl();
       rotationControl();
-      // ros::spinOnce();
     } else {
       motorsOff();
     }
