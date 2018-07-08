@@ -2,7 +2,14 @@
 This is a quick translation of the old arduino code from level_with_motors.ino to c++
 hardware_interface is a much faster version of the arduino node.
 Arduino cannot operate as a node that receives the amount of data we send
+
+todo: clean/split file up to make it more readable and modular
 -------------------------------------------------------------------------------------------*/
+
+#include <string>
+#include <cmath>
+#include <algorithm>
+#include <iostream>
 
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
@@ -14,8 +21,7 @@ Arduino cannot operate as a node that receives the amount of data we send
 #include <ez_async_data/Rotation.h>
 #include <hardware_interface/MotorHorizontal.h>
 #include <hardware_interface/MotorVertical.h>
-#include <string>
-#include <cmath>
+#include "include/DVLHelper.h"
 
 using namespace std;
 
@@ -82,7 +88,8 @@ bool keepMovingRight;
 bool keepMovingBackward;
 bool keepMovingLeft;
 
-//Testing-----------------------
+//dvl position data is in meters---------------
+//dvl position variables-----------------------
 float positionXPrev = 0;
 float positionYPrev = 0;
 
@@ -93,13 +100,23 @@ float velocityX = 0;
 float velocityY = 0;
 float velocityZ = 0;
 
+//position keeping variables
+float keepPositionX = 0;
+float keepPositionY = 0;
+const float keepPositionThreshold = 0.1; //meters
+const float keepPositionMaxPowerForwardBackward = 80;
+const float keepPositionMaxPowerRightLeft = 100;
+
 std_msgs::Float32 currentDepth;
 std_msgs::Float32 dvlHeading;
 robosub::HControl hControlStatus;
 robosub::RControl rControlStatus;
 robosub::MControl mControlStatus;
+//msgs used to communicate with Arduino
 hardware_interface::MotorVertical mVertical;
 hardware_interface::MotorHorizontal mHorizontal;
+//msg container used to offset mHorizontal for position keeping
+hardware_interface::MotorHorizontal mHorizontalOffset;
 
 ros::Publisher hControlPublisher;     //int: state, float: depth
 ros::Publisher rControlPublisher;   //int: state, float: rotation
@@ -173,8 +190,25 @@ void rotateRightDynamically();
 void rotateLeftDynamically();
 
 //returns time in milliseconds
+
+//----------------------------------------------------------------------------
+//---------------------------- helper functions ------------------------------
+//----------------------------------------------------------------------------
+
 double millis(){
   return ros::WallTime::now().toNSec()/1000000;
+}
+
+void setKeepPosition(){
+  keepPositionX = positionX;
+  keepPositionY = positionY;
+}
+
+void setMHorizontalOffset(const float t5, const float t6, const float t7, const float t8){
+  mHorizontalOffset.t5 = t5;
+  mHorizontalOffset.t6 = t6;
+  mHorizontalOffset.t7 = t7;
+  mHorizontalOffset.t8 = t8;
 }
 
 //pass in -1 to ignore that motor
@@ -189,28 +223,101 @@ void publishMVertical(const float t1, const float t2, const float t3, const floa
     mVertical.t4 = t4;
 
 }
+
 //pass in -1 to ignore that motor
 void publishMHorizontal(const float t5, const float t6, const float t7, const float t8){
   if(t5 > 0)
-    mHorizontal.t5 = t5;
+    mHorizontal.t5 = t5 + mHorizontalOffset.t5;
   if(t6 > 0)
-    mHorizontal.t6 = t6;
+    mHorizontal.t6 = t6 + mHorizontalOffset.t6;
   if(t7 > 0)
-    mHorizontal.t7 = t7;
+    mHorizontal.t7 = t7 + mHorizontalOffset.t7;
   if(t8 > 0)
-    mHorizontal.t8 = t8;
+    mHorizontal.t8 = t8 + mHorizontalOffset.t8;
 
 }
 
+//sets motors to publish base_thrust
 void motorsOff(){
   publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
   publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
 }
 
-void publishMotors(){
-  mVerticalPublisher.publish(mVertical);
-  mHorizontalPublisher.publish(mHorizontal);
+//dynamic rotations left/right
+void rotateLeftDynamically(){
+  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
+
+  if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
+  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
+  if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+    // T6.writeMicroseconds(base_thrust + rotatePower);
+    // T8.writeMicroseconds(base_thrust + rotatePower);
+    publishMHorizontal(-1, base_thrust + rotatePower, -1, base_thrust + rotatePower);
+  }
+  else{
+    // T5.writeMicroseconds(base_thrust - rotatePower);
+    // T7.writeMicroseconds(base_thrust + rotatePower);
+    publishMHorizontal(base_thrust - rotatePower, -1, base_thrust + rotatePower, -1);
+  }
+  // ROS_INFO("rotate left");
+  //Testing----------------------------
+  //yaw += 1;
+  //if(yaw > rotationUpperBound) yaw -= 360;
+
 }
+
+void rotateRightDynamically(){
+  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
+
+  if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
+  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
+  if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
+    // T6.writeMicroseconds(base_thrust - rotatePower);
+    // T8.writeMicroseconds(base_thrust - rotatePower);
+    publishMHorizontal(-1, base_thrust - rotatePower, -1, base_thrust - rotatePower);
+  }
+  else{
+    // T5.writeMicroseconds(base_thrust + rotatePower);
+    // T7.writeMicroseconds(base_thrust - rotatePower);
+    publishMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
+  }
+  // ROS_INFO("rotate right");
+  //Testing----------------------------
+  //yaw -= 1;
+  //if(yaw < rotationLowerBound) yaw +=360;
+
+}
+
+//Return 0 to 180
+float degreeToTurn(){
+  float difference = max(yaw, assignedYaw) - min(yaw, assignedYaw);
+  if (difference > rotationUpperBound) return 360-difference;
+  else return difference;
+}
+
+//publish finished movement
+void movementControlFinish(){
+  publishMHorizontal(base_thrust, base_thrust, base_thrust, base_thrust);
+  centerTimer = 0;
+  // movementTimer = 0;
+  mControlMode5Timer = 0;
+  mControlDirection = 0;
+  mControlRunningTime = 0;
+  mControlPower = 0;
+  mControlStatus.state = 0;
+  mControlStatus.mDirection = 0;
+  mControlStatus.power = 0;
+  mControlStatus.distance = mControlDistance;
+  mControlStatus.runningTime = 0;
+  mControlDistance = 0;
+  mControlPublisher.publish(mControlStatus);
+
+  setKeepPosition();
+}
+
+//-----------------------------------------------------------------------
+//------------------------ ros callbacks --------------------------------
+//-----------------------------------------------------------------------
 
 void rotationCallback(const ez_async_data::Rotation& rotation){
   yaw = rotation.yaw;
@@ -226,6 +333,10 @@ void dvlCallback(const pathfinder_dvl::DVL& dvl_status){
   velocityX = dvl_status.xvel;
   velocityY = dvl_status.yvel;
   velocityZ = dvl_status.zvel;
+}
+
+void currentDepthCallback(const std_msgs::Float32& currentDepth){
+  feetDepth_read = currentDepth.data;
 }
 
 void hControlCallback(const robosub::HControl& hControl) {
@@ -280,6 +391,7 @@ void hControlCallback(const robosub::HControl& hControl) {
   else if(hControl.state == 4){
     assignedYaw = yaw;
     assignedDepth = topDepth;
+    setKeepPosition();
     if(!subIsReady){
       ROS_INFO("Motors unlocked.");
     }
@@ -436,6 +548,7 @@ void mControlCallback(const robosub::MControl& mControl){
     keepMovingRight = false;
     keepMovingBackward = false;
     keepMovingLeft = false;
+    setKeepPosition();
   }
   else if(mControl.state == 1){
     if(mControlMode1 || mControlMode2|| mControlMode3 || mControlMode4 || mControlMode5)
@@ -544,6 +657,12 @@ void mControlCallback(const robosub::MControl& mControl){
 
 }
 
+
+//----------------------------------------------------------------------------
+//------------------------------ control functions ---------------------------
+//----------------------------------------------------------------------------
+
+//todo: split off control functions to seperate file
 //roll left is negative roll right is positive (roll currently inverted of this)
 //pitch backward is positive pitch forward is negative
 void heightControl(){
@@ -817,23 +936,6 @@ void rotationControl(){
 
 }
 
-//publish finished movement
-void movementControlFinish(){
-  centerTimer = 0;
-  // movementTimer = 0;
-  mControlMode5Timer = 0;
-  mControlDirection = 0;
-  mControlRunningTime = 0;
-  mControlPower = 0;
-  mControlStatus.state = 0;
-  mControlStatus.mDirection = 0;
-  mControlStatus.power = 0;
-  mControlStatus.distance = mControlDistance;
-  mControlStatus.runningTime = 0;
-  mControlDistance = 0;
-  mControlPublisher.publish(mControlStatus);
-}
-
 void movementControl(){
   float mControlPowerTemp = mControlPower;
   if(mControlPowerTemp > 200) mControlPowerTemp = 200;
@@ -918,7 +1020,6 @@ void movementControl(){
       // T8.writeMicroseconds(base_thrust);
       // T5.writeMicroseconds(base_thrust);
       // T7.writeMicroseconds(base_thrust);
-      publishMHorizontal(base_thrust, base_thrust, base_thrust, base_thrust);
       mControlMode2 = false;
       ROS_INFO("Mode 2 finished.\n");
       movementControlFinish();
@@ -972,7 +1073,6 @@ void movementControl(){
       // T8.writeMicroseconds(base_thrust);
       // T5.writeMicroseconds(base_thrust);
       // T7.writeMicroseconds(base_thrust);
-      publishMHorizontal(base_thrust, base_thrust, base_thrust, base_thrust);
       mControlMode5 = false;
       ROS_INFO("Mode 5 finished.\n");
       movementControlFinish();
@@ -984,70 +1084,74 @@ void movementControl(){
 
 }
 
-//dynamic rotations left/right
-void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
+//position keeping control
+void positionControl(){
+  if(mControlMode1 || mControlMode2 || mControlMode5)
+    return;
 
-  if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
-  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
-  if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-    // T6.writeMicroseconds(base_thrust + rotatePower);
-    // T8.writeMicroseconds(base_thrust + rotatePower);
-    publishMHorizontal(-1, base_thrust + rotatePower, -1, base_thrust + rotatePower);
+  float pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
+  float pDistance = DVLHelper::getDistance(positionX, positionY, keepPositionX, keepPositionY);
+
+  float forwardBackwardDistance, rightLeftDistance;
+  float forwardBackwardOffset = 0, rightLeftOffset = 0;
+  if(pDirection >= 0){
+    //on right side of sub rightleftoffset must be positive
+    if(pDirection < 90){
+      //move forward positive forwardbackwardoffset
+      forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
+      forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
+
+      rightLeftDistance = cos(abs(pDirection)) * pDistance;
+      rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
+    }
+    else{
+      //move backward negative forwardbackwardoffset
+      forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
+      forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
+
+      rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
+      rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
+    }
   }
   else{
-    // T5.writeMicroseconds(base_thrust - rotatePower);
-    // T7.writeMicroseconds(base_thrust + rotatePower);
-    publishMHorizontal(base_thrust - rotatePower, -1, base_thrust + rotatePower, -1);
+    //on left side of sub rightleftoffset must be negative
+    if(pDirection > -90){
+      //move forward positive forwardbackwardoffset
+      forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
+      forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
+
+      rightLeftDistance = cos(abs(pDirection)) * pDistance;
+      rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+    }
+    else{
+      //move backward negative forwardbackwardoffset
+      forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
+      forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
+
+      rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
+      rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+    }
   }
-  // ROS_INFO("rotate left");
-  //Testing----------------------------
-  //yaw += 1;
-  //if(yaw > rotationUpperBound) yaw -= 360;
 
+  //cap the offset amount
+  if(forwardBackwardOffset > keepPositionMaxPowerForwardBackward) 
+    forwardBackwardOffset = keepPositionMaxPowerForwardBackward;
+  else if(forwardBackwardOffset < -keepPositionMaxPowerForwardBackward) 
+    forwardBackwardOffset = -keepPositionMaxPowerForwardBackward;
+
+  if(rightLeftOffset > keepPositionMaxPowerRightLeft)
+    rightLeftOffset = keepPositionMaxPowerRightLeft;
+  else if(rightLeftOffset < -keepPositionMaxPowerRightLeft)
+    rightLeftOffset = -keepPositionMaxPowerRightLeft;
+  //forward positive, right positive offsets
+  setMHorizontalOffset(rightLeftOffset, forwardBackwardOffset, rightLeftOffset, -forwardBackwardOffset);
 }
 
-void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
-
-  if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
-  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
-  if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-    // T6.writeMicroseconds(base_thrust - rotatePower);
-    // T8.writeMicroseconds(base_thrust - rotatePower);
-    publishMHorizontal(-1, base_thrust - rotatePower, -1, base_thrust - rotatePower);
-  }
-  else{
-    // T5.writeMicroseconds(base_thrust + rotatePower);
-    // T7.writeMicroseconds(base_thrust - rotatePower);
-    publishMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
-  }
-  // ROS_INFO("rotate right");
-  //Testing----------------------------
-  //yaw -= 1;
-  //if(yaw < rotationLowerBound) yaw +=360;
-
+//motor publisher
+void publishMotors(){
+  mVerticalPublisher.publish(mVertical);
+  mHorizontalPublisher.publish(mHorizontal);
 }
-
-//Return 0 to 180
-float degreeToTurn(){
-  float difference = max(yaw, assignedYaw) - min(yaw, assignedYaw);
-  if (difference > rotationUpperBound) return 360-difference;
-  else return difference;
-}
-
-
-void currentDepthCallback(const std_msgs::Float32& currentDepth){
-  feetDepth_read = currentDepth.data;
-}
-
-// void dvlHeadingCallback(const std_msgs::Float32& dvlHeading){
-//   if(dvlHeading.data <= 180)
-//     yaw = dvlHeading.data;
-//   else
-//     yaw = dvlHeading.data-360;
-// }
-
 
 void setup() {
 
@@ -1060,7 +1164,11 @@ void setup() {
   mHorizontal.t6 = base_thrust;
   mHorizontal.t7 = base_thrust;
   mHorizontal.t8 = base_thrust;
-
+  //initialize offset for position keeping
+  mHorizontalOffset.t5 = 0;
+  mHorizontalOffset.t6 = 0;
+  mHorizontalOffset.t7 = 0;
+  mHorizontalOffset.t8 = 0;
   //Initialize variables
   mControlDirection = 0;
   mControlPower = 0;
