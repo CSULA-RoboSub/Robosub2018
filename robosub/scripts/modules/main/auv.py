@@ -8,10 +8,11 @@ from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
 from modules.main.status_logger import StatusLogger
 
-try:
-    from houston import Houston
-except ValueError:
-    print('Required hardware not detected.')
+# try:
+#     from houston import Houston
+# except ValueError:q
+#     print('Required hardware not detected.')
+from houston import Houston
 
 
 class AUV():
@@ -35,7 +36,7 @@ class AUV():
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
 
         # try:
-        self.houston = Houston()  # initialize Houston() class
+        self.houston = Houston(self.navigation) # initialize Houston() class
         # except NameError:
         #     print('Houston is not initialized.')
 
@@ -63,6 +64,10 @@ class AUV():
         self.houston.do_task()
         # except AttributeError:
         #     print('houston not initialized')
+
+    def stop_tasks(self):
+        """Has houston stop task"""
+        self.houston.stop_task()
 
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""
