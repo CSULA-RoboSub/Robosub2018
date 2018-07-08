@@ -67,8 +67,13 @@ class CLI(cmd.Cmd):
          \n[keyboard] keyboard manual navigation'
 
 
-        if arg.lower() == 'cv':
+        if arg.lower() == 'cv start' or arg.lower() == 'cv 1':
+            # temp method for testing purposes
             AUV.perform_tasks()
+            # print(arg)
+        elif arg.lower() == 'cv stop' or arg.lower() == 'cv 0':
+            AUV.stop_tasks()
+            # print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()
         else:
