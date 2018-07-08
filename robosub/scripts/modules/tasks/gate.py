@@ -104,27 +104,28 @@ class Gate(Task):
             self.mutex.acquire()
             try:
                 found, directions, gate_shape, width_height = self.cvcontroller.detect(task_name)
-                if found:
-                    self.direction_list.append(directions)
+                if directions and gate_shape and width_height:
+                    if found:
+                        self.direction_list.append(directions)
 
-                if (time.time()-self.last_time > 0.05):
+                    if (time.time()-self.last_time > 0.05):
 
-                    try:
-                        most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-                    except:
-                        most_occur_coords = (0, 0)
+                        try:
+                            most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                        except:
+                            most_occur_coords = (0, 0)
 
-                    print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
-                    print 'current count: {}'.format(count)
-                    print 'coordinates: {}'.format(most_occur_coords)
-                    print '--------------------------------------------'
-                    print 'type: navigation cv 0, to cancel task'
-                    print 'can use navi(tab) autocomplete to finish navi type or (up + backspace + 0 -> enter)'
-                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
-                    
-                    self.counter = Counter()
-                    self.direction_list = []
-                    self.last_time = time.time()
+                        print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+                        print 'current count: {}'.format(count)
+                        print 'coordinates: {}'.format(most_occur_coords)
+                        print '--------------------------------------------'
+                        print 'type: navigation cv 0, to cancel task'
+                        print 'can use navi(tab) autocomplete to finish navi type or (up + backspace + 0 -> enter)'
+                        self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                        
+                        self.counter = Counter()
+                        self.direction_list = []
+                        self.last_time = time.time()
 
             finally:
                 self.mutex.release()
@@ -156,11 +157,12 @@ class Gate(Task):
 
     # detect ##################################################################################   
     def detect(self, frame):
-        #add frame when testing complete
-        if not self.detectgate:
-            self.detectgate = GateDetector.GateDetector()
+        pass
+    #     #add frame when testing complete
+    #     if not self.detectgate:
+    #         # self.detectgate = GateDetector.GateDetector()
 
-        return self.detectgate.detect(frame)
+    #     return self.detectgate.detect(frame)
 
     # def detect(self, navigation, m_power=120, rotation=15):
     #     self.last_time = time.time()

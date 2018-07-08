@@ -592,6 +592,10 @@ void mControlCallback(const robosub::MControl& mControl){
   else if(mControl.state == 2){
     if(mControlMode1 || mControlMode2|| mControlMode3 || mControlMode4 || mControlMode5)
       ROS_INFO("Sub is still moving. Command abort.");
+    else if(mControl.mDirection != 1 && mControl.mDirection != 2 && mControl.mDirection != 3 && mControl.mDirection != 4)
+      ROS_INFO("Invalid direction with state 2. Please check the program and try again.\n");
+    else if(mControl.power == 0)
+      ROS_INFO("Invalid power with state 2. Please check the program and try again.");
     // else if(mControl.mDirection != 1)
     //   ROS_INFO("Invalid direction with state 2. Please check the program and try again.\n");
     else{
