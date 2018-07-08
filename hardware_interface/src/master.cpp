@@ -241,6 +241,7 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
 void motorsOff(){
   publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
   publishMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
+  setMHorizontalOffset(0, 0, 0, 0);
 }
 
 //dynamic rotations left/right
@@ -1086,65 +1087,67 @@ void movementControl(){
 
 //position keeping control
 void positionControl(){
-  if(mControlMode1 || mControlMode2 || mControlMode3 || mControlMode4 || mControlMode5)
-    return;
-
-  float pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
-  float pDistance = DVLHelper::getDistance(positionX, positionY, keepPositionX, keepPositionY);
-
-  float forwardBackwardDistance, rightLeftDistance;
-  float forwardBackwardOffset = 0, rightLeftOffset = 0;
-  if(pDirection >= 0){
-    //on right side of sub rightleftoffset must be positive
-    if(pDirection < 90){
-      //move forward positive forwardbackwardoffset
-      forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
-      forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
-
-      rightLeftDistance = cos(abs(pDirection)) * pDistance;
-      rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
-    }
-    else{
-      //move backward negative forwardbackwardoffset
-      forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
-      forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
-
-      rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
-      rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
-    }
+  if(mControlMode1 || mControlMode2 || mControlMode3 || mControlMode4 || mControlMode5){
+    setMHorizontalOffset(0, 0, 0, 0);
   }
   else{
-    //on left side of sub rightleftoffset must be negative
-    if(pDirection > -90){
-      //move forward positive forwardbackwardoffset
-      forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
-      forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
+    float pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
+    float pDistance = DVLHelper::getDistance(positionX, positionY, keepPositionX, keepPositionY);
 
-      rightLeftDistance = cos(abs(pDirection)) * pDistance;
-      rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+    float forwardBackwardDistance, rightLeftDistance;
+    float forwardBackwardOffset = 0, rightLeftOffset = 0;
+    if(pDirection >= 0){
+      //on right side of sub rightleftoffset must be positive
+      if(pDirection < 90){
+        //move forward positive forwardbackwardoffset
+        forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
+        forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
+
+        rightLeftDistance = cos(abs(pDirection)) * pDistance;
+        rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
+      }
+      else{
+        //move backward negative forwardbackwardoffset
+        forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
+        forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
+
+        rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
+        rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
+      }
     }
     else{
-      //move backward negative forwardbackwardoffset
-      forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
-      forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
+      //on left side of sub rightleftoffset must be negative
+      if(pDirection > -90){
+        //move forward positive forwardbackwardoffset
+        forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
+        forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
 
-      rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
-      rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+        rightLeftDistance = cos(abs(pDirection)) * pDistance;
+        rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+      }
+      else{
+        //move backward negative forwardbackwardoffset
+        forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
+        forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
+
+        rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
+        rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+      }
     }
+
+    //cap the offset amount
+    if(forwardBackwardOffset > keepPositionMaxPowerForwardBackward) 
+      forwardBackwardOffset = keepPositionMaxPowerForwardBackward;
+    else if(forwardBackwardOffset < -keepPositionMaxPowerForwardBackward) 
+      forwardBackwardOffset = -keepPositionMaxPowerForwardBackward;
+
+    if(rightLeftOffset > keepPositionMaxPowerRightLeft)
+      rightLeftOffset = keepPositionMaxPowerRightLeft;
+    else if(rightLeftOffset < -keepPositionMaxPowerRightLeft)
+      rightLeftOffset = -keepPositionMaxPowerRightLeft;
+    //forward positive, right positive offsets
+    setMHorizontalOffset(rightLeftOffset, forwardBackwardOffset, rightLeftOffset, -forwardBackwardOffset);
   }
-
-  //cap the offset amount
-  if(forwardBackwardOffset > keepPositionMaxPowerForwardBackward) 
-    forwardBackwardOffset = keepPositionMaxPowerForwardBackward;
-  else if(forwardBackwardOffset < -keepPositionMaxPowerForwardBackward) 
-    forwardBackwardOffset = -keepPositionMaxPowerForwardBackward;
-
-  if(rightLeftOffset > keepPositionMaxPowerRightLeft)
-    rightLeftOffset = keepPositionMaxPowerRightLeft;
-  else if(rightLeftOffset < -keepPositionMaxPowerRightLeft)
-    rightLeftOffset = -keepPositionMaxPowerRightLeft;
-  //forward positive, right positive offsets
-  setMHorizontalOffset(rightLeftOffset, forwardBackwardOffset, rightLeftOffset, -forwardBackwardOffset);
 }
 
 //motor publisher
@@ -1261,6 +1264,7 @@ void loop() {
     // heightControl();
     movementControl();
     // rotationControl();
+    positionControl();
   } else {
     motorsOff();
   }
@@ -1280,6 +1284,7 @@ void loop() {
       heightControl();
       // movementControl();
       rotationControl();
+      // positionControl();
     } else {
       motorsOff();
     }
