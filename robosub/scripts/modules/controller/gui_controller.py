@@ -45,6 +45,7 @@ class Controller():
             'down': 'f'
         }
 
+        # self.AUV.keyboard.set_power(h_power=100)
         # self.AUV.keyboard.navigate(directions[direction], power, depth)
         # TODO change keyboard to accept power
         pass
