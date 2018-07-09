@@ -98,7 +98,8 @@ class Navigation():
 
         #vars dealing with movement break time
         self.waypoint_m_time = 0
-        self.waypoint_m_time_max = 2.14
+        # self.waypoint_m_time_max = 2.14
+        self.waypoint_m_time_max = 1.0
 
         #vars dealing with height checking
         self.depth_threshold = 0.3
@@ -307,14 +308,14 @@ class Navigation():
 
                 self.m_nav('motor_time', 'backward', self.w_power_m, final_waypoint_m_time)
                 self.waypoint_state = 2
-                print("backward wp state 2")
+                # print("backward wp state 2")
             elif movement_status.state == 0 and self.waypoint_state == 2:
                 # print('in state 2')
                 # print('waypoint rotation r_status_callback')
                 self.is_running_waypoint_movement = False
                 self.is_busy_waypoint = False
                 self.waypoint_state = 0
-                print("time fin wp state reset")
+                # print("time fin wp state reset")
 
     #height control status callback
     def h_status_callback(self, height_status):
