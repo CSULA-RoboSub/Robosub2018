@@ -86,6 +86,8 @@ class GateManeuver():
         self.is_moving_forward = False
 
         self.nothing_found_counter = 0
+        self.is_heading_correct = False
+        self.heading_verify_count = 0
 
     # move_forward_method ##################################################################################
     def move_forward_method(self, navigation, coordinates, power, rotation):
@@ -95,7 +97,7 @@ class GateManeuver():
     
     # move_to_gate ##################################################################################
     def move_to_gate(self, navigation, coordinates, power):
-        print 'move_forward_method'
+        print 'move_to_gate_method'
         # get_rot.update_rot()
         # yaw_change = heading - get_rot.get_yaw()
         # if yaw_change < 0:
@@ -108,6 +110,7 @@ class GateManeuver():
         # navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
         # navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
         
+        self.under_timer += 1
         if not self.is_moving_forward:
             self.is_moving_forward = True
             navigation.m_nav('power', self.move_forward, power)
@@ -181,7 +184,6 @@ class GateManeuver():
             self.strafe_to_square(navigation, 50, 50, width_height[0])
         else:
             self.move_to_gate(navigation, coordinates, power)
-            self.under_timer += 1
         # print 'performing vertical'
     
     # horizontal ##################################################################################
