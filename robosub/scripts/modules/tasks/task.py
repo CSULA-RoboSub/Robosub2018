@@ -8,13 +8,13 @@ class Task(object):
     def detect(self, frame): pass
 
     @abstractmethod
-    def navigate(self, **k): pass
+    def navigate(self): pass
 
     @abstractmethod
-    def search(self, **k): pass
+    def search(self): pass
 
     @abstractmethod
-    def complete(self, **k): pass
+    def complete(self): pass
 
     @abstractmethod
     def restart_task(self): pass

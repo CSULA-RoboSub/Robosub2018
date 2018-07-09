@@ -16,10 +16,13 @@ from modules.sensors.computer_vision import GateDetector
 #from modules.sensors.computer_vision import BuoyDetector
 #from modules.sensors.computer_vision import DiceDetector
 
-gi.require_version("Tcam", "0.1")
-gi.require_version("Gst", "1.0")
+try:
+    gi.require_version("Tcam", "0.1")
+    gi.require_version("Gst", "1.0")
 
-from gi.repository import Tcam, Gst, GLib
+    from gi.repository import Tcam, Gst, GLib
+except:
+    print('*******unable to import sub camera drivers*******')
 
 
 class CVController():
@@ -39,81 +42,154 @@ class CVController():
         #rospy.Subscriber('houston_to_cv', Task, HoustonCallback)
         #rospy.pub_cv_data = rospy.Publisher('cv_to_houston', CVData)
         #rospy.init_node('CV_talker', anonymous=True)
-
-        '''self.sample = None
-        self.pipeline = None
-        self.loop = GLib.MainLoop()
-        self.thread = None'''
+        self.camera_start_dictionary = {0: self.default_camera_start,
+                                        1: self.sub_driver_camera_start}
         
+        self.camera_detect = {0: self.default_camera_detect,
+                            1: self.sub_driver_camera_detect}
 
-    '''def HoustonCallback(data):
-        rospy.loginfo(rospy.get_caller_id() +( "testing: %s", data.data)'''
-    def start(self):
-        self.cap = None
-        self.cap = cv2.VideoCapture(0)
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.out = cv2.VideoWriter('video_output/gate-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
-        #self.outraw = cv2.VideoWriter('video_output/raw' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
-        #self.outprocessed = cv2.VideoWriter('video_output/processed' + self.tasks[self.state_num] + '-' + str(time.time()) + '_output.avi', self.fourcc, 20.0, (744, 480))
-        '''print("setup pipeline")
-        self.setupPipline()
-        self.thread=Thread(target=self.start_loop)
-        self.thread.start()'''
+        try:
+            self.loop = GLib.MainLoop()
+            self.sample = None
+            self.pipeline = None
+            self.thread = None
+            self.sub_camera_found = 1
+            print('*******initialize Glib.MainLoop() successful*******')
+        except:
+            self.cap = cv2.VideoCapture(0)
+            self.sub_camera_found = 0
+            print('*******unable to initialize Glib.MainLoop()*******')
 
+    def start(self, task_name):
+        self.camera_start_dictionary[self.sub_camera_found](task_name)
         print 'start cvcontroller'
 
     def stop(self):
-        self.cap.release()
-        cv2.destroyAllWindows()
+        try:
+            self.closePipline()
+            print 'pipline closed'
+        except:
+            self.cap.release()
+            print 'laptop/default camera released'
+        #cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
+    def sub_driver_camera_start(self, task_name):
+        print("setup pipeline")
+        self.setupPipline()
+        self.thread=Thread(target=self.start_loop)
+        self.thread.start()
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (744, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (744, 480))
+        print 'sub camera found'
+
+    def default_camera_start(self, task_name):
+        self.cap = None
+        self.cap = cv2.VideoCapture(0)
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
+        print 'laptop/default camera found'
+
+    def sub_driver_camera_detect(self, task):
+        if self.sample:
+            # print("have sample")
+            buf = self.sample.get_buffer()
+
+            caps = self.sample.get_caps()
+            width = caps[0].get_value("width")
+            height = caps[0].get_value("height")
+            try:
+                res, mapinfo = buf.map(Gst.MapFlags.READ)
+                # actual image buffer and size
+                # data = mapinfo.data
+                # size = mapinfo.size
+
+                # Create a numpy array from the data
+                img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+
+                # Give the array the correct dimensions of the video image
+                frame = img_array.reshape((height, width, 3))
+                # print(type(frame))
+
+                # self.outraw.write(frame)
+                # self.msg.found, coordinates = self.state.detect(frame)
+                # self.outprocessed.write(frame)
+
+                # self.last_reading.append(coordinates)
+                self.outraw.write(frame)
+                self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
+                self.outprocessed.write(frame)
+
+                self.show_img(frame)
+
+            except KeyboardInterrupt:
+                self.state.is_detect_done = True
+                # raise
+            finally:
+                buf.unmap(mapinfo)
+
+        return found, directions, gate_shape, width_height
+
+    
+    def default_camera_detect(self, task):
+        self.cv_task = self.tasks[task]
+        _, frame = self.cap.read()
+        self.outraw.write(frame)
+        found, directions, gate_shape, width_height = self.cv_task.detect(frame)
+        #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
+        self.outprocessed.write(frame)
+
+        return found, directions, gate_shape, width_height
     
     # TODO implement methods for cv_controller
     #def get_coordinates?
     def detect(self, task):
 
-        '''if self.sample:
-                # print("have sample")
-                buf = self.sample.get_buffer()
+        # if self.sample:
+        #         # print("have sample")
+        #         buf = self.sample.get_buffer()
 
-                caps = self.sample.get_caps()
-                width = caps[0].get_value("width")
-                height = caps[0].get_value("height")
-                try:
-                    res, mapinfo = buf.map(Gst.MapFlags.READ)
-                    # actual image buffer and size
-                    # data = mapinfo.data
-                    # size = mapinfo.size
+        #         caps = self.sample.get_caps()
+        #         width = caps[0].get_value("width")
+        #         height = caps[0].get_value("height")
+        #         try:
+        #             res, mapinfo = buf.map(Gst.MapFlags.READ)
+        #             # actual image buffer and size
+        #             # data = mapinfo.data
+        #             # size = mapinfo.size
 
-                    # Create a numpy array from the data
-                    img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+        #             # Create a numpy array from the data
+        #             img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
 
-                    # Give the array the correct dimensions of the video image
-                    frame = img_array.reshape((height, width, 3))
-                    # print(type(frame))
+        #             # Give the array the correct dimensions of the video image
+        #             frame = img_array.reshape((height, width, 3))
+        #             # print(type(frame))
 
-                    # self.outraw.write(frame)
-                    # self.msg.found, coordinates = self.state.detect(frame)
-                    # self.outprocessed.write(frame)
+        #             # self.outraw.write(frame)
+        #             # self.msg.found, coordinates = self.state.detect(frame)
+        #             # self.outprocessed.write(frame)
 
-                    # self.last_reading.append(coordinates)
-                    self.outraw.write(frame)
-                    self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
-                    self.outprocessed.write(frame)
+        #             # self.last_reading.append(coordinates)
+        #             self.outraw.write(frame)
+        #             self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
+        #             self.outprocessed.write(frame)
 
-                    self.show_img(frame)
+        #             self.show_img(frame)
 
-                except KeyboardInterrupt:
-                    self.state.is_detect_done = True
-                    # raise
-                finally:
-                    buf.unmap(mapinfo)'''
+        #         except KeyboardInterrupt:
+        #             self.state.is_detect_done = True
+        #             # raise
+        #         finally:
+        #             buf.unmap(mapinfo)
                     
-        self.cv_task = self.tasks[task]
-        _, frame = self.cap.read()
-        found, directions, gate_shape, width_height = self.cv_task.detect(frame)
-        #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
-        self.out.write(frame)
+        # self.cv_task = self.tasks[task]
+        # _, frame = self.cap.read()
+        # self.outraw.write(frame)
+        # found, directions, gate_shape, width_height = self.cv_task.detect(frame)
+        # #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
+        # self.outprocessed.write(frame)
 
         # TODO not working at the moment, need to figure it out
         # CV controller currently only works with cv2 drivers
@@ -127,20 +203,18 @@ class CVController():
         #if key == ord("q"):
         #    break
         #self.cap.release
+
+        # try:
+        #     self.setupPipline()
+        #     self.thread=Thread(target=self.start_loop)
+        #     self.thread.start()
+        # except:
+        #     pass
+            # print('unable to set upPipline()')
         
-        return found, directions, gate_shape, width_height
+        return self.camera_detect[self.sub_camera_found](task)
 
-    '''def run_detect_for_task(self, task = None):
-        self.reset_thread()
-
-        self.thread_cv = Thread(target = self.detect, args = task)
-        self.thread_cv.start()
-
-    def reset_thread():
-        if self.thread_cv:
-            self.thread_cv = None'''
-
-    '''def show_img(self, img):
+    def show_img(self, img):
         bytebuffer = img.tobytes()
         self.display_buffers.append(bytebuffer)
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
@@ -225,6 +299,7 @@ class CVController():
 
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
+
     def closePipline(self):
         self.outraw.release()
         self.outprocessed.release()
@@ -298,5 +373,4 @@ class CVController():
             # try for frame rate lists
             _unused_field, values, _unsued_remain = re.split("{|}", substr, maxsplit=3)
             rates = [x.strip() for x in values.split(",")]
-        return rates'''
-
+        return rates
