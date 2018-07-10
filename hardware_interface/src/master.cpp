@@ -1164,7 +1164,7 @@ void positionControl(){
     else if(rightLeftOffset < -keepPositionMaxPowerRightLeft)
       rightLeftOffset = -keepPositionMaxPowerRightLeft;
     //forward positive, right positive offsets
-    cout << "direction: " << pDirection << " distance: " << pDistance << endl;
+    // cout << "direction: " << pDirection << " distance: " << pDistance << endl;
     // cout << "keep x: " << keepPositionX << " keep y: " << keepPositionY << endl;
     setMHorizontalOffset(rightLeftOffset, forwardBackwardOffset, rightLeftOffset, -forwardBackwardOffset);
   }
