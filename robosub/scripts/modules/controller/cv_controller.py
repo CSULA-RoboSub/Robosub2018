@@ -16,7 +16,7 @@ import numpy as np
 
 from modules.sensors.computer_vision import GateDetector
 #from modules.sensors.computer_vision import BuoyDetector
-#from modules.sensors.computer_vision import DiceDetector
+# from modules.sensors.computer_vision import DiceDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -35,7 +35,7 @@ class CVController():
         # create instance of classes
         self.gatedetector = GateDetector.GateDetector()
         #self.buoydetector = BuoyDetector.BuoyDetector()
-        #self.dicedetector = DiceDetector.DiceDetector()
+        # self.dicedetector = DiceDetector.DiceDetector()
 
         self.tasks = {'gate': self.gatedetector}
 
@@ -96,7 +96,7 @@ class CVController():
 
     def sub_driver_camera_detect(self, task):
         if not task:
-            return
+            return None, None, None, None
             
         self.cv_task = self.tasks[task]
         if self.sample:

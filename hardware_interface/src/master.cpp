@@ -28,45 +28,45 @@ using namespace std;
 //CHANGED PWM_Motors TO PWM_Motors_depth SINCE THERE ARE 2 DIFFERENT PWM CALCULATIONS
 //ONE IS FOR DEPTH AND THE OTHER IS USED FOR MOTORS TO ROTATE TO PROPER NEW LOCATION
 // int PWM_Motors_Depth;
-// float dutyCycl_depth;
-float assignedDepth;
-float feetDepth_read;
+// double dutyCycl_depth;
+double assignedDepth;
+double feetDepth_read;
 
 //initializations for IMU
-float pitch, yaw, roll, heading;
+double pitch, yaw, roll, heading;
 // bool firstIMUReading;
 
 int i;
 int PWM_Motors_orient;
-float rotatePowerMax = 120;
-float abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
-float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
-float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
-float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
-float temperature;
-float dutyCycl_orient;
-float assignedYaw;
+double rotatePowerMax = 120;
+double abias[3] = {0, 0, 0}, gbias[3] = {0, 0, 0};
+double ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values
+double q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
+double eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
+double temperature;
+double dutyCycl_orient;
+double assignedYaw;
 
 //Initialize ROS node
-const float rotationUpperBound = 180;
-const float rotationLowerBound = -180;
-const float rotationMultiplier = 4.5;
-const float rotationMinOffselt = 35;
-const float topDepth = 0.5;
-const float bottomDepth = 12;
-const float motorMax = 1700;
-const float motorMin = 1300;
+const double rotationUpperBound = 180;
+const double rotationLowerBound = -180;
+const double rotationMultiplier = 4.5;
+const double rotationMinOffselt = 35;
+const double topDepth = 0.5;
+const double bottomDepth = 12;
+const double motorMax = 1700;
+const double motorMin = 1300;
 int mControlDirection;
-float mControlPower;
-float rControlPower;
-float mControlDistance;
-float mControlRunningTime;
+double mControlPower;
+double rControlPower;
+double mControlDistance;
+double mControlRunningTime;
 double mControlMode5Timer; //time variable for timed movement
-float centerTimer;
-float rotationTimer;
-float rotationTime;
-// float movementTimer;
-float movementTime;
+double centerTimer;
+double rotationTimer;
+double rotationTime;
+// double movementTimer;
+double movementTime;
 bool subIsReady;
 bool isGoingUp;
 bool isGoingDown;
@@ -90,22 +90,22 @@ bool keepMovingLeft;
 
 //dvl position data is in meters---------------
 //dvl position variables-----------------------
-float positionXPrev = 0;
-float positionYPrev = 0;
+double positionXPrev = 0;
+double positionYPrev = 0;
 
-float positionX = 0;
-float positionY = 0;
-float positionZ = 0;
-float velocityX = 0;
-float velocityY = 0;
-float velocityZ = 0;
+double positionX = 0;
+double positionY = 0;
+double positionZ = 0;
+double velocityX = 0;
+double velocityY = 0;
+double velocityZ = 0;
 
 //position keeping variables
-float keepPositionX = 0;
-float keepPositionY = 0;
-const float keepPositionThreshold = 0.1; //meters
-const float keepPositionMaxPowerForwardBackward = 80;
-const float keepPositionMaxPowerRightLeft = 100;
+double keepPositionX = 0;
+double keepPositionY = 0;
+const double keepPositionThreshold = 0.4; //meters
+const double keepPositionMaxPowerForwardBackward = 80;
+const double keepPositionMaxPowerRightLeft = 80;
 
 std_msgs::Float32 currentDepth;
 std_msgs::Float32 dvlHeading;
@@ -117,17 +117,19 @@ hardware_interface::MotorVertical mVertical;
 hardware_interface::MotorHorizontal mHorizontal;
 //msg container used to offset mHorizontal for position keeping
 hardware_interface::MotorHorizontal mHorizontalOffset;
+hardware_interface::MotorHorizontal mHorizontalTotal;
 
-ros::Publisher hControlPublisher;     //int: state, float: depth
-ros::Publisher rControlPublisher;   //int: state, float: rotation
-ros::Publisher mControlPublisher;   //int: state, int: direction, float: distance
-ros::Publisher currentDepthPublisher;           //float: depth
+
+ros::Publisher hControlPublisher;     //int: state, double: depth
+ros::Publisher rControlPublisher;   //int: state, double: rotation
+ros::Publisher mControlPublisher;   //int: state, int: direction, double: distance
+ros::Publisher currentDepthPublisher;           //double: depth
 ros::Publisher mHorizontalPublisher;
 ros::Publisher mVerticalPublisher;
 
 ros::Subscriber currentDepthSubscriber;
-ros::Subscriber hControlSubscriber;   //int: state, float: depth
-ros::Subscriber rControlSubscriber; //int: state, float: rotation
+ros::Subscriber hControlSubscriber;   //int: state, double: depth
+ros::Subscriber rControlSubscriber; //int: state, double: rotation
 ros::Subscriber mControlSubscriber;
 ros::Subscriber rotationSubscriber;
 ros::Subscriber dvlSubscriber;
@@ -135,23 +137,23 @@ ros::Subscriber dvlSubscriber;
 //depth control variables
 // int pwm_submerge = 200;
 // int pwm_emerge = 150;
-float hControlPower;
+double hControlPower;
 //thrusters off value does not change
-const float base_thrust = 1500;
+const double base_thrust = 1500;
 
 //time variables
 double elapsedTime, timeCur, timePrev, loopTime, loopTimePrev;
 const int loopInterval = 20;
 
 //the variable error will store the difference between the real_value_angle form IMU and desired_angle of 0 degrees. 
-// float PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
-float PID_pitch, PID_roll, PID_depth, pwmThruster_1, pwmThruster_2, pwmThruster_3, pwmThruster_4, 
+// double PID_pitch, PID_roll, pwmThruster_2, pwmThruster_1, pwmThruster_3, pwmThruster_4, error_roll, prev_error_roll = 0,error_pitch, prev_error_pitch = 0;
+double PID_pitch, PID_roll, PID_depth, pwmThruster_1, pwmThruster_2, pwmThruster_3, pwmThruster_4, 
 error_roll, prev_error_roll=0, error_pitch, prev_error_pitch=0, error_depth, prev_error_depth=0;
 
 //////////////PID_pitch variables////////////////////
-float pid_p_pitch=0;
-float pid_d_pitch=0;
-float pid_i_pitch=0;
+double pid_p_pitch=0;
+double pid_d_pitch=0;
+double pid_i_pitch=0;
 /////////////////PID_pitch constants/////////////////
 double kp_pitch=2;//11;//3.55;//3.55
 double kd_pitch=0.7;//0.75;//2.05;//2.05
@@ -159,9 +161,9 @@ double ki_pitch=0.0003;//0.003
 ///////////////////////////////////////////////
 
 //////////////PID_roll variables////////////////////
-float pid_p_roll=0;
-float pid_d_roll=0;
-float pid_i_roll=0;
+double pid_p_roll=0;
+double pid_d_roll=0;
+double pid_i_roll=0;
 /////////////////PID_roll constants/////////////////
 double kp_roll=2;//11;//3.55;//3.55
 double kd_roll=0.7;//0.75;//2.05;//2.05
@@ -169,9 +171,9 @@ double ki_roll=0.0003;//0.003
 ///////////////////////////////////////////////
 
 //////////////PID_depth variables////////////////////
-float pid_p_depth=0;
-float pid_d_depth=0;
-float pid_i_depth=0;
+double pid_p_depth=0;
+double pid_d_depth=0;
+double pid_i_depth=0;
 /////////////////PID_depth constants/////////////////
 double kp_depth=300;//11;//3.55;//3.55
 double kd_depth=0.75;//0.75;//2.05;//2.05
@@ -179,13 +181,13 @@ double ki_depth=0.003;//0.003
 ///////////////////////////////////////////////
 
 //double thrust=base_thrust; //initial value of thrust to the thrusters
-float desired_angle = 0; //This is the angle in which we whant the
+double desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hoover
-float threshold = 0.3;
+double threshold = 0.3;
 ///////////////////////////////////////////////
 
-float degreeToTurn();
+double degreeToTurn();
 void rotateRightDynamically();
 void rotateLeftDynamically();
 
@@ -204,7 +206,7 @@ void setKeepPosition(){
   keepPositionY = positionY;
 }
 
-void setMHorizontalOffset(const float t5, const float t6, const float t7, const float t8){
+void setMHorizontalOffset(const double t5, const double t6, const double t7, const double t8){
   mHorizontalOffset.t5 = t5;
   mHorizontalOffset.t6 = t6;
   mHorizontalOffset.t7 = t7;
@@ -212,7 +214,7 @@ void setMHorizontalOffset(const float t5, const float t6, const float t7, const 
 }
 
 //pass in -1 to ignore that motor
-void publishMVertical(const float t1, const float t2, const float t3, const float t4){
+void publishMVertical(const double t1, const double t2, const double t3, const double t4){
   if(t1 > 0)
     mVertical.t1 = t1;
   if(t2 > 0)
@@ -225,7 +227,7 @@ void publishMVertical(const float t1, const float t2, const float t3, const floa
 }
 
 //pass in -1 to ignore that motor
-void publishMHorizontal(const float t5, const float t6, const float t7, const float t8){
+void publishMHorizontal(const double t5, const double t6, const double t7, const double t8){
   if(t5 > 0)
     mHorizontal.t5 = t5 + mHorizontalOffset.t5;
   if(t6 > 0)
@@ -237,6 +239,16 @@ void publishMHorizontal(const float t5, const float t6, const float t7, const fl
 
 }
 
+
+void publishMotors(){
+  mHorizontalTotal.t5 = mHorizontal.t5 + mHorizontalOffset.t5;
+  mHorizontalTotal.t6 = mHorizontal.t6 + mHorizontalOffset.t6;
+  mHorizontalTotal.t7 = mHorizontal.t7 + mHorizontalOffset.t7;
+  mHorizontalTotal.t8 = mHorizontal.t8 + mHorizontalOffset.t8;
+  mVerticalPublisher.publish(mVertical);
+  mHorizontalPublisher.publish(mHorizontalTotal);
+}
+
 //sets motors to publish base_thrust
 void motorsOff(){
   publishMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
@@ -246,7 +258,7 @@ void motorsOff(){
 
 //dynamic rotations left/right
 void rotateLeftDynamically(){
-  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
+  double rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
 
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -268,7 +280,7 @@ void rotateLeftDynamically(){
 }
 
 void rotateRightDynamically(){
-  float rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
+  double rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffselt;
 
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
@@ -290,8 +302,8 @@ void rotateRightDynamically(){
 }
 
 //Return 0 to 180
-float degreeToTurn(){
-  float difference = max(yaw, assignedYaw) - min(yaw, assignedYaw);
+double degreeToTurn(){
+  double difference = max(yaw, assignedYaw) - min(yaw, assignedYaw);
   if (difference > rotationUpperBound) return 360-difference;
   else return difference;
 }
@@ -342,8 +354,8 @@ void currentDepthCallback(const std_msgs::Float32& currentDepth){
 
 void hControlCallback(const robosub::HControl& hControl) {
   int hState = hControl.state;
-  // float hDepth = hControl.depth;
-  float depth = hControl.depth;
+  // double hDepth = hControl.depth;
+  double depth = hControl.depth;
   // char depthChar[6];
   // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
@@ -419,7 +431,7 @@ void hControlCallback(const robosub::HControl& hControl) {
 
 void rControlCallback(const robosub::RControl& rControl){
 
-  float rotation = rControl.rotation;
+  double rotation = rControl.rotation;
   // char rotationChar[11];
   // dtostrf(rotation, 4, 2, rotationChar);
   rControlPower = rControl.power;
@@ -515,9 +527,9 @@ void rControlCallback(const robosub::RControl& rControl){
 // power => 0: none, x: x power add to the motors
 // distance => 0: none, x: x units away from the object
 void mControlCallback(const robosub::MControl& mControl){
-  float power = mControl.power;
-  float distance = mControl.distance;
-  float mode5Time = mControl.runningTime;
+  double power = mControl.power;
+  double distance = mControl.distance;
+  double mode5Time = mControl.runningTime;
 
   string directionStr;
   mControlStatus.state = mControl.state;
@@ -618,8 +630,6 @@ void mControlCallback(const robosub::MControl& mControl){
       mControlPower = mControl.power;
       mControlDirection = mControl.mDirection;
       mControlDistance = mControl.distance;
-      positionXPrev = positionX;
-      positionYPrev = positionY;
       cout << "going " << directionStr << " " << mControlDistance << " meters."<< endl;
     }
   }
@@ -804,8 +814,8 @@ void heightControl(){
 //read rotation is from -193.8 to 166.2
 void rotationControl(){
 
-  float delta = degreeToTurn();
-  float rotationError = 0.2;
+  double delta = degreeToTurn();
+  double rotationError = 0.2;
   int fixedPower = rControlPower;
   if(fixedPower > rotatePowerMax) fixedPower = rotatePowerMax;
 
@@ -869,7 +879,7 @@ void rotationControl(){
     //   // cout << "isTurningLeft" << endl;
     //   rotateLeftDynamically();
     // }
-    float deltaRange = 4;
+    double deltaRange = 4;
     if(yaw + delta > rotationUpperBound && (yaw + -assignedYaw) > 180){
       // ROS_INFO("yaw + delta > rotationUpperBound");
       // if((assignedYaw-deltaRange <= yaw - delta && yaw - delta <= assignedYaw+deltaRange) && isTurningLeft){
@@ -942,7 +952,7 @@ void rotationControl(){
 }
 
 void movementControl(){
-  float mControlPowerTemp = mControlPower;
+  double mControlPowerTemp = mControlPower;
   if(mControlPowerTemp > 200) mControlPowerTemp = 200;
 
   if(mControlMode1){
@@ -1014,8 +1024,8 @@ void movementControl(){
       // ROS_INFO("moving left...");
     }
     double calculatedDistance = 0;
-    float l1 = max(positionX, positionXPrev) - min(positionX, positionXPrev);
-    float l2 = max(positionY, positionYPrev) - min(positionY, positionYPrev);
+    double l1 = max(positionX, positionXPrev) - min(positionX, positionXPrev);
+    double l2 = max(positionY, positionYPrev) - min(positionY, positionYPrev);
     calculatedDistance = sqrt(l1*l1 + l2*l2);
     // cout << "calculatedDistance: " << calculatedDistance << " mControlDistance: " << mControlDistance << endl;
     // cout << "mControlPower: " << mControlPower << endl;
@@ -1095,28 +1105,28 @@ void positionControl(){
     setMHorizontalOffset(0, 0, 0, 0);
   }
   else{
-    float pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
-    float pDistance = DVLHelper::getDistance(positionX, positionY, keepPositionX, keepPositionY);
+    double pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
+    double pDistance = DVLHelper::getDistance(positionX, positionY, keepPositionX, keepPositionY);
 
-    float forwardBackwardDistance, rightLeftDistance;
-    float forwardBackwardOffset = 0, rightLeftOffset = 0;
+    double forwardBackwardDistance, rightLeftDistance;
+    double forwardBackwardOffset = 0, rightLeftOffset = 0;
     if(pDirection >= 0){
       //on right side of sub rightleftoffset must be positive
       if(pDirection < 90){
         //move forward positive forwardbackwardoffset
         forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
-        forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
+        forwardBackwardOffset = abs(forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward;
 
         rightLeftDistance = cos(abs(pDirection)) * pDistance;
-        rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
+        rightLeftOffset = abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft;
       }
       else{
         //move backward negative forwardbackwardoffset
         forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
-        forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
+        forwardBackwardOffset = -(abs(forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward);
 
         rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
-        rightLeftOffset = rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft;
+        rightLeftOffset = abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft;
       }
     }
     else{
@@ -1124,10 +1134,10 @@ void positionControl(){
       if(pDirection > -90){
         //move forward positive forwardbackwardoffset
         forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
-        forwardBackwardOffset = forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward;
+        forwardBackwardOffset = abs(forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward;
 
         rightLeftDistance = cos(abs(pDirection)) * pDistance;
-        rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+        rightLeftOffset = -(abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft);
       }
       else{
         //move backward negative forwardbackwardoffset
@@ -1135,7 +1145,7 @@ void positionControl(){
         forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
 
         rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
-        rightLeftOffset = -(rightLeftDistance/keepPositionThreshold * keepPositionMaxPowerRightLeft);
+        rightLeftOffset = -(abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft);
       }
     }
 
@@ -1150,15 +1160,13 @@ void positionControl(){
     else if(rightLeftOffset < -keepPositionMaxPowerRightLeft)
       rightLeftOffset = -keepPositionMaxPowerRightLeft;
     //forward positive, right positive offsets
+    cout << "direction: " << pDirection << " distance: " << pDistance << endl;
+    // cout << "keep x: " << keepPositionX << " keep y: " << keepPositionY << endl;
     setMHorizontalOffset(rightLeftOffset, forwardBackwardOffset, rightLeftOffset, -forwardBackwardOffset);
   }
 }
 
 //motor publisher
-void publishMotors(){
-  mVerticalPublisher.publish(mVertical);
-  mHorizontalPublisher.publish(mHorizontal);
-}
 
 void setup() {
 
@@ -1268,7 +1276,7 @@ void loop() {
     // heightControl();
     movementControl();
     // rotationControl();
-    positionControl();
+    // positionControl();
   } else {
     motorsOff();
   }
@@ -1288,7 +1296,7 @@ void loop() {
       heightControl();
       // movementControl();
       rotationControl();
-      // positionControl();
+      positionControl();
     } else {
       motorsOff();
     }
