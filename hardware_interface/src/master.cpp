@@ -16,9 +16,9 @@ todo: clean/split file up to make it more readable and modular
 #include <algorithm>
 #include <iostream>
 
+#include <ros/ros.h>
 #include <std_msgs/Int32.h>
 #include <std_msgs/Float32.h>
-#include "ros/ros.h"
 #include <robosub/HControl.h>
 #include <robosub/RControl.h>
 #include <robosub/MControl.h>
@@ -271,20 +271,11 @@ void rotateLeftDynamically(){
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-    // T6.writeMicroseconds(base_thrust + rotatePower);
-    // T8.writeMicroseconds(base_thrust + rotatePower);
     setMHorizontal(-1, base_thrust + rotatePower, -1, base_thrust + rotatePower);
   }
   else{
-    // T5.writeMicroseconds(base_thrust - rotatePower);
-    // T7.writeMicroseconds(base_thrust + rotatePower);
     setMHorizontal(base_thrust - rotatePower, -1, base_thrust + rotatePower, -1);
   }
-  // ROS_INFO("rotate left");
-  //Testing----------------------------
-  //yaw += 1;
-  //if(yaw > rotationUpperBound) yaw -= 360;
-
 }
 
 void rotateRightDynamically(){
@@ -293,20 +284,11 @@ void rotateRightDynamically(){
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(((mControlMode5 || mControlMode1 || mControlMode2) && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft){
-    // T6.writeMicroseconds(base_thrust - rotatePower);
-    // T8.writeMicroseconds(base_thrust - rotatePower);
     setMHorizontal(-1, base_thrust - rotatePower, -1, base_thrust - rotatePower);
   }
   else{
-    // T5.writeMicroseconds(base_thrust + rotatePower);
-    // T7.writeMicroseconds(base_thrust - rotatePower);
     setMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
   }
-  // ROS_INFO("rotate right");
-  //Testing----------------------------
-  //yaw -= 1;
-  //if(yaw < rotationLowerBound) yaw +=360;
-
 }
 
 //Return 0 to 180
@@ -346,6 +328,8 @@ void rotationCallback(const ez_async_data::Rotation& rotation){
   pitch = -rotation.pitch;
 }
 
+//xvel is left right strafe velocity, yvel is forward backward velocity,
+//zvel is up down velocity
 void dvlCallback(const pathfinder_dvl::DVL& dvl_status){
   positionX = dvl_status.xpos;
   positionY = dvl_status.ypos;
@@ -362,10 +346,7 @@ void currentDepthCallback(const std_msgs::Float32& currentDepth){
 
 void hControlCallback(const robosub::HControl& hControl) {
   int hState = hControl.state;
-  // double hDepth = hControl.depth;
   double depth = hControl.depth;
-  // char depthChar[6];
-  // dtostrf(depth, 4, 2, depthChar);
   hControlPower = hControl.power;
 
   if(hControl.state == 0){
@@ -389,11 +370,6 @@ void hControlCallback(const robosub::HControl& hControl) {
       ROS_INFO("Height control is now cancelled\n");
       assignedDepth = feetDepth_read+0.5;
     }
-    // ROS_INFO();
-    // ROS_INFO("assignedDepth:");
-    // ROS_INFO(assignedDepthChar);
-    // ROS_INFO("feetDepth_read:");
-    // ROS_INFO(feetDepth_readChar);
   }
   else if(hControl.state == 2){
     if(!isGoingUp && !isGoingDown){
@@ -440,8 +416,6 @@ void hControlCallback(const robosub::HControl& hControl) {
 void rControlCallback(const robosub::RControl& rControl){
 
   double rotation = rControl.rotation;
-  // char rotationChar[11];
-  // dtostrf(rotation, 4, 2, rotationChar);
   rControlPower = rControl.power;
   rControlStatus.state = rControl.state;
   rControlStatus.rotation = rControl.rotation;
@@ -522,16 +496,11 @@ void rControlCallback(const robosub::RControl& rControl){
       ROS_INFO("Sub is still rotating.Command abort.");
     
   }
-  // rControlStatus.state = rControl.state;
-  // rControlStatus.rotation = rControl.rotation;
-  // rControlStatus.power = rControlPower;
-  // rControlPublisher.publish(rControlStatus);
-
 }
 
 // MControl
 // state => 0: off, 1: on with power, 2: on with distance, 3: centered with front cam, 4: centered with bottom cam
-// direction => 0: none, 1: forward, 2: right, 3: backward, 4: left
+// direction => 1: forward, 2: right, 3: backward, 4: left
 // power => 0: none, x: x power add to the motors
 // distance => 0: none, x: x units away from the object
 void mControlCallback(const robosub::MControl& mControl){
@@ -1278,3 +1247,4 @@ int main(int argc, char **argv){
 
   return 0;
 }
+
