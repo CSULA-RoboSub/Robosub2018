@@ -1,4 +1,4 @@
-from scripts.setup_ros import Installer
+from installation_scripts.setup_ros import Installer
 
 
 def main():

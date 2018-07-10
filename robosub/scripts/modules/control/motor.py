@@ -21,7 +21,7 @@ class Motor():
         return self.state
 
     def toggle_state(self, arg=None):
-        """Toggles the state of the motors (1 == on, 0 == off, empty == toggle)"""
+        """Toggles the state of the motors (4 == on, 5 == off, empty == toggle)"""
         if arg != 4 and arg != 5:
             return
 
@@ -44,7 +44,6 @@ class Motor():
         self.h_control.state = state
 
         self.pub.publish(self.h_control)
-        # rospy.sleep(.01)
 
         print('\nmotor state published %d' % state)
 
@@ -60,4 +59,4 @@ class Motor():
 
         self.is_killswitch_on = False
 
-        self.pub_motor_state(0)
+        self.pub_motor_state(5)
