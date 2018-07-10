@@ -96,8 +96,8 @@ class Gate(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, m_power=120, rotation=15):
         self.cvcontroller.start(task_name)
-        count = 0
         self.mutex.acquire()
+        count = 0
         self.last_time = time.time()
         #self.run_detect_for_task(navigation, m_power, rotation)
         while not self.stop_task:
@@ -155,7 +155,7 @@ class Gate(Task):
     def reset_thread(self):
         if self.thread_gate:
             self.thread_gate = None
-
+            
     # detect ##################################################################################   
     def detect(self, frame):
         pass
@@ -249,3 +249,4 @@ class Gate(Task):
     # restart_task ##################################################################################
     def restart_task(self):
         print 'restart gate'
+        
