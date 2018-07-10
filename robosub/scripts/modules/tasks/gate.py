@@ -102,7 +102,6 @@ class Gate(Task):
         #self.run_detect_for_task(navigation, m_power, rotation)
         while not self.stop_task:
             try:
-                count += 1
                 found, directions, gate_shape, width_height = self.cvcontroller.detect(task_name)
                 # if directions:
                 if found:
@@ -110,6 +109,7 @@ class Gate(Task):
 
                 if (time.time()-self.last_time > 0.05):
                     self.last_time = time.time()
+                    count += 1
 
                     try:
                         most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
