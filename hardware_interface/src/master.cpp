@@ -630,6 +630,9 @@ void mControlCallback(const robosub::MControl& mControl){
       mControlPower = mControl.power;
       mControlDirection = mControl.mDirection;
       mControlDistance = mControl.distance;
+      //save starting point for use in distance checking
+      positionXPrev = positionX;
+      positionYPrev = positionY;
       cout << "going " << directionStr << " " << mControlDistance << " meters."<< endl;
     }
   }
@@ -745,20 +748,20 @@ void heightControl(){
   */
 
   //emerging                                           
-  if (assignedDepth < (feetDepth_read - threshold )){
-    pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
-    pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-    pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
-    pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
-  }
+  // if (assignedDepth < (feetDepth_read - threshold )){
+  //   pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
+  //   pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
+  //   pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
+  //   pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
+  // }
 
-  //submerging
-  else if (assignedDepth > (feetDepth_read + threshold)){
-    pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
-    pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-    pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
-    pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
-  }
+  // //submerging
+  // else if (assignedDepth > (feetDepth_read + threshold)){
+  //   pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
+  //   pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
+  //   pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
+  //   pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
+  // }
   
   //////Stabilization sum
   else{
@@ -775,11 +778,12 @@ void heightControl(){
     // pwmThruster_2 = base_thrust + PID_pitch - PID_roll + pid_i_depth;
     // pwmThruster_3 = base_thrust - PID_pitch + PID_roll - pid_i_depth;
     // pwmThruster_4 = base_thrust + PID_pitch + PID_roll + pid_i_depth;
-    pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
-    pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-    pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
-    pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
   }
+  
+  pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
+  pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
+  pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
+  pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
 
   ///////////Thruster power buffer//////////////
   //Thruster_1
@@ -1114,18 +1118,18 @@ void positionControl(){
       //on right side of sub rightleftoffset must be positive
       if(pDirection < 90){
         //move forward positive forwardbackwardoffset
-        forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
+        forwardBackwardDistance = sin(DVLHelper::deg2rad(abs(pDirection))) * pDistance;
         forwardBackwardOffset = abs(forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward;
 
-        rightLeftDistance = cos(abs(pDirection)) * pDistance;
+        rightLeftDistance = cos(DVLHelper::deg2rad(abs(pDirection))) * pDistance;
         rightLeftOffset = abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft;
       }
       else{
         //move backward negative forwardbackwardoffset
-        forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
+        forwardBackwardDistance = sin(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance;
         forwardBackwardOffset = -(abs(forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward);
 
-        rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
+        rightLeftDistance = cos(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance;
         rightLeftOffset = abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft;
       }
     }
@@ -1133,18 +1137,18 @@ void positionControl(){
       //on left side of sub rightleftoffset must be negative
       if(pDirection > -90){
         //move forward positive forwardbackwardoffset
-        forwardBackwardDistance = sin(abs(pDirection)) * pDistance;
+        forwardBackwardDistance = sin(DVLHelper::deg2rad(abs(pDirection))) * pDistance;
         forwardBackwardOffset = abs(forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward;
 
-        rightLeftDistance = cos(abs(pDirection)) * pDistance;
+        rightLeftDistance = cos(DVLHelper::deg2rad(abs(pDirection))) * pDistance;
         rightLeftOffset = -(abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft);
       }
       else{
         //move backward negative forwardbackwardoffset
-        forwardBackwardDistance = sin(abs(pDirection) - 90) * pDistance;
+        forwardBackwardDistance = sin(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance;
         forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward);
 
-        rightLeftDistance = cos(abs(pDirection) - 90) * pDistance;
+        rightLeftDistance = cos(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance;
         rightLeftOffset = -(abs(rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft);
       }
     }
