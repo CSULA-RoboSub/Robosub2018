@@ -33,5 +33,19 @@ class Controller():
     def manual_move(self, direction, power, depth):
         """Manual movement of the sub based on button press"""
 
-        
+        directions = {
+            'brake': '`',
+            'forward': 'w',
+            'backward': 's',
+            'strafe_l': 'q',
+            'strafe_r': 'e',
+            'rotate_l': 'a',
+            'rotate_r': 'd',
+            'up': 'r',
+            'down': 'f'
+        }
+
+        # self.AUV.keyboard.set_power(h_power=100)
+        # self.AUV.keyboard.navigate(directions[direction], power, depth)
+        # TODO change keyboard to accept power
         pass

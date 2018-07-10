@@ -191,6 +191,19 @@ class Keyboard():
             self.navigation.cancel_h_nav(self.h_power)
             self.navigation.h_nav('down', height, self.h_power)
 
+    def set_power(self, **power_type):
+        """
+        Sets the power to a value set_power(power_type=value)
+        Keywords: h_power, m_power, r_power
+        """
+
+        if power_type['h_power'] > 0:
+            self.h_power = power_type['h_power']
+        if power_type['m_power'] > 0:
+            self.h_power = power_type['m_power']
+        if power_type['r_power'] > 0:
+            self.h_power = power_type['r_power']
+
     def start(self):
         """Allows keyboard navigation when killswitch is plugged in"""
 
