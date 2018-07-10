@@ -9,9 +9,9 @@ class Waypoint():
             
     def __init__(self):
         self.dvl_msg = DVL()
-        self.yaw = None
+        self.heading = None
         self.depth = None
-        self.waypoint_queue = []
+        self.waypoint_list = []
 
         # rospy.init_node('waypoint_node', anonymous=True)
         rospy.Subscriber('dvl_status', DVL, self.dvl_callback, queue_size=1)
@@ -35,69 +35,69 @@ class Waypoint():
             heading = rotation_msg.yaw - 90
         else:
             heading = rotation_msg.yaw + 270
-        self.yaw = heading
-        # print('current yaw: %.2f' % self.yaw)
+        self.heading = heading
+        # print('current yaw: %.2f' % self.heading)
     # def rotation_callback(self, rotation_msg):
     #     #dvl heading value goes from 0-360
-    #     self.yaw = rotation_msg.data
-    #     # print('current yaw: %.2f' % self.yaw)
+    #     self.heading = rotation_msg.data
+    #     # print('current yaw: %.2f' % self.heading)
 
     def depth_callback(self, depth):
         #currently in feet
         self.depth = depth.data
 
-    def get_position(self):
-        if self.dvl_msg.xpos and self.dvl_msg.ypos:
-            return self.dvl_msg.xpos, self.dvl_msg.ypos, self.depth
-
-        return None, None, None
-    
-    def get_depth(self):
-        return self.depth
-        
-    def get_dvl_yaw(self):
-        return self.yaw
-
-    def get_imu_yaw(self):
-        return self.yaw - 180
-
     def is_empty(self):
-        if self.waypoint_queue:
+        if self.waypoint_list:
             return False
         
         return True
 
     def clear_all():
-        self.waypoint_queue = []
+        self.waypoint_list = []
 
+    #operate waypoint_queue like a queue using slot 0 as front
     def enqueue(self, xpos, ypos, depth):
         if xpos and ypos:
-            self.waypoint_queue.append([xpos, ypos, depth])
+            self.waypoint_list.append([xpos, ypos, depth])
 
     def dequeue(self):
-        if self.waypoint_queue:
-            ret = self.waypoint_queue.pop(0)
+        if self.waypoint_list:
+            ret = self.waypoint_list.pop(0)
             #returns tuple of x, y
             return ret[0], ret[1], ret[2]
 
         return None, None, None
 
-    #operate queue like a stack using the end as the top
+    def peek_front(self):
+        if self.waypoint_list:
+            ret = self.waypoint_list[0]
+            #returns tuple of x, y
+            return ret[0], ret[1], ret[2]
+
+        return None, None, None
+
+    def enqueue_current_position(self):
+        cur_x, cur_y, cur_depth = self.get_position()
+        if cur_x and cur_y and cur_depth:
+            print('queued (x,y,depth): %.2f, %.2f, %.2f' %(cur_x,cur_y,cur_depth))
+            self.enqueue(cur_x, cur_y, cur_depth)
+
+    #operate waypoint_queue like a stack using the end as the top
     def push(self, xpos, ypos, depth):
         if xpos and ypos:
-            self.waypoint_queue.append([xpos, ypos, depth])
+            self.waypoint_list.append([xpos, ypos, depth])
 
     def pop(self):
-        if self.waypoint_queue:
-            ret = self.waypoint_queue.pop()
+        if self.waypoint_list:
+            ret = self.waypoint_list.pop()
             #returns tuple of x, y
             return ret[0], ret[1], ret[2]
 
         return None, None, None
 
-    def peek(self):
-        if self.waypoint_queue:
-            ret = self.waypoint_queue[0]
+    def peek_top(self):
+        if self.waypoint_list:
+            ret = self.waypoint_list[-1]
             #returns tuple of x, y
             return ret[0], ret[1], ret[2]
 
@@ -109,11 +109,18 @@ class Waypoint():
             print('pushed (x,y,depth): %.2f, %.2f, %.2f' %(cur_x,cur_y,cur_depth))
             self.push(cur_x, cur_y, cur_depth)
 
-    def enqueue_current_position(self):
-        cur_x, cur_y, cur_depth = self.get_position()
-        if cur_x and cur_y and cur_depth:
-            print('queued (x,y,depth): %.2f, %.2f, %.2f' %(cur_x,cur_y,cur_depth))
-            self.enqueue(cur_x, cur_y, cur_depth)
+######################## waypoint getters ########################
+    def get_position(self):
+        if self.dvl_msg.xpos and self.dvl_msg.ypos:
+            return self.dvl_msg.xpos, self.dvl_msg.ypos, self.depth
+
+        return None, None, None
+    
+    def get_depth(self):
+        return self.depth
+        
+    def get_dvl_yaw(self):
+        return self.heading
 
     def get_depth_directions(self, new_depth):
         direction_val = new_depth - self.depth
@@ -149,8 +156,8 @@ class Waypoint():
         else:
             dvl_yaw = direction_degree + 270
         # print('dvl_yaw: %.2f' %(dvl_yaw))
-        # print('current_yaw %.2f' %self.yaw)
-        yaw_diff = dvl_yaw - self.yaw
+        # print('current_yaw %.2f' %self.heading)
+        yaw_diff = dvl_yaw - self.heading
 
         l1 = max(x1,x2) - min(x1,x2)
         l2 = max(y1,y2) - min(y1,y2)

@@ -1,12 +1,14 @@
 import rospy
 import math
 import cv2
+import sys
 import time
 
 import gi
 import threading
 
 from threading import Thread
+import numpy as np
 
 # TODO create following msgs for subscriber and publisher
 #from robosub.msg import Task
@@ -14,7 +16,7 @@ from threading import Thread
 
 from modules.sensors.computer_vision import GateDetector
 #from modules.sensors.computer_vision import BuoyDetector
-#from modules.sensors.computer_vision import DiceDetector
+# from modules.sensors.computer_vision import DiceDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -33,7 +35,7 @@ class CVController():
         # create instance of classes
         self.gatedetector = GateDetector.GateDetector()
         #self.buoydetector = BuoyDetector.BuoyDetector()
-        #self.dicedetector = DiceDetector.DiceDetector()
+        # self.dicedetector = DiceDetector.DiceDetector()
 
         self.tasks = {'gate': self.gatedetector}
 
@@ -47,7 +49,6 @@ class CVController():
         
         self.camera_detect = {0: self.default_camera_detect,
                             1: self.sub_driver_camera_detect}
-
         try:
             self.loop = GLib.MainLoop()
             self.sample = None
@@ -93,6 +94,10 @@ class CVController():
         print 'laptop/default camera found'
 
     def sub_driver_camera_detect(self, task):
+        if not task:
+            return None, None, None, None
+            
+        self.cv_task = self.tasks[task]
         if self.sample:
             # print("have sample")
             buf = self.sample.get_buffer()
@@ -119,7 +124,7 @@ class CVController():
 
                 # self.last_reading.append(coordinates)
                 self.outraw.write(frame)
-                self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
+                found, coordinates, gate_shape, width_height = self.cv_task.detect(frame)
                 self.outprocessed.write(frame)
 
                 self.show_img(frame)
@@ -130,7 +135,8 @@ class CVController():
             finally:
                 buf.unmap(mapinfo)
 
-        return found, directions, gate_shape, width_height
+            return found, coordinates, gate_shape, width_height
+        return None, None, None, None
 
     
     def default_camera_detect(self, task):
@@ -140,7 +146,6 @@ class CVController():
         found, directions, gate_shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
-
         return found, directions, gate_shape, width_height
     
     # TODO implement methods for cv_controller
@@ -374,3 +379,5 @@ class CVController():
             _unused_field, values, _unsued_remain = re.split("{|}", substr, maxsplit=3)
             rates = [x.strip() for x in values.split(",")]
         return rates
+    def start_loop(self):
+        self.loop.run()

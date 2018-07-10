@@ -96,23 +96,25 @@ class Gate(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, m_power=120, rotation=15):
         self.cvcontroller.start(task_name)
+        self.mutex.acquire()
         count = 0
+        self.last_time = time.time()
         #self.run_detect_for_task(navigation, m_power, rotation)
         while not self.stop_task:
-            self.last_time = time.time()
-            count += 1
-            self.mutex.acquire()
             try:
+                count += 1
                 found, directions, gate_shape, width_height = self.cvcontroller.detect(task_name)
+                # if directions:
                 if found:
                     self.direction_list.append(directions)
 
                 if (time.time()-self.last_time > 0.05):
+                    self.last_time = time.time()
 
                     try:
                         most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
                     except:
-                        most_occur_coords = (0, 0)
+                        most_occur_coords = [0, 0]
 
                     print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                     print 'current count: {}'.format(count)
@@ -125,11 +127,11 @@ class Gate(Task):
                     self.counter = Counter()
                     self.direction_list = []
                     self.last_time = time.time()
+            except:
+                print('error')
 
-            finally:
-                self.mutex.release()
         self.cvcontroller.stop()     
-
+        self.mutex.release()
     # stop ##################################################################################
     def stop(self):
         #self.navigation.stop()
@@ -153,14 +155,15 @@ class Gate(Task):
     def reset_thread(self):
         if self.thread_gate:
             self.thread_gate = None
-
+            
     # detect ##################################################################################   
     def detect(self, frame):
-        #add frame when testing complete
-        if not self.detectgate:
-            self.detectgate = GateDetector.GateDetector()
+        pass
+    #     #add frame when testing complete
+    #     if not self.detectgate:
+    #         # self.detectgate = GateDetector.GateDetector()
 
-        return self.detectgate.detect(frame)
+    #     return self.detectgate.detect(frame)
 
     # def detect(self, navigation, m_power=120, rotation=15):
     #     self.last_time = time.time()
@@ -246,3 +249,4 @@ class Gate(Task):
     # restart_task ##################################################################################
     def restart_task(self):
         print 'restart gate'
+        
