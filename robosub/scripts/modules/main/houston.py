@@ -57,6 +57,7 @@ class Houston():
         self.cash_in = CashIn(self)
         #self.buoy = Buoy(self)
         self.navigation = navigation
+        self.cvcontroller = CVController()
         self.config = Config()
         self.counts = Counter()
 
@@ -126,12 +127,16 @@ class Houston():
             print 'no more tasks to complete'
         
         self.state = self.states[self.state_num]
-        self.state.reset()
-        print 'doing task: {}'.format(self.tasks[self.state_num])
-        self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.power, self.rotation)
-        self.navigation.cancel_h_nav()
-        self.navigation.cancel_m_nav()
-        self.navigation.cancel_r_nav()
+        if not self.state.is_task_running:
+            self.state.reset()
+            print 'doing task: {}'.format(self.tasks[self.state_num])
+            self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+            self.navigation.cancel_h_nav()
+            self.navigation.cancel_m_nav()
+            self.navigation.cancel_r_nav()
+        else:
+            print 'Task is currently running.'
+            print '\nPlease wait for task to finish or cancel'
 
     # stop_task ##################################################################################
     def stop_task(self):
@@ -141,6 +146,16 @@ class Houston():
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
 
+    # task_thread_start ##################################################################################
+    def task_thread_start(self, task_call, task_name, navigation, cvcontroller, power, rotation):
+        self.reset_thread()
+        self.task_thread = Thread(target = task_call.start, args = (task_name, navigation, cvcontroller, power, rotation))
+        self.task_thread.start()
+
+    # reset_thread ##################################################################################
+    def reset_thread(self):
+        if self.task_thread:
+            self.task_thread = None
 
     # TODO follow method not used anymore, will be removed soon after testing
     def do_gate(self):
@@ -266,17 +281,6 @@ class Houston():
     # created to get most frequent coordinates from detect methods
     # once most frequent coordinates are found, sub will navigate to it
     # rather than just going to last coordinates
-    
-    # task_thread_start ##################################################################################
-    def task_thread_start(self, task_call, task_name, navigation, power, rotation):
-        self.reset_thread()
-        self.task_thread = Thread(target = task_call.start, args = (task_name, navigation, power, rotation))
-        self.task_thread.start()
-
-    # reset_thread ##################################################################################
-    def reset_thread(self):
-        if self.task_thread:
-            self.task_thread = None
 
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, last, counts):

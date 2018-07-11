@@ -1,7 +1,7 @@
 from modules.sensors.computer_vision import GateDetector
 from task import Task
 from gate_maneuver import GateManeuver
-from modules.controller.cv_controller import CVController
+# from modules.controller.cv_controller import CVController
 from modules.sensors.imu.gather_rotation import GetRotation
 from threading import Thread, Lock
 import time
@@ -18,7 +18,7 @@ class Gate(Task):
         self.houston = Houston
         self.gate_maneuver = GateManeuver()
         self.getrotation = GetRotation()
-        self.cvcontroller = CVController()
+        # self.cvcontroller = CVController()
         self.detectgate = None
 
         ################ THRESHOLD VARIABLES ################
@@ -32,6 +32,7 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
         self.stop_task = False
+        self.is_task_running = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
@@ -74,6 +75,7 @@ class Gate(Task):
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
+        self.is_task_running = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -94,15 +96,17 @@ class Gate(Task):
         self.gate_maneuver.reset()
         
     # start ##################################################################################
-    def start(self, task_name, navigation, m_power=120, rotation=15):
-        self.cvcontroller.start(task_name)
+    def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
+        self.local_cvcontroller = cvcontroller
+        self.is_task_running = True
+        cvcontroller.start(task_name)
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
         #self.run_detect_for_task(navigation, m_power, rotation)
         while not self.stop_task:
             try:
-                found, directions, gate_shape, width_height = self.cvcontroller.detect(task_name)
+                found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
                 # if directions:
                 if found:
                     self.direction_list.append(directions)
@@ -128,14 +132,16 @@ class Gate(Task):
                     self.direction_list = []
                     self.last_time = time.time()
             except:
-                print('error')
+                print('task error')
 
-        self.cvcontroller.stop()     
+        cvcontroller.stop()     
         self.mutex.release()
+        self.is_task_running = False
     # stop ##################################################################################
     def stop(self):
-        #self.navigation.stop()
-        self.cvcontroller.stop()
+        # self.navigation.stop()
+        # self.cvcontroller.stop()
+        self.local_cvcontroller.stop()
       
     def search(self):
         pass

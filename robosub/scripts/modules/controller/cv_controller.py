@@ -40,6 +40,7 @@ class CVController():
         self.tasks = {'gate': self.gatedetector}
 
         self.thread_cv = None
+        self.fps_output = 20
 
         #rospy.Subscriber('houston_to_cv', Task, HoustonCallback)
         #rospy.pub_cv_data = rospy.Publisher('cv_to_houston', CVData)
@@ -81,16 +82,16 @@ class CVController():
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (744, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (744, 480))
+        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
         print 'sub camera found'
 
     def default_camera_start(self, task_name):
         self.cap = None
         self.cap = cv2.VideoCapture(0)
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
+        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
         print 'laptop/default camera found'
 
     def sub_driver_camera_detect(self, task):

@@ -1,6 +1,6 @@
 from modules.sensors.computer_vision import DiceDetector
 from task import Task
-from modules.controller.cv_controller import CVController
+# from modules.controller.cv_controller import CVController
 from modules.sensors.imu.gather_rotation import GetRotation
 from threading import Thread, Lock
 import time
@@ -16,7 +16,7 @@ class Dice(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
-        self.cvcontroller = CVController()
+        # self.cvcontroller = CVController()
         self.detectdice = None
 
         ################ THRESHOLD VARIABLES ################
