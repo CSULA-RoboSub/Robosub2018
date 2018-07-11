@@ -38,6 +38,7 @@ class CVController():
         # self.dicedetector = DiceDetector.DiceDetector()
 
         self.tasks = {'gate': self.gatedetector}
+                    # 'dice': self.dicedetector}
 
         self.thread_cv = None
         self.fps_output = 20

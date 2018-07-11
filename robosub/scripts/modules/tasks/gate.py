@@ -1,7 +1,6 @@
 from modules.sensors.computer_vision import GateDetector
 from task import Task
 from gate_maneuver import GateManeuver
-# from modules.controller.cv_controller import CVController
 from modules.sensors.imu.gather_rotation import GetRotation
 from threading import Thread, Lock
 import time
@@ -18,7 +17,6 @@ class Gate(Task):
         self.houston = Houston
         self.gate_maneuver = GateManeuver()
         self.getrotation = GetRotation()
-        # self.cvcontroller = CVController()
         self.detectgate = None
 
         ################ THRESHOLD VARIABLES ################
