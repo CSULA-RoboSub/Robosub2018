@@ -17,12 +17,24 @@ class DiceDetector:
         self.preprocessor = dpp.DicePreprocessor()
         self.classifier = dc.DiceClassifier()
         self.directions = [None, None]
-        self.dot_size = 100
+        self.dot_size = 100 
+        self.found = False 
 
-    def locate_dice(self,frame):
+    def detect(self,frame):
         interest_regions =  self.preprocessor.get_interest_areas()
-        dice = [die for die in interest_regions if self.classifier.predict(die) > .1]
-        return dice
+        die = [die for die in interest_regions if self.classifier.predict(die) > .1]
+        ht , wd =  frame.shape
+        if dice == None:
+            found = False
+            self.directions = [0,0]
+            w,h = 0,0
+        else:
+            x, y, w, h  = die
+            self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
+            self.found = True
+            
+        #found, direction, shape, width, heightk
+        return (self.found, self.directions, None, (None, None)) 
 
     def search_die(self, frame, value):
         found = False
