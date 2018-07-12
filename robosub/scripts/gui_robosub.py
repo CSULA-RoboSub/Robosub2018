@@ -330,15 +330,15 @@ class Ui_MainWindow(object):
         self.tabWidget.currentChanged.connect(self.tab_state_changed)
 
         # manual mode buttons
-        self.forward.clicked.connect(lambda: self.Controller.manual_move('w', self.power.value, self.depth.value))
-        self.backward.clicked.connect(lambda: self.Controller.manual_move('s', self.power.value, self.depth.value))
-        self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('q', self.power.value, self.depth.value))
-        self.strafe_r.clicked.connect(lambda: self.Controller.manual_move('e', self.power.value, self.depth.value))
-        self.rotate_l.clicked.connect(lambda: self.Controller.manual_move('a', self.power.value, self.depth.value))
-        self.rotate_r.clicked.connect(lambda: self.Controller.manual_move('d', self.power.value, self.depth.value))
-        self.up.clicked.connect(lambda: self.Controller.manual_move('r', self.power.value, self.depth.value))
-        self.down.clicked.connect(lambda: self.Controller.manual_move('f', self.power.value, self.depth.value))
-        self.brake.clicked.connect(lambda: self.Controller.manual_move('`', self.power.value, self.depth.value))
+        self.forward.clicked.connect(lambda: self.Controller.manual_move('forward', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.backward.clicked.connect(lambda: self.Controller.manual_move('backward', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('strafe_l', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.strafe_r.clicked.connect(lambda: self.Controller.manual_move('strafe_r', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.rotate_l.clicked.connect(lambda: self.Controller.manual_move('rotate_l', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.rotate_r.clicked.connect(lambda: self.Controller.manual_move('rotate_r', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.up.clicked.connect(lambda: self.Controller.manual_move('up', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.down.clicked.connect(lambda: self.Controller.manual_move('down', self.power.value(), self.rotation.value(), self.depth.value()))
+        self.brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.power.value(), self.rotation.value(), self.depth.value()))
 
     def checkbox_state_changed(self):
         if self.auto_checkbox.isChecked():
