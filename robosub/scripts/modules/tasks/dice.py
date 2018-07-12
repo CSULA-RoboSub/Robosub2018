@@ -71,6 +71,10 @@ class Dice(Task):
         while not self.stop_task:
             #TODO
             #cv controller and detect go here
+            try:
+                pass
+            except:
+                print 'task error'
             print 'detection and navigation of dice'
             self.navigate(navigation, found, coordinates, m_power, rotation)
         cvcontroller.stop()

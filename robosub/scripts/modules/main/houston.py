@@ -30,6 +30,10 @@ from modules.tasks.task import Task
 
 from modules.controller.cv_controller import CVController
 
+# TODO
+# add new module to houston for gui to display video
+# use import frame or sample over
+
 class Houston():
     # implements(Task)
     
