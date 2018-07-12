@@ -49,7 +49,6 @@ class CVController():
         
         self.camera_detect = {0: self.default_camera_detect,
                             1: self.sub_driver_camera_detect}
-
         try:
             self.loop = GLib.MainLoop()
             self.sample = None
@@ -147,7 +146,6 @@ class CVController():
         found, directions, gate_shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
-
         return found, directions, gate_shape, width_height
     
     # TODO implement methods for cv_controller
