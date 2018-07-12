@@ -7,6 +7,9 @@ import time
 from collections import Counter
 from itertools import combinations
 
+# TODO get rotation to be zero before triggering the heading verification
+# add in rotation to go along with strafe
+
 class Gate(Task):
     
     def __init__(self, Houston):
