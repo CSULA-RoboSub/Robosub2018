@@ -19,7 +19,7 @@ class DiceDetector:
         self.directions = [None, None]
         self.dot_size = 100
 
-    def locate_dice(self,frame):
+    def detect(self,frame):
         interest_regions =  self.preprocessor.get_interest_areas()
         dice = [die for die in interest_regions if self.classifier.predict(die) > .1]
         return dice

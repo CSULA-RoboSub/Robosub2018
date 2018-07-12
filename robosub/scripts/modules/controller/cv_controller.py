@@ -30,8 +30,8 @@ class CVController():
         #self.buoydetector = BuoyDetector.BuoyDetector()
         self.dicedetector = DiceDetector.DiceDetector()
 
-        self.tasks = {'gate': self.gatedetector}
-                    # 'dice': self.dicedetector}
+        self.tasks = {'gate': self.gatedetector
+                    'dice': self.dicedetector}
 
         ################ FPS COUNTER ################
         self.fps_output = 20
@@ -125,7 +125,7 @@ class CVController():
 
                 # self.last_reading.append(coordinates)
                 self.outraw.write(frame)
-                found, coordinates, gate_shape, width_height = self.cv_task.detect(frame)
+                found, coordinates, shape, width_height = self.cv_task.detect(frame)
                 self.outprocessed.write(frame)
 
                 self.show_img(frame)
@@ -136,7 +136,7 @@ class CVController():
             finally:
                 buf.unmap(mapinfo)
 
-            return found, coordinates, gate_shape, width_height
+            return found, coordinates, shape, width_height
         return None, None, None, None
 
     # opencv_camera_detect ##################################################################################
@@ -144,10 +144,10 @@ class CVController():
         self.cv_task = self.tasks[task]
         _, frame = self.cap.read()
         self.outraw.write(frame)
-        found, directions, gate_shape, width_height = self.cv_task.detect(frame)
+        found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
-        return found, directions, gate_shape, width_height
+        return found, directions, shape, width_height
     
     # detect ##################################################################################
     def detect(self, task):
