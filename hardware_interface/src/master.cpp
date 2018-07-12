@@ -600,6 +600,7 @@ void mControlCallback(const robosub::MControl& mControl){
       // T7.writeMicroseconds(base_thrust);
       ROS_INFO("Movement control is now cancelled\n");
       mControlPublisher.publish(mControlStatus);
+      positionControlMOffset = 0;
     }
     mControlDirection = 0;
     mControlPower = 0;
