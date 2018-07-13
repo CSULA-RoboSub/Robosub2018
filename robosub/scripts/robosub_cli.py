@@ -81,18 +81,9 @@ class CLI(cmd.Cmd):
 
     # task #######################################################################################################
     def do_task(self, arg):
-        '\n[task] followed by a number\
-         \n0: gate\
-         \n1: path\
-         \n2: dice\
-         \n3: chip\
-         \n4: path\
-         \n5: chip\
-         \n6: slots\
-         \n7: pinger_b\
-         \n8: roulette\
-         \n9: pinger_a\
-         \n10: cash_in'
+        '\n\
+         \n[task] followed by a number'
+        AUV.display_tasks()
 
         if arg.lower() == 'stop' or arg.lower() == '':
             AUV.stop_task()
@@ -106,18 +97,8 @@ class CLI(cmd.Cmd):
             AUV.specific_task(arg)
         else:
             print('\n\
-                   \n[task] followed by a number\
-                   \n0: gate\
-                   \n1: path\
-                   \n2: dice\
-                   \n3: chip\
-                   \n4: path\
-                   \n5: chip\
-                   \n6: slots\
-                   \n7: pinger_b\
-                   \n8: roulette\
-                   \n9: pinger_a\
-                   \n10: cash_in')
+                   \n[task] followed by a number')
+            AUV.display_tasks()
         
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):

@@ -37,7 +37,7 @@ from modules.controller.cv_controller import CVController
 class Houston():
     # implements(Task)
     
-    def __init__(self, navigation):
+    def __init__(self, navigation, task_list):
         """ To initilize Houston """
         ################ INSTANCES ################
         self.gate = Gate(self)
@@ -66,6 +66,9 @@ class Houston():
 
         ################ TIMER/COUNTER VARIABLES ################
         self.last_time = time.time()
+
+        ################ TASKS LIST ################
+        self.tasks = task_list
 
         ################ DICTIONARIES ################
         """
@@ -102,6 +105,13 @@ class Houston():
 
         ################ CURRENT TASK VARIABLE ################
         self.current_task = None
+
+    # print_task ##################################################################################
+    def print_tasks(self):
+        counter = 0
+        for i in self.tasks:
+            print '{}: {}'.format(counter, i)
+            counter += 1
 
     # do_task ##################################################################################
     def start_all_tasks(self):
@@ -173,7 +183,7 @@ class Houston():
 
     # start ##################################################################################
     def start(self):
-        self.get_task()
+        #self.get_task()
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = True
         self.navigation.start()
