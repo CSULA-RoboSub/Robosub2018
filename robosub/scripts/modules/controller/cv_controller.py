@@ -30,7 +30,7 @@ class CVController():
         #self.buoydetector = BuoyDetector.BuoyDetector()
         self.dicedetector = DiceDetector.DiceDetector()
 
-        self.tasks = {'gate': self.gatedetector
+        self.tasks = {'gate': self.gatedetector,
                     'dice': self.dicedetector}
 
         ################ FPS COUNTER ################

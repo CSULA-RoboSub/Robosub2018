@@ -21,7 +21,7 @@ class DiceDetector:
         self.found = False 
 
     def detect(self,frame):
-        interest_regions =  self.preprocessor.get_interest_areas()
+        interest_regions =  self.preprocessor.get_interest_regions(frame)
         die = [die for die in interest_regions if self.classifier.predict(die) > .1]
         ht , wd =  frame.shape
         if dice == None:
@@ -34,7 +34,7 @@ class DiceDetector:
             self.found = True
             
         #found, direction, shape, width, heightk
-        return (self.found, self.directions, None, (None, None)) 
+        return (self.found, self.directions, None, (0, 0)) 
 
     def search_die(self, frame, value):
         found = False

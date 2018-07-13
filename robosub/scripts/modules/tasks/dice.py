@@ -15,6 +15,7 @@ class Dice(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
+        self.dice_maneuver = DiceManeuver()
         self.detectdice = None
 
         ################ THRESHOLD VARIABLES ################
@@ -71,12 +72,12 @@ class Dice(Task):
         while not self.stop_task:
             #TODO
             #cv controller and detect go here
-            try:
-                pass
-            except:
-                print 'task error'
-            print 'detection and navigation of dice'
-            self.navigate(navigation, found, coordinates, m_power, rotation)
+            # try:
+            found, direction, shape, width_height = cvcontroller.detect(task_name)
+                #self.navigate(navigation, found, coordinates, m_power, rotation)
+            # except:
+            #     print 'dice detect error'
+
         cvcontroller.stop()
         self.mutex.release()
         self.is_task_running = False

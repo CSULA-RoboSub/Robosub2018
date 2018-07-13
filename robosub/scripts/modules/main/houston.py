@@ -100,8 +100,11 @@ class Houston():
         self.r = rospy.Rate(30) #30hz
         self.msg = CVIn()
 
+        ################ CURRENT TASK VARIABLE ################
+        self.current_task = None
+
     # do_task ##################################################################################
-    def do_task(self):
+    def start_all_tasks(self):
         if self.state_num > 10:
             print 'no more tasks to complete'
         
@@ -114,12 +117,35 @@ class Houston():
             self.navigation.cancel_m_nav()
             self.navigation.cancel_r_nav()
         else:
-            print 'Task is currently running.'
+            print '\nTask is currently running.'
+            print '\nPlease wait for task to finish or cancel'
+
+    # do_one_task ##################################################################################
+    def do_one_task(self, task_num):
+        print 'currently running task {}'.format(task_num)
+        self.state = self.states[task_num]
+        if not self.state.is_task_running:
+            self.state.reset()
+            print 'doing task: {}'.format(self.tasks[task_num])
+            self.task_thread_start(self.state, self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+            self.navigation.cancel_h_nav()
+            self.navigation.cancel_m_nav()
+            self.navigation.cancel_r_nav()
+        else:
+            print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
 
     # stop_task ##################################################################################
     def stop_task(self):
-        self.state = self.states[self.state_num]
+        # self.state = self.states[self.state_num]
+        self.state.stop_task = True
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_m_nav()
+        self.navigation.cancel_r_nav()
+
+    # stop_one_task ##################################################################################
+    def stop_one_task(self, task_num):
+        # self.state = self.states[task_num]
         self.state.stop_task = True
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()

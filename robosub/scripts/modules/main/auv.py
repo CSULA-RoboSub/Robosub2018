@@ -61,13 +61,19 @@ class AUV():
     def perform_tasks(self):
         """Has houston perform task"""
         # try:
-        self.houston.do_task()
+        self.houston.start_all_tasks()
         # except AttributeError:
         #     print('houston not initialized')
+    
+    def specific_task(self, task_num):
+        self.houston.do_one_task(task_num)
 
-    def stop_tasks(self):
+    def stop_task(self):
         """Has houston stop task"""
         self.houston.stop_task()
+
+    # def stop_one_task(self, task_num):
+    #     self.houston.stop_one_task(task_num)
 
     def start(self):
         """Starts the modules when magnet killswitch is plugged in"""

@@ -71,16 +71,54 @@ class CLI(cmd.Cmd):
             AUV.perform_tasks()
             # print(arg)
         elif arg.lower() == 'cv stop' or arg.lower() == 'cv 0':
-            AUV.stop_tasks()
+            AUV.stop_task()
             # print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()
         else:
-            print(
-                '\n[cv] toggle computer vision (start/1 or stop/0)\
-                 \n[keyboard] keyboard manual navigation'
-            )
+            print('\n[cv] toggle computer vision (start/1 or stop/0)\
+                   \n[keyboard] keyboard manual navigation')
 
+    # task #######################################################################################################
+    def do_task(self, arg):
+        '\n[task] followed by a number\
+         \n0: gate\
+         \n1: path\
+         \n2: dice\
+         \n3: chip\
+         \n4: path\
+         \n5: chip\
+         \n6: slots\
+         \n7: pinger_b\
+         \n8: roulette\
+         \n9: pinger_a\
+         \n10: cash_in'
+
+        if arg.lower() == 'stop' or arg.lower() == '':
+            AUV.stop_task()
+        elif not arg == '':
+            try:
+                arg = int(arg)
+            except:
+                print '\nINVALID NUMBER INPUT'
+
+        if arg >= 0 and arg <= 10:
+            AUV.specific_task(arg)
+        else:
+            print('\n\
+                   \n[task] followed by a number\
+                   \n0: gate\
+                   \n1: path\
+                   \n2: dice\
+                   \n3: chip\
+                   \n4: path\
+                   \n5: chip\
+                   \n6: slots\
+                   \n7: pinger_b\
+                   \n8: roulette\
+                   \n9: pinger_a\
+                   \n10: cash_in')
+        
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):
         args = ['cv', 'keyboard']
