@@ -30,10 +30,14 @@ from modules.tasks.task import Task
 
 from modules.controller.cv_controller import CVController
 
+# TODO
+# add new module to houston for gui to display video
+# use import frame or sample over
+
 class Houston():
     # implements(Task)
     
-    def __init__(self, navigation):
+    def __init__(self, navigation, task_list):
         """ To initilize Houston """
         ################ INSTANCES ################
         self.gate = Gate(self)
@@ -63,6 +67,9 @@ class Houston():
         ################ TIMER/COUNTER VARIABLES ################
         self.last_time = time.time()
 
+        ################ TASKS LIST ################
+        self.tasks = task_list
+
         ################ DICTIONARIES ################
         """
         self.tasks values listed below
@@ -70,17 +77,19 @@ class Houston():
         'roulette', 'pinger_a', 'cash_in'
         """
         self.state_num = 0
-        self.states = [self.gate, 
-                        self.path_1, 
-                        self.dice, 
-                        self.chip_1, 
-                        self.path_2,
-                        self.slots, 
-                        self.chip_2, 
-                        self.pinger_a, 
-                        self.roulette, 
-                        self.pinger_b, 
-                        self.cash_in]
+        self.states = [
+            self.gate, 
+            self.path_1, 
+            self.dice, 
+            self.chip_1, 
+            self.path_2,
+            self.slots, 
+            self.chip_2, 
+            self.pinger_a, 
+            self.roulette, 
+            self.pinger_b, 
+            self.cash_in
+        ]
 
         ################ AUV MOBILITY VARIABLES ################
         #self.rotational_movement = {-1: }
@@ -96,8 +105,18 @@ class Houston():
         self.r = rospy.Rate(30) #30hz
         self.msg = CVIn()
 
+        ################ CURRENT TASK VARIABLE ################
+        self.current_task = None
+
+    # print_task ##################################################################################
+    def print_tasks(self):
+        counter = 0
+        for i in self.tasks:
+            print '{}: {}'.format(counter, i)
+            counter += 1
+
     # do_task ##################################################################################
-    def do_task(self):
+    def start_all_tasks(self):
         if self.state_num > 10:
             print 'no more tasks to complete'
         
@@ -110,16 +129,37 @@ class Houston():
             self.navigation.cancel_m_nav()
             self.navigation.cancel_r_nav()
         else:
-            print 'Task is currently running.'
+            print '\nTask is currently running.'
+            print '\nPlease wait for task to finish or cancel'
+
+    # do_one_task ##################################################################################
+    def do_one_task(self, task_num):
+        print '\nattempting to run task number: {}\
+               \ntask: {}'.format(task_num, self.tasks[task_num])
+
+        self.state = self.states[task_num]
+        if not self.state.is_task_running:
+            self.state.reset()
+            self.task_thread_start(self.state, self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+            self.navigation.cancel_h_nav()
+            self.navigation.cancel_m_nav()
+            self.navigation.cancel_r_nav()
+        else:
+            print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
 
     # stop_task ##################################################################################
     def stop_task(self):
-        self.state = self.states[self.state_num]
-        self.state.stop_task = True
+        # self.state = self.states[self.state_num]
+        try:
+            self.state.stop_task = True
+        except:
+            print 'no task currently running to stop'
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
+
+    
 
     # task_thread_start ##################################################################################
     def task_thread_start(self, task_call, task_name, navigation, cvcontroller, power, rotation):
@@ -140,7 +180,7 @@ class Houston():
 
     # start ##################################################################################
     def start(self):
-        self.get_task()
+        #self.get_task()
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = True
         self.navigation.start()

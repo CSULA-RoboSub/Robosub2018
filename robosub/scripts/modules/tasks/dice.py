@@ -1,11 +1,14 @@
-from modules.sensors.computer_vision import DiceDetector
-from task import Task
-from dice_maneuver import DiceManeuver
-from threading import Thread, Lock
 import time
 
+from threading import Thread, Lock
 from collections import Counter
 from itertools import combinations
+
+from task import Task
+from modules.sensors.computer_vision import DiceDetector
+
+from dice_maneuver import DiceManeuver
+
 
 class Dice(Task):
     
@@ -15,6 +18,7 @@ class Dice(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
+        self.dice_maneuver = DiceManeuver()
         self.detectdice = None
 
         ################ THRESHOLD VARIABLES ################
@@ -71,8 +75,12 @@ class Dice(Task):
         while not self.stop_task:
             #TODO
             #cv controller and detect go here
-            print 'detection and navigation of dice'
-            self.navigate(navigation, found, coordinates, m_power, rotation)
+            # try:
+            found, direction, shape, width_height = cvcontroller.detect(task_name)
+                #self.navigate(navigation, found, coordinates, m_power, rotation)
+            # except:
+            #     print 'dice detect error'
+
         cvcontroller.stop()
         self.mutex.release()
         self.is_task_running = False
