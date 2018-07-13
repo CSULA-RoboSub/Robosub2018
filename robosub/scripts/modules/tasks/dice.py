@@ -89,8 +89,9 @@ class Dice(Task):
     
     # stop ##################################################################################
     def stop(self):
-        self.local_cvcontroller.stop
+        self.local_cvcontroller.stop()
 
+    #TODO remove soon, since thread is being created in Houston
     # run_detect_for_task ##################################################################################
     def run_detect_for_task(self, m_power=120, rotation=15):
         self.reset_thread()
