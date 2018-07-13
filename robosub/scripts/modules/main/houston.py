@@ -77,17 +77,19 @@ class Houston():
         'roulette', 'pinger_a', 'cash_in'
         """
         self.state_num = 0
-        self.states = [self.gate, 
-                        self.path_1, 
-                        self.dice, 
-                        self.chip_1, 
-                        self.path_2,
-                        self.slots, 
-                        self.chip_2, 
-                        self.pinger_a, 
-                        self.roulette, 
-                        self.pinger_b, 
-                        self.cash_in]
+        self.states = [
+            self.gate, 
+            self.path_1, 
+            self.dice, 
+            self.chip_1, 
+            self.path_2,
+            self.slots, 
+            self.chip_2, 
+            self.pinger_a, 
+            self.roulette, 
+            self.pinger_b, 
+            self.cash_in
+        ]
 
         ################ AUV MOBILITY VARIABLES ################
         #self.rotational_movement = {-1: }
@@ -132,11 +134,12 @@ class Houston():
 
     # do_one_task ##################################################################################
     def do_one_task(self, task_num):
-        print 'currently running task {}'.format(task_num)
+        print '\nattempting to run task number: {}\
+               \ntask: {}'.format(task_num, self.tasks[task_num])
+
         self.state = self.states[task_num]
         if not self.state.is_task_running:
             self.state.reset()
-            print 'doing task: {}'.format(self.tasks[task_num])
             self.task_thread_start(self.state, self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
             self.navigation.cancel_h_nav()
             self.navigation.cancel_m_nav()
@@ -156,13 +159,7 @@ class Houston():
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
 
-    # stop_one_task ##################################################################################
-    def stop_one_task(self, task_num):
-        # self.state = self.states[task_num]
-        self.state.stop_task = True
-        self.navigation.cancel_h_nav()
-        self.navigation.cancel_m_nav()
-        self.navigation.cancel_r_nav()
+    
 
     # task_thread_start ##################################################################################
     def task_thread_start(self, task_call, task_name, navigation, cvcontroller, power, rotation):

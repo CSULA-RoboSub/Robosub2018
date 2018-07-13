@@ -1,11 +1,14 @@
-from modules.sensors.computer_vision import GateDetector
-from task import Task
-from gate_maneuver import GateManeuver
-from modules.sensors.imu.gather_rotation import GetRotation
-from threading import Thread, Lock
 import time
+
+from threading import Thread, Lock
 from collections import Counter
 from itertools import combinations
+
+from task import Task
+from modules.sensors.computer_vision import GateDetector
+from modules.sensors.imu.gather_rotation import GetRotation
+
+from gate_maneuver import GateManeuver
 
 # TODO get rotation to be zero before triggering the heading verification
 # add in rotation to go along with strafe
@@ -46,13 +49,17 @@ class Gate(Task):
         self.counter = Counter()
 
         ################ DICTIONARIES ################        
-        self.movement_to_square = {'vertical': 'right',
-                                'horizontal': 'backward'}
+        self.movement_to_square = {
+            'vertical': 'right',
+            'horizontal': 'backward'
+        }
                                 
-        self.gate_phases = {None: self.gate_maneuver.no_shape_found,
-                            'vertical': self.gate_maneuver.vertical,
-                            'horizontal': self.gate_maneuver.horizontal,
-                            'square': self.gate_maneuver.square}
+        self.gate_phases = {
+            None: self.gate_maneuver.no_shape_found,
+            'vertical': self.gate_maneuver.vertical,
+            'horizontal': self.gate_maneuver.horizontal,
+            'square': self.gate_maneuver.square
+        }
 
         ################ AUV MOBILITY VARIABLES ################
         self.depth_change = 1

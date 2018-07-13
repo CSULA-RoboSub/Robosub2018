@@ -30,18 +30,24 @@ class CVController():
         #self.buoydetector = BuoyDetector.BuoyDetector()
         self.dicedetector = DiceDetector.DiceDetector()
 
-        self.tasks = {'gate': self.gatedetector,
-                    'dice': self.dicedetector}
-
         ################ FPS COUNTER ################
         self.fps_output = 20
 
         ################ DICTIONARIES ################
-        self.camera_start_dictionary = {0: self.opencv_camera_start,
-                                        1: self.sub_driver_camera_start}
+        self.tasks = {
+            'gate': self.gatedetector,
+            'dice': self.dicedetector
+        }
+
+        self.camera_start_dictionary = {
+            0: self.opencv_camera_start,
+            1: self.sub_driver_camera_start
+        }
         
-        self.camera_detect = {0: self.opencv_camera_detect,
-                            1: self.sub_driver_camera_detect}
+        self.camera_detect = {
+            0: self.opencv_camera_detect,
+            1: self.sub_driver_camera_detect
+        }
         
         ################ VIDEOCAMERA INSTANCES ################
         ################ SUB CAMERA DRIVER AND OPENCV ################
