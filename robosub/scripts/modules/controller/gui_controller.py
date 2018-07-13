@@ -30,7 +30,7 @@ class Controller():
         # task.cv_controller.stop()
         pass
 
-    def manual_move(self, direction, power, depth):
+    def manual_move(self, direction, power, rotation, depth):
         """Manual movement of the sub based on button press"""
 
         directions = {
@@ -45,7 +45,11 @@ class Controller():
             'down': 'f'
         }
 
-        # self.AUV.keyboard.set_power(h_power=100)
-        # self.AUV.keyboard.navigate(directions[direction], power, depth)
-        # TODO change keyboard to accept power
-        pass
+        if any(x in directions[direction] for x in ['w', 'q', 'e', 's']):
+            self.AUV.keyboard.set_power(m_power=power)
+        elif any(x in directions[direction] for x in ['a', 'd']):
+            self.AUV.keyboard.set_power(r_power=power)
+        elif any(x in directions[direction] for x in ['r', 'f']):
+            self.AUV.keyboard.set_power(h_power=power)
+
+        self.AUV.keyboard.navigate(directions[direction], rotation, depth)
