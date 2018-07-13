@@ -138,7 +138,10 @@ class Houston():
     # stop_task ##################################################################################
     def stop_task(self):
         # self.state = self.states[self.state_num]
-        self.state.stop_task = True
+        try:
+            self.state.stop_task = True
+        except:
+            print 'no task currently running to stop'
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
