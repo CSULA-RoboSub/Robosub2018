@@ -91,14 +91,14 @@ class CLI(cmd.Cmd):
             try:
                 arg = int(arg)
             except:
-                print '\nINVALID NUMBER INPUT'
+                # print '\nINVALID NUMBER INPUT'
+                pass
 
         if arg >= 0 and arg <= 10:
             AUV.specific_task(arg)
         else:
-            print('\n\
-                   \n[task] followed by a number')
-            AUV.display_tasks()
+            print '\nINVALID NUMBER INPUT'
+            # AUV.display_tasks()
         
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):

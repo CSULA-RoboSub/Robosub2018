@@ -33,6 +33,10 @@ class CVController():
         ################ FPS COUNTER ################
         self.fps_output = 20
 
+        ################ CAMERA FRAME ################
+        self.current_raw_frame = None
+        self.current_processed_frame = None
+
         ################ DICTIONARIES ################
         self.tasks = {
             'gate': self.gatedetector,
@@ -78,6 +82,14 @@ class CVController():
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
+
+    # raw_frame ##################################################################################
+    def raw_frame(self):
+        return self.current_raw_frame
+    
+    # processed_frame ##################################################################################
+    def processed_frame(self):
+        return self.current_processed_frame
     
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
@@ -131,8 +143,10 @@ class CVController():
 
                 # self.last_reading.append(coordinates)
                 self.outraw.write(frame)
+                self.current_raw_frame = frame
                 found, coordinates, shape, width_height = self.cv_task.detect(frame)
                 self.outprocessed.write(frame)
+                self.current_processed_frame = frame
 
                 self.show_img(frame)
 
@@ -150,9 +164,11 @@ class CVController():
         self.cv_task = self.tasks[task]
         _, frame = self.cap.read()
         self.outraw.write(frame)
+        self.current_raw_frame = frame
         found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
+        self.current_processed_frame
         return found, directions, shape, width_height
     
     # detect ##################################################################################
