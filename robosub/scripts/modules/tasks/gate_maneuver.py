@@ -22,37 +22,48 @@ class GateManeuver():
         self.heading_verify_count = 0
 
         ################ DICTIONARIES ################
-        self.horizontal_move = {-1: 'left',
-                                0: 'none',
-                                1: 'right'}
+        self.horizontal_move = {
+            -1: 'left',
+             0: 'none',
+             1: 'right'
+        }
 
-        self.vertical_movement = {-1: 'down',
-                                0: 'staying',
-                                1: 'up'}
+        self.vertical_movement = {
+            -1: 'down',
+             0: 'staying',
+             1: 'up'
+        }
                                 
-        self.rotation_movement = {-1: 'left',
-                                0: 'staying',
-                                1: 'right'}
+        self.rotation_movement = {
+            -1: 'left',
+             0: 'staying',
+             1: 'right'
+        }
 
-        self.previous_direction = {0:'right',
-                                1:'left'}
+        self.previous_direction = {
+            0:'right',
+            1:'left'
+        }
 
-        self.strafe_rotate = {0: 'left',
-                                1:'right'}
+        self.strafe_rotate = {
+            0: 'left',
+            1:'right'
+        }
 
-        self.sweep_rotation = {0:45,
-                                1:90}
+        self.sweep_rotation = {
+            0:45,
+            1:90
+        }
 
-        self.sweep_direction = {0: self.sweep_right,
-                                1: self.sweep_left,
-                                2: self.sweep_right,
-                                3: self.sweep_forward}
+        self.sweep_direction = {
+            0: self.sweep_right,
+            1: self.sweep_left,
+            2: self.sweep_right,
+            3: self.sweep_forward
+        }
 
         self.move_forward = 'forward'
         self.move_backward = 'backward'
-
-        # self.sweep_direction = {0: 'right',
-                                # 1: 'left'}
 
         ################ AUV MOBILITY VARIABLES ################
         self.rotation_angle = 15

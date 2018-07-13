@@ -126,7 +126,7 @@ class Path(Task):
     
     # complete ##################################################################################
     def complete(self):
-        print 'complete path'
+        self.is_complete = True
 
     # bail_task ##################################################################################
     def bail_task(self):

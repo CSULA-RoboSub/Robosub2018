@@ -245,7 +245,7 @@ class Gate(Task):
             
     # complete ##################################################################################
     def complete(self):
-        pass
+        self.is_complete = True
 
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, direction_list, counter):
