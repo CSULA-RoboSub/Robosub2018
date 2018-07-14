@@ -1,6 +1,7 @@
 
-class DiceManeuver():
+class PathManeuver():
     def __init__(self):
+        
         ################ THRESHOLD VARIABLES ################
 
 
@@ -32,7 +33,7 @@ class DiceManeuver():
         ################ AUV MOBILITY VARIABLES ################
         self.move_forward = 'forward'
         self.move_backward = 'backward'
-
+        
     # reset ##################################################################################
     def reset(self):
         pass

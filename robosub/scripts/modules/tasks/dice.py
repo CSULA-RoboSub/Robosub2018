@@ -1,11 +1,14 @@
-from modules.sensors.computer_vision import DiceDetector
-from task import Task
-from dice_maneuver import DiceManeuver
-from threading import Thread, Lock
 import time
 
+from threading import Thread, Lock
 from collections import Counter
 from itertools import combinations
+
+from task import Task
+from modules.sensors.computer_vision import DiceDetector
+
+from dice_maneuver import DiceManeuver
+
 
 class Dice(Task):
     
@@ -15,6 +18,7 @@ class Dice(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
+        self.dice_maneuver = DiceManeuver()
         self.detectdice = None
 
         ################ THRESHOLD VARIABLES ################
@@ -27,6 +31,7 @@ class Dice(Task):
         self.is_done = False
         self.stop_task = False
         self.is_task_running = False
+        self.is_complete = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -52,6 +57,7 @@ class Dice(Task):
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
+        self.is_complete = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -71,16 +77,21 @@ class Dice(Task):
         while not self.stop_task:
             #TODO
             #cv controller and detect go here
-            print 'detection and navigation of dice'
-            self.navigate(navigation, found, coordinates, m_power, rotation)
+            # try:
+            found, direction, shape, width_height = cvcontroller.detect(task_name)
+                #self.navigate(navigation, found, coordinates, m_power, rotation)
+            # except:
+            #     print 'dice detect error'
+
         cvcontroller.stop()
         self.mutex.release()
         self.is_task_running = False
     
     # stop ##################################################################################
     def stop(self):
-        self.local_cvcontroller.stop
+        self.local_cvcontroller.stop()
 
+    #TODO remove soon, since thread is being created in Houston
     # run_detect_for_task ##################################################################################
     def run_detect_for_task(self, m_power=120, rotation=15):
         self.reset_thread()
@@ -110,7 +121,7 @@ class Dice(Task):
     
     # complete ##################################################################################
     def complete(self):
-        pass
+        self.is_complete = True
 
     # bail_task ##################################################################################
     def bail_task(self):
