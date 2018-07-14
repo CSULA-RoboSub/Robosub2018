@@ -62,14 +62,13 @@ class GateManeuver():
             3: self.sweep_forward
         }
 
-        self.move_forward = 'forward'
-        self.move_backward = 'backward'
-
         ################ AUV MOBILITY VARIABLES ################
         self.rotation_angle = 15
         self.depth_change = 1
         self.depth = -1
         self.h_power = 100
+        self.move_forward = 'forward'
+        self.move_backward = 'backward'
         self.rotation_direction = 'right'
         self.rotation_power = 70
         self.previous_width = 0

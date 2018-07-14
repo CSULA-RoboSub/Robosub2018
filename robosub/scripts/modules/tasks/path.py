@@ -7,7 +7,7 @@ from itertools import combinations
 from task import Task
 # from modules.sensors.computer_vision import PathDetector
 
-# from path_maneuver import PathManeuver
+from path_maneuver import PathManeuver
 
 class Path(Task):
     
@@ -17,7 +17,7 @@ class Path(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
-        # self.path_maneuver = PathManeuver()
+        self.path_maneuver = PathManeuver()
         self.detectpath = None
         
         ################ THRESHOLD VARIABLES ################
