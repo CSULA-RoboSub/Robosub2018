@@ -141,7 +141,7 @@ class Gate(Task):
                     self.direction_list = []
                     self.last_time = time.time()
             except:
-                print('task error')
+                print('gate task error')
 
         cvcontroller.stop()     
         self.mutex.release()

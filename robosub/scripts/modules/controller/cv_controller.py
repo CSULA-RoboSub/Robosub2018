@@ -5,6 +5,7 @@ import sys
 import time
 import gi
 import threading
+import copy
 import numpy as np
 
 from threading import Thread
@@ -143,10 +144,10 @@ class CVController():
 
                 # self.last_reading.append(coordinates)
                 self.outraw.write(frame)
-                self.current_raw_frame = frame.copy()
+                self.current_raw_frame = copy.copy(frame)
                 found, coordinates, shape, width_height = self.cv_task.detect(frame)
                 self.outprocessed.write(frame)
-                self.current_processed_frame = frame.copy()
+                self.current_processed_frame = copy.copy(frame)
 
                 self.show_img(frame)
 
@@ -164,11 +165,11 @@ class CVController():
         self.cv_task = self.tasks[task]
         _, frame = self.cap.read()
         self.outraw.write(frame)
-        self.current_raw_frame = frame.copy()
+        self.current_raw_frame = copy.copy(frame)
         found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
-        self.current_processed_frame.copy()
+        self.current_processed_frame = copy.copy(frame)
         return found, directions, shape, width_height
     
     # detect ##################################################################################
