@@ -37,6 +37,7 @@ class Gate(Task):
         self.is_done = False
         self.stop_task = False
         self.is_task_running = False
+        self.is_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
@@ -84,6 +85,7 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
         self.is_task_running = False
+        self.is_complete = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -132,15 +134,14 @@ class Gate(Task):
                     print 'current count: {}'.format(count)
                     print 'coordinates: {}'.format(most_occur_coords)
                     print '--------------------------------------------'
-                    print 'type: navigation cv 0, to cancel task'
-                    print 'can use navi(tab) autocomplete to finish navi type or (up + backspace + 0 -> enter)'
+                    print 'type: navigation cv 0, or task to cancel task'
                     self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
                     self.counter = Counter()
                     self.direction_list = []
                     self.last_time = time.time()
             except:
-                print('task error')
+                print('gate task error')
 
         cvcontroller.stop()     
         self.mutex.release()
@@ -244,7 +245,7 @@ class Gate(Task):
             
     # complete ##################################################################################
     def complete(self):
-        pass
+        self.is_complete = True
 
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, direction_list, counter):

@@ -5,6 +5,7 @@ import sys
 import time
 import gi
 import threading
+import copy
 import numpy as np
 
 from threading import Thread
@@ -12,6 +13,7 @@ from threading import Thread
 from modules.sensors.computer_vision import GateDetector
 # from modules.sensors.computer_vision import BuoyDetector
 from modules.sensors.computer_vision import DiceDetector
+from modules.sensors.computer_vision import PathDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -26,18 +28,35 @@ class CVController():
     
     def __init__(self):
         ################ INSTANCES ################
+        # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
-        #self.buoydetector = BuoyDetector.BuoyDetector()
+        self.pathdetector = PathDetector.PathDetector()
         self.dicedetector = DiceDetector.DiceDetector()
+        # self.chipdetector = ChipDetector.ChipDetector()
+        # self.roulettedetector = RouletteDetector.RouletteDetector()
+        # self.slotsdetector = SlotsDetector.SlotsDetector()
+        # self.pingerdetector = PingerDetector.PingerDetector()
+        # self.cashindetector = CashInDetector.CashInDetector()
 
         ################ FPS COUNTER ################
         self.fps_output = 20
 
+        ################ CAMERA FRAME ################
+        self.current_raw_frame = None
+        self.current_processed_frame = None
+
         ################ DICTIONARIES ################
         self.tasks = {
             'gate': self.gatedetector,
+            'path': self.pathdetector,
             'dice': self.dicedetector
         }
+            # 'chip': self.chipdetector,
+            # 'roulette': self.roulettedetector,
+            # 'slots': self.slotsdetector,
+            # 'pinger_b': self.pingerdetector,
+            # 'pinger_a': self.pingerdetector,
+            # 'cash_in': self.cashindetector
 
         self.camera_start_dictionary = {
             0: self.opencv_camera_start,
@@ -78,6 +97,14 @@ class CVController():
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
+
+    # raw_frame ##################################################################################
+    def raw_frame(self):
+        return self.current_raw_frame
+    
+    # processed_frame ##################################################################################
+    def processed_frame(self):
+        return self.current_processed_frame
     
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
@@ -131,8 +158,10 @@ class CVController():
 
                 # self.last_reading.append(coordinates)
                 self.outraw.write(frame)
+                self.current_raw_frame = copy.copy(frame)
                 found, coordinates, shape, width_height = self.cv_task.detect(frame)
                 self.outprocessed.write(frame)
+                self.current_processed_frame = copy.copy(frame)
 
                 self.show_img(frame)
 
@@ -150,9 +179,11 @@ class CVController():
         self.cv_task = self.tasks[task]
         _, frame = self.cap.read()
         self.outraw.write(frame)
+        self.current_raw_frame = copy.copy(frame)
         found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
+        self.current_processed_frame = copy.copy(frame)
         return found, directions, shape, width_height
     
     # detect ##################################################################################
@@ -169,6 +200,7 @@ class CVController():
     # setupPipline ##################################################################################
     def setupPipline(self):
         Gst.init(sys.argv)  # init gstreamer
+        print Gst
 
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")

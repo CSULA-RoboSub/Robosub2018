@@ -31,6 +31,7 @@ class Dice(Task):
         self.is_done = False
         self.stop_task = False
         self.is_task_running = False
+        self.is_complete = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -56,6 +57,7 @@ class Dice(Task):
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
+        self.is_complete = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -87,8 +89,9 @@ class Dice(Task):
     
     # stop ##################################################################################
     def stop(self):
-        self.local_cvcontroller.stop
+        self.local_cvcontroller.stop()
 
+    #TODO remove soon, since thread is being created in Houston
     # run_detect_for_task ##################################################################################
     def run_detect_for_task(self, m_power=120, rotation=15):
         self.reset_thread()
@@ -118,7 +121,7 @@ class Dice(Task):
     
     # complete ##################################################################################
     def complete(self):
-        pass
+        self.is_complete = True
 
     # bail_task ##################################################################################
     def bail_task(self):

@@ -194,14 +194,14 @@ class Keyboard():
     def set_power(self, **power_type):
         """
         Sets the power to a value set_power(power_type=value)
-        Keywords: h_power, m_power, r_power
+        power_type: h_power, m_power, r_power
         """
 
-        if power_type['h_power'] > 0:
+        if 'h_power' in power_type:
             self.h_power = power_type['h_power']
-        if power_type['m_power'] > 0:
+        if 'm_power' in power_type:
             self.h_power = power_type['m_power']
-        if power_type['r_power'] > 0:
+        if 'r_power' in power_type:
             self.h_power = power_type['r_power']
 
     def start(self):

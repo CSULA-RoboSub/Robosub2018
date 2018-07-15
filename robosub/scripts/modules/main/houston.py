@@ -2,7 +2,7 @@ import rospy
 import cv2
 import sys
 import time
-import gi
+# import gi
 import threading
 
 import numpy as np
@@ -132,6 +132,9 @@ class Houston():
             print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
 
+        if self.state.is_complete:
+            self.state_num += 1
+
     # do_one_task ##################################################################################
     def do_one_task(self, task_num):
         print '\nattempting to run task number: {}\
@@ -155,11 +158,24 @@ class Houston():
             self.state.stop_task = True
         except:
             print 'no task currently running to stop'
+
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()
-        self.navigation.cancel_r_nav()
+        self.navigation.cancel_r_nav()    
 
-    
+    # return_raw_frame ##################################################################################
+    def return_raw_frame(self):
+        if self.state.is_task_running:
+            return self.cvcontroller.current_raw_frame()
+        else:
+            print 'camera is currently not running'
+
+    # return_processed_frame ##################################################################################
+    def return_processed_frame(self):
+        if self.state.is_task_running:
+            return self.cvcontroller.current_processed_frame()
+        else:
+            print 'camera is currently not running'
 
     # task_thread_start ##################################################################################
     def task_thread_start(self, task_call, task_name, navigation, cvcontroller, power, rotation):
@@ -172,6 +188,7 @@ class Houston():
         if self.task_thread:
             self.task_thread = None
 
+    # TODO currently unused. will remove eventually
     # get_task ##################################################################################
     def get_task(self):
         self.tasks = self.config.get_config('auv', 'tasks')
