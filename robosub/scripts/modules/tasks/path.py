@@ -37,6 +37,12 @@ class Path(Task):
 
         ################ DICTIONARIES ################
         self.coordinates = []
+        
+        self.path_phases = {
+            None: self.path_maneuver.no_shape_found,
+            'vertical': self.path_maneuver.vertical,
+            'horizontal': self.path_maneuver.horizontal
+        }
 
         ################ AUV MOBILITY VARIABLES ################
 
@@ -76,7 +82,7 @@ class Path(Task):
         #     except:
         #         print 'path detect error'
         
-        #     self.navigate(navigation, found, coordinates, m_power, rotation)
+        #     self.navigate(navigation, found, coordinates, m_power, rotation, shape, width_height)
 
         cvcontroller.stop()
         self.mutex.release()
@@ -121,8 +127,15 @@ class Path(Task):
         return False, [0,0]
 
     # navigate ##################################################################################
-    def navigate(self, navigation, found, coordinates, power, rotation):
+    def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
         print 'navigate path'
+
+        if not self.path_maneuver.is_moving_forward:
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+
+        self.path_phases[shape](navigation, coordinates, power, rotation, width_height)
     
     # complete ##################################################################################
     def complete(self):

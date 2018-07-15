@@ -2,7 +2,7 @@ import rospy
 import cv2
 import sys
 import time
-import gi
+# import gi
 import threading
 
 import numpy as np
@@ -166,14 +166,14 @@ class Houston():
     # return_raw_frame ##################################################################################
     def return_raw_frame(self):
         if self.state.is_task_running:
-            return self.cvcontroller.raw_frame()
+            return self.cvcontroller.current_raw_frame()
         else:
             print 'camera is currently not running'
 
     # return_processed_frame ##################################################################################
     def return_processed_frame(self):
         if self.state.is_task_running:
-            return self.cvcontroller.processed_frame()
+            return self.cvcontroller.current_processed_frame()
         else:
             print 'camera is currently not running'
 

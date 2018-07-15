@@ -5,7 +5,7 @@ class DiceManeuver():
 
 
         ################ FLAG VARIABLES ################
-
+        self.is_moving_forward = False
 
         ################ TIMER/COUNTER VARIABLES ################
 
@@ -35,4 +35,16 @@ class DiceManeuver():
 
     # reset ##################################################################################
     def reset(self):
+        self.is_moving_forward = False
+    
+    def touch_die(self):
+        pass
+
+    def back_up_from_die(self):
+        pass
+
+    def find_die(self):
+        pass
+
+    def level_to_die(self):
         pass
