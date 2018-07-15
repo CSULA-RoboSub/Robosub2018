@@ -13,6 +13,7 @@ from threading import Thread
 from modules.sensors.computer_vision import GateDetector
 # from modules.sensors.computer_vision import BuoyDetector
 from modules.sensors.computer_vision import DiceDetector
+from modules.sensors.computer_vision import PathDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -27,9 +28,15 @@ class CVController():
     
     def __init__(self):
         ################ INSTANCES ################
+        # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
-        #self.buoydetector = BuoyDetector.BuoyDetector()
+        self.pathdetector = PathDetector.PathDetector()
         self.dicedetector = DiceDetector.DiceDetector()
+        # self.chipdetector = ChipDetector.ChipDetector()
+        # self.roulettedetector = RouletteDetector.RouletteDetector()
+        # self.slotsdetector = SlotsDetector.SlotsDetector()
+        # self.pingerdetector = PingerDetector.PingerDetector()
+        # self.cashindetector = CashInDetector.CashInDetector()
 
         ################ FPS COUNTER ################
         self.fps_output = 20
@@ -41,8 +48,15 @@ class CVController():
         ################ DICTIONARIES ################
         self.tasks = {
             'gate': self.gatedetector,
+            'path': self.pathdetector,
             'dice': self.dicedetector
         }
+            # 'chip': self.chipdetector,
+            # 'roulette': self.roulettedetector,
+            # 'slots': self.slotsdetector,
+            # 'pinger_b': self.pingerdetector,
+            # 'pinger_a': self.pingerdetector,
+            # 'cash_in': self.cashindetector
 
         self.camera_start_dictionary = {
             0: self.opencv_camera_start,
