@@ -176,42 +176,6 @@ class Gate(Task):
     # detect ##################################################################################   
     def detect(self, frame):
         pass
-    #     #add frame when testing complete
-    #     if not self.detectgate:
-    #         # self.detectgate = GateDetector.GateDetector()
-
-    #     return self.detectgate.detect(frame)
-
-    # def detect(self, navigation, m_power=120, rotation=15):
-    #     self.last_time = time.time()
-    #     self.mutex.acquire()
-    #     try:
-    #         print 'try detect'
-    #         for i in range (0, 100):
-    #             found, directions, gate_shape, width_height = self.cvcontroller.detect('gate')
-    #             if found:
-    #                 self.direction_list.append(directions)
-
-    #             if (time.time()-self.last_time > 0.05):
-
-    #                 try:
-    #                     most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-    #                 except:
-    #                     most_occur_coords = [0,0]
-
-    #                 print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
-    #                 print 'current count: {}'.format(i)
-    #                 print 'coordinates: {}'.format(most_occur_coords)
-    #                 print '--------------------------------------------'
-    #                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
-                    
-    #                 self.counter = Counter()
-    #                 self.direction_list = []
-    #                 self.last_time = time.time()
-
-    #     finally:
-    #         self.mutex.release()
-    #     print()
     
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
@@ -219,23 +183,7 @@ class Gate(Task):
             navigation.cancel_r_nav()
             navigation.cancel_m_nav()
             navigation.cancel_h_nav()
-        '''if self.forward_counter >= 2:
-            self.is_detect_done = True'''            
-        # self.gate_maneuver.sweep_forward = 0
-        #TODO need to get rid of if statements and clean up code
-        # if found and gate_shape == 'horizontal':
-        #     self.heading_verify_count += 1
-        #     if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold:
-        #         # self.getrotation.update_rot()
-        #         self.is_heading_correct = True
-
-        #     if not self.is_heading_correct:
-        #         self.gate_maneuver.center_square(navigation, coordinates, power)
-
-        #     else:
-        #         self.gate_maneuver.move_to_gate(navigation, coordinates, power)
-        # else:
-        #     self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
+ 
         if not self.rotated_to_center:
             if gate_shape:
                 if coordinates[0] == 0:
