@@ -28,6 +28,8 @@ from modules.tasks.cash_in import CashIn
 from modules.tasks.buoy import Buoy
 from modules.tasks.task import Task
 
+from modules.tasks.orientation import Orientation
+
 from modules.controller.cv_controller import CVController
 
 # TODO
@@ -56,6 +58,8 @@ class Houston():
         self.cvcontroller = CVController()
         self.config = Config()
         self.counts = Counter()
+        
+        self.orientation = Orientation()
 
         ################ THRESHOLD VARIABLES ################
         self.task_timer = 300
@@ -97,6 +101,7 @@ class Houston():
         self.queue_direction = []
         self.rotation = 15
         self.power = 120
+        self.r_power = 80
 
         ################ TASK THREAD ################
         self.task_thread = None
@@ -119,6 +124,14 @@ class Houston():
     def start_all_tasks(self):
         if self.state_num > 10:
             print 'no more tasks to complete'
+
+        # Added to show mark we are able to set orientation before hand
+        print 'start_orientation {}'.format(self.orientation.start_orientation)
+        print 'start_angle {}'.format(self.orientation.start_angle)
+        self.navigation.r_nav(self.orientation.start_orientation, self.orientation.start_angle, self.r_power)
+        self.navigation.ros_sleep(3)
+        self.navigation.m_nav('power', 'forward', self.power)
+        self.navigation.ros_sleep(3)
         
         self.state = self.states[self.state_num]
         if not self.state.is_task_running:

@@ -188,7 +188,11 @@ class CVController():
     
     # detect ##################################################################################
     def detect(self, task):
-        return self.camera_detect[self.sub_camera_found](task)
+        try:
+            return self.camera_detect[self.sub_camera_found](task)
+        except:
+            print 'detect for that task is not available'
+            return False, [0,0], None, (0,0)
 
     # show_img ##################################################################################
     def show_img(self, img):
