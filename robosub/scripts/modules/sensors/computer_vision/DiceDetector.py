@@ -13,7 +13,7 @@ class DiceDetector:
     the initialization will take a cam parameter so that we know which camera we are selecting
         later in documentation we should include which camera is which by number.
     '''
-    def __init__(self, cam):
+    def __init__(self):
         self.preprocessor = dpp.DicePreprocessor()
         self.classifier = dc.DiceClassifier()
         self.directions = [None, None]

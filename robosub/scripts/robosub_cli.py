@@ -66,7 +66,6 @@ class CLI(cmd.Cmd):
         '\n[cv] toggle computer vision (start/1 or stop/0)\
          \n[keyboard] keyboard manual navigation'
 
-
         if arg.lower() == 'cv start' or arg.lower() == 'cv 1':
             # temp method for testing purposes
             AUV.perform_tasks()

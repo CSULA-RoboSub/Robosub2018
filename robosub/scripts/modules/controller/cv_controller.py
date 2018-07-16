@@ -10,10 +10,6 @@ import threading
 from threading import Thread
 import numpy as np
 
-# TODO create following msgs for subscriber and publisher
-#from robosub.msg import Task
-#from robosub.msg import CVData
-
 from modules.sensors.computer_vision import GateDetector
 #from modules.sensors.computer_vision import BuoyDetector
 # from modules.sensors.computer_vision import DiceDetector
@@ -30,26 +26,26 @@ except:
 class CVController():
     
     def __init__(self):
-        # follow code for video capturing
-
-        # create instance of classes
+        ################ INSTANCES ################
         self.gatedetector = GateDetector.GateDetector()
         #self.buoydetector = BuoyDetector.BuoyDetector()
         # self.dicedetector = DiceDetector.DiceDetector()
 
         self.tasks = {'gate': self.gatedetector}
+                    # 'dice': self.dicedetector}
 
-        self.thread_cv = None
+        ################ FPS COUNTER ################
+        self.fps_output = 20
 
-        #rospy.Subscriber('houston_to_cv', Task, HoustonCallback)
-        #rospy.pub_cv_data = rospy.Publisher('cv_to_houston', CVData)
-        #rospy.init_node('CV_talker', anonymous=True)
-        self.camera_start_dictionary = {0: self.default_camera_start,
+        ################ DICTIONARIES ################
+        self.camera_start_dictionary = {0: self.opencv_camera_start,
                                         1: self.sub_driver_camera_start}
         
-        self.camera_detect = {0: self.default_camera_detect,
+        self.camera_detect = {0: self.opencv_camera_detect,
                             1: self.sub_driver_camera_detect}
-
+        
+        ################ VIDEOCAMERA INSTANCES ################
+        ################ SUB CAMERA DRIVER AND OPENCV ################
         try:
             self.loop = GLib.MainLoop()
             self.sample = None
@@ -62,10 +58,12 @@ class CVController():
             self.sub_camera_found = 0
             print('*******unable to initialize Glib.MainLoop()*******')
 
+    # start ##################################################################################
     def start(self, task_name):
         self.camera_start_dictionary[self.sub_camera_found](task_name)
         print 'start cvcontroller'
 
+    # stop ##################################################################################
     def stop(self):
         try:
             self.closePipline()
@@ -75,25 +73,28 @@ class CVController():
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
-
+    
+    # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
         print("setup pipeline")
         self.setupPipline()
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (744, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (744, 480))
+        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
         print 'sub camera found'
 
-    def default_camera_start(self, task_name):
+    # opencv_camera_start ##################################################################################
+    def opencv_camera_start(self, task_name):
         self.cap = None
         self.cap = cv2.VideoCapture(0)
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, 10.0, (640, 480))
+        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
         print 'laptop/default camera found'
 
+    # sub_driver_camera_detect ##################################################################################
     def sub_driver_camera_detect(self, task):
         if not task:
             return None, None, None, None
@@ -139,19 +140,17 @@ class CVController():
             return found, coordinates, gate_shape, width_height
         return None, None, None, None
 
-    
-    def default_camera_detect(self, task):
+    # opencv_camera_detect ##################################################################################
+    def opencv_camera_detect(self, task):
         self.cv_task = self.tasks[task]
         _, frame = self.cap.read()
         self.outraw.write(frame)
         found, directions, gate_shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
-
         return found, directions, gate_shape, width_height
     
-    # TODO implement methods for cv_controller
-    #def get_coordinates?
+    # detect ##################################################################################
     def detect(self, task):
 
         # if self.sample:
@@ -221,12 +220,14 @@ class CVController():
         
         return self.camera_detect[self.sub_camera_found](task)
 
+    # show_img ##################################################################################
     def show_img(self, img):
         bytebuffer = img.tobytes()
         self.display_buffers.append(bytebuffer)
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
         self.display_input.emit("push-buffer", new_buf)
 
+    # setupPipline ##################################################################################
     def setupPipline(self):
         Gst.init(sys.argv)  # init gstreamer
 
@@ -307,6 +308,7 @@ class CVController():
         self.pipeline.set_state(Gst.State.PLAYING)
         print("done setting up pipeline")
 
+    # closePipline ##################################################################################
     def closePipline(self):
         self.outraw.release()
         self.outprocessed.release()
@@ -321,12 +323,15 @@ class CVController():
         self.loop.quit()
 
         print("closed pipeline")
+
+    # callback ##################################################################################
     def callback(self, sink):
         # print("in callback")
         self.sample = sink.emit("pull-sample")
         
         return Gst.FlowReturn.OK
 
+    # list_formats ##################################################################################
     def list_formats(self, source):
         """Returns a list of all video formats supported by a video source."""
 
@@ -345,6 +350,7 @@ class CVController():
 
         return ret
 
+    # select_format ##################################################################################
     def select_format(self, source):
         """Helper function that prompts the user to select a video format.
 
@@ -367,6 +373,8 @@ class CVController():
         # fmt is a Gst.Structure but Caps can only be generated from a string,
         # so a to_string conversion is needed
         return fmt
+
+    # get_frame_rate_list ##################################################################################
     def get_frame_rate_list(self, fmt):
         """Get the list of supported frame rates for a video format.
         This function works arround an issue with older versions of GI that does not
@@ -381,5 +389,7 @@ class CVController():
             _unused_field, values, _unsued_remain = re.split("{|}", substr, maxsplit=3)
             rates = [x.strip() for x in values.split(",")]
         return rates
+
+    # start_loop ##################################################################################
     def start_loop(self):
         self.loop.run()
