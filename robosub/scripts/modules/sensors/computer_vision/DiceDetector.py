@@ -43,7 +43,7 @@ class DiceDetector:
         # die = [die for die in interest_regions if self.classifier.predict(die) > .1]
         dice = self.classifier.classify(frame, interest_regions)
 
-        ht , wd =  frame.shape
+        ht, wd, ch =  frame.shape
         if not dice:
             found = False
             dice_shape = None
@@ -51,7 +51,8 @@ class DiceDetector:
             w,h = 0,0
         else:
             x, y, w, h  = dice[0]
-            dice_shape = self.get_shape(die, self.shape_buffer)
+            # dice_shape = self.get_shape(dice, self.shape_buffer)
+            dice_shape = None
             self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
             self.found = True
 

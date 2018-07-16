@@ -178,7 +178,7 @@ class GateManeuver():
 
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
-        navigation.r_nav(self.rotation_direction, rotation, power)
+        navigation.r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
         
     # completed_gate ##################################################################################
     def completed_gate(self):
@@ -247,4 +247,4 @@ class GateManeuver():
         # print 'performing no shape'
 
     def rotate_to_center(self, navigation, coordinates):
-        navigation.r_nav(coordinates[0], self.rotation_angle, rotation_power)
+        navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
