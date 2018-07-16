@@ -3,16 +3,17 @@ import math
 import cv2
 import sys
 import time
-
 import gi
 import threading
-
-from threading import Thread
+import copy
 import numpy as np
 
+from threading import Thread
+
 from modules.sensors.computer_vision import GateDetector
-#from modules.sensors.computer_vision import BuoyDetector
-# from modules.sensors.computer_vision import DiceDetector
+# from modules.sensors.computer_vision import BuoyDetector
+from modules.sensors.computer_vision import DiceDetector
+from modules.sensors.computer_vision import PathDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -27,22 +28,45 @@ class CVController():
     
     def __init__(self):
         ################ INSTANCES ################
+        # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
-        #self.buoydetector = BuoyDetector.BuoyDetector()
-        # self.dicedetector = DiceDetector.DiceDetector()
-
-        self.tasks = {'gate': self.gatedetector}
-                    # 'dice': self.dicedetector}
+        self.pathdetector = PathDetector.PathDetector()
+        self.dicedetector = DiceDetector.DiceDetector()
+        # self.chipdetector = ChipDetector.ChipDetector()
+        # self.roulettedetector = RouletteDetector.RouletteDetector()
+        # self.slotsdetector = SlotsDetector.SlotsDetector()
+        # self.pingerdetector = PingerDetector.PingerDetector()
+        # self.cashindetector = CashInDetector.CashInDetector()
 
         ################ FPS COUNTER ################
         self.fps_output = 20
 
+        ################ CAMERA FRAME ################
+        self.current_raw_frame = None
+        self.current_processed_frame = None
+
         ################ DICTIONARIES ################
-        self.camera_start_dictionary = {0: self.opencv_camera_start,
-                                        1: self.sub_driver_camera_start}
+        self.tasks = {
+            'gate': self.gatedetector,
+            'path': self.pathdetector,
+            'dice': self.dicedetector
+        }
+            # 'chip': self.chipdetector,
+            # 'roulette': self.roulettedetector,
+            # 'slots': self.slotsdetector,
+            # 'pinger_b': self.pingerdetector,
+            # 'pinger_a': self.pingerdetector,
+            # 'cash_in': self.cashindetector
+
+        self.camera_start_dictionary = {
+            0: self.opencv_camera_start,
+            1: self.sub_driver_camera_start
+        }
         
-        self.camera_detect = {0: self.opencv_camera_detect,
-                            1: self.sub_driver_camera_detect}
+        self.camera_detect = {
+            0: self.opencv_camera_detect,
+            1: self.sub_driver_camera_detect
+        }
         
         ################ VIDEOCAMERA INSTANCES ################
         ################ SUB CAMERA DRIVER AND OPENCV ################
@@ -73,6 +97,14 @@ class CVController():
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
+
+    # raw_frame ##################################################################################
+    def raw_frame(self):
+        return self.current_raw_frame
+    
+    # processed_frame ##################################################################################
+    def processed_frame(self):
+        return self.current_processed_frame
     
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
@@ -126,8 +158,10 @@ class CVController():
 
                 # self.last_reading.append(coordinates)
                 self.outraw.write(frame)
-                found, coordinates, gate_shape, width_height = self.cv_task.detect(frame)
+                self.current_raw_frame = copy.copy(frame)
+                found, coordinates, shape, width_height = self.cv_task.detect(frame)
                 self.outprocessed.write(frame)
+                self.current_processed_frame = copy.copy(frame)
 
                 self.show_img(frame)
 
@@ -137,7 +171,7 @@ class CVController():
             finally:
                 buf.unmap(mapinfo)
 
-            return found, coordinates, gate_shape, width_height
+            return found, coordinates, shape, width_height
         return None, None, None, None
 
     # opencv_camera_detect ##################################################################################
@@ -145,79 +179,15 @@ class CVController():
         self.cv_task = self.tasks[task]
         _, frame = self.cap.read()
         self.outraw.write(frame)
-        found, directions, gate_shape, width_height = self.cv_task.detect(frame)
+        self.current_raw_frame = copy.copy(frame)
+        found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
         self.outprocessed.write(frame)
-        return found, directions, gate_shape, width_height
+        self.current_processed_frame = copy.copy(frame)
+        return found, directions, shape, width_height
     
     # detect ##################################################################################
     def detect(self, task):
-
-        # if self.sample:
-        #         # print("have sample")
-        #         buf = self.sample.get_buffer()
-
-        #         caps = self.sample.get_caps()
-        #         width = caps[0].get_value("width")
-        #         height = caps[0].get_value("height")
-        #         try:
-        #             res, mapinfo = buf.map(Gst.MapFlags.READ)
-        #             # actual image buffer and size
-        #             # data = mapinfo.data
-        #             # size = mapinfo.size
-
-        #             # Create a numpy array from the data
-        #             img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
-
-        #             # Give the array the correct dimensions of the video image
-        #             frame = img_array.reshape((height, width, 3))
-        #             # print(type(frame))
-
-        #             # self.outraw.write(frame)
-        #             # self.msg.found, coordinates = self.state.detect(frame)
-        #             # self.outprocessed.write(frame)
-
-        #             # self.last_reading.append(coordinates)
-        #             self.outraw.write(frame)
-        #             self.msg.found, coordinates, gate_shape, width_height = self.state.detect(frame)
-        #             self.outprocessed.write(frame)
-
-        #             self.show_img(frame)
-
-        #         except KeyboardInterrupt:
-        #             self.state.is_detect_done = True
-        #             # raise
-        #         finally:
-        #             buf.unmap(mapinfo)
-                    
-        # self.cv_task = self.tasks[task]
-        # _, frame = self.cap.read()
-        # self.outraw.write(frame)
-        # found, directions, gate_shape, width_height = self.cv_task.detect(frame)
-        # #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
-        # self.outprocessed.write(frame)
-
-        # TODO not working at the moment, need to figure it out
-        # CV controller currently only works with cv2 drivers
-        # currently unable to test other camera drivers
-
-
-        #cv2.imshow(task, frame)
-        #key = cv2.waitKey(20)
-
-        # if the `q` key is pressed, break from the loop
-        #if key == ord("q"):
-        #    break
-        #self.cap.release
-
-        # try:
-        #     self.setupPipline()
-        #     self.thread=Thread(target=self.start_loop)
-        #     self.thread.start()
-        # except:
-        #     pass
-            # print('unable to set upPipline()')
-        
         return self.camera_detect[self.sub_camera_found](task)
 
     # show_img ##################################################################################
@@ -230,6 +200,7 @@ class CVController():
     # setupPipline ##################################################################################
     def setupPipline(self):
         Gst.init(sys.argv)  # init gstreamer
+        print Gst
 
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")
