@@ -336,7 +336,7 @@ class Navigation():
         # self.cancel_h_nav()
         self.cancel_m_nav()
         self.waypoint_state = 0
-        rospy.sleep(1.5)
+        rospy.sleep(2)
         # print('going to waypoint')
         self.is_running_waypoint_rotation = True
         self.r_nav(direction_r, degree_r, power_r)

@@ -64,7 +64,7 @@ class GateManeuver():
 
         ################ AUV MOBILITY VARIABLES ################
         self.rotation_angle = 15
-        self.depth_change = 1
+        self.depth_change = 2
         self.depth = -1
         self.h_power = 100
         self.move_forward = 'forward'
@@ -191,7 +191,7 @@ class GateManeuver():
     def vertical(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         if not self.is_heading_correct:
             # self.strafe_to_square(navigation, power, rotation, width_height[0])
-            self.strafe_to_square(navigation, 50, 50, width_height[0])
+            self.strafe_to_square(navigation, 100, 50, width_height[0])
         else:
             self.move_to_gate(navigation, coordinates, power)
         # print 'performing vertical'
@@ -204,7 +204,7 @@ class GateManeuver():
         #     self.move_to_gate(navigation, coordinates, power)
         #     self.under_timer += 1
         self.heading_verify_count += 1
-        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold:
+        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0:
             # self.getrotation.update_rot()
             self.is_heading_correct = True
 
@@ -222,7 +222,7 @@ class GateManeuver():
         #if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
 
         self.heading_verify_count += 1
-        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold:
+        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0:
             # self.getrotation.update_rot()
             self.is_heading_correct = True
 
@@ -245,3 +245,6 @@ class GateManeuver():
         else:
             self.move_to_gate(navigation, coordinates, power)
         # print 'performing no shape'
+
+    def rotate_to_center(self, navigation, coordinates):
+        navigation.r_nav(coordinates[0], self.rotation_angle, rotation_power)

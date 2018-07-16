@@ -124,10 +124,10 @@ class Houston():
         if not self.state.is_task_running:
             self.state.reset()
             print 'doing task: {}'.format(self.tasks[self.state_num])
-            self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
             self.navigation.cancel_h_nav()
             self.navigation.cancel_m_nav()
             self.navigation.cancel_r_nav()
+            self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
         else:
             print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
@@ -143,10 +143,10 @@ class Houston():
         self.state = self.states[task_num]
         if not self.state.is_task_running:
             self.state.reset()
-            self.task_thread_start(self.state, self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
             self.navigation.cancel_h_nav()
             self.navigation.cancel_m_nav()
             self.navigation.cancel_r_nav()
+            self.task_thread_start(self.state, self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
         else:
             print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'

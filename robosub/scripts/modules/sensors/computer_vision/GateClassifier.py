@@ -36,7 +36,7 @@ class GateClassifier:
 
         try: # load/store trained model
             self.lsvm = joblib.load(self.model_path + self.vers_label + "_" + self.model_file_name) # load model from disk
-            print("\nLoading model from disk...\n")
+            print("\nLoading Gate model from disk...\n")
         except:
             print("\nTraining model...")
             self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)

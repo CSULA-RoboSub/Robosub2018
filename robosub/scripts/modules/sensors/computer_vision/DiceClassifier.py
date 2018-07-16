@@ -39,8 +39,8 @@ class DiceClassifier:
         lsvm = None
 
         try:
-            lsvm = joblib.load('modules/sensors/computer_vision/DiceSVMstd.pkl')
-
+            lsvm = joblib.load('modules/sensors/computer_vision/models/DiceSVMstd.pkl')
+            print("\nLoading Dice model from disk...\n")
         except IOError:
             print("SVM not found \n Building SVM")
             pos_imgs = []
@@ -84,7 +84,7 @@ class DiceClassifier:
             lsvm = svm.SVC(gamma=5, C= .5 , kernel="linear", probability=True)
             lsvm.fit(train_feat, train_label)
 
-            joblib.dump(lsvm,'DiceSVMstd.pkl')
+            joblib.dump(lsvm,'modules/sensors/computer_vision/models/DiceSVMstd.pkl')
             result = lsvm.predict(test_feat)
 
             #print "test accuracy ", lsvm.score(test_feat, test_label)

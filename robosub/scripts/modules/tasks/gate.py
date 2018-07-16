@@ -71,7 +71,8 @@ class Gate(Task):
         self.r_power=100
         self.h_power=100
         self.m_power=120   
-
+        self.rotated_to_center = False
+        
         ################ THREAD VARIABLES ################    
         self.thread_gate = None
         self.mutex = Lock()
@@ -97,6 +98,7 @@ class Gate(Task):
         self.counter = Counter()
 
         self.is_heading_correct = False
+        self.rotated_to_center = False
         self.previous_width_height = (0,0)
         self.direction_list = []
 
@@ -234,7 +236,14 @@ class Gate(Task):
         #         self.gate_maneuver.move_to_gate(navigation, coordinates, power)
         # else:
         #     self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
-        self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
+        if not self.rotated_to_center:
+            if gate_shape:
+                if coordinates[0] == 0:
+                    self.rotated_to_center = True
+                else:
+                    self.gate_maneuver.rotate_to_center()
+        else:
+            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
 
                     
         self.previous_width_height = width_height
