@@ -186,8 +186,8 @@ const double heightThreshold = 0.3;
 ///////////////////////////////////////////////
 
 /////////////////PID_heading constants and variables/////////////////
-const double kp_heading=60;//11;//3.55;//3.55
-const double kd_heading=0.2;//0.75;//2.05;//2.05
+const double kp_heading=11; //11;//3.55;//3.55
+const double kd_heading=0.7;//0.75;//2.05;//2.05
 const double ki_heading=0.003;
 
 double pid_i_heading = 0;
@@ -198,7 +198,7 @@ double rotationThreshold = 1;
 
 /////////////////PID_positionX constants and variables/////////////////
 // const double kp_positionX=9;//11;//3.55;//3.55
-const double kd_positionX=0.8;//0.75;//2.05;//2.05
+const double kd_positionX=0.7;//0.75;//2.05;//2.05
 const double ki_positionX=0.003;//0.003
 
 double pid_i_positionX = 0;
@@ -207,7 +207,7 @@ double rightLeftDistancePrev = 0;
 
 /////////////////PID_positionY constants and variables/////////////////
 // const double kp_positionY=9;//11;//3.55;//3.55
-const double kd_positionY=0.8;//0.75;//2.05;//2.05
+const double kd_positionY=0.7;//0.75;//2.05;//2.05
 const double ki_positionY=0.003;//0.003
 
 double pid_i_positionY = 0;
@@ -217,11 +217,13 @@ double forwardBackwardDistancePrev = 0;
 //position keeping variables
 double keepPositionX = 0;
 double keepPositionY = 0;
-const double keepPositionThreshold = 0.4; //meters
-const double keepPositionMaxPowerForwardBackward = 100;
-const double keepPositionMaxPowerRightLeft = 100;
-
 double positionControlMOffset = 0;
+const double keepPositionForwardThreshold = 0.9; //meters
+const double keepPositionRightThreshold = 0.5; //meters
+const double keepPositionMaxPowerForwardBackward = 160;
+const double keepPositionMaxPowerRightLeft = 200;
+const double keepCourseRightMult = 0.05;
+const double keepCourseForwardMult = 0.1;
 
 //----------------------------------------------------------------------------
 //---------------------------- helper functions ------------------------------
@@ -275,9 +277,9 @@ void setMHorizontal(const double t5, const double t6, const double t7, const dou
 
 //publish motor power to ros
 void publishMotors(){
-  cout << "mHorizontalOffset: " << mHorizontalOffsetT5 << " " << mHorizontalOffsetT6 << " " << mHorizontalOffsetT7 << " " << mHorizontalOffsetT8 << endl;
-  cout << "mHorizontal: " << mHorizontal.t5 << " " << mHorizontal.t6 << " " << mHorizontal.t7 << " " << mHorizontal.t8 << endl;
-  cout << "mHorizontalTotal: " << mHorizontalTotal.t5 << " " << mHorizontalTotal.t6 << " " << mHorizontalTotal.t7 << " " << mHorizontalTotal.t8 << endl;
+  // cout << "mHorizontalOffset: " << mHorizontalOffsetT5 << " " << mHorizontalOffsetT6 << " " << mHorizontalOffsetT7 << " " << mHorizontalOffsetT8 << endl;
+  // cout << "mHorizontal: " << mHorizontal.t5 << " " << mHorizontal.t6 << " " << mHorizontal.t7 << " " << mHorizontal.t8 << endl;
+  // cout << "mHorizontalTotal: " << mHorizontalTotal.t5 << " " << mHorizontalTotal.t6 << " " << mHorizontalTotal.t7 << " " << mHorizontalTotal.t8 << endl;
   mHorizontalTotal.t5 = mHorizontal.t5 + mHorizontalOffsetT5;
   mHorizontalTotal.t6 = mHorizontal.t6 + mHorizontalOffsetT6;
   mHorizontalTotal.t7 = mHorizontal.t7 + mHorizontalOffsetT7;
@@ -293,10 +295,16 @@ void motorsOff(){
   setMHorizontalOffset(0, 0, 0, 0);
 }
 
+double motorPowerCap(double power){
+  if(power > motorRange) return motorRange;
+  else if(power < -motorRange) return -motorRange;
+  return power;
+}
+
 //pid for forward axis
 double positionForwardPID(const double error_positionY){
   int pid_d_positionY = 0;
-  if(-keepPositionThreshold < error_positionY && error_positionY < keepPositionThreshold)
+  if(-keepPositionForwardThreshold < error_positionY && error_positionY < keepPositionForwardThreshold)
     pid_i_positionY = pid_i_positionY+(ki_positionY*error_positionY);
   else
     pid_i_positionY = 0;
@@ -308,7 +316,7 @@ double positionForwardPID(const double error_positionY){
 //pid for right axis
 double positionRightPID(const double error_positionX){
   int pid_d_positionX = 0;
-  if(-keepPositionThreshold < error_positionX && error_positionX < keepPositionThreshold)
+  if(-keepPositionRightThreshold < error_positionX && error_positionX < keepPositionRightThreshold)
     pid_i_positionX = pid_i_positionX+(ki_positionX*error_positionX);
   else
     pid_i_positionX = 0;
@@ -833,16 +841,16 @@ void heightControl(){
   // if (assignedDepth < (feetDepth_read - heightThreshold )){
   //   pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
   //   pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-  //   pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
-  //   pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
+  //   pwmThruster_3 = base_thrust + PID_pitch + PID_roll - PID_depth;
+  //   pwmThruster_4 = base_thrust - PID_pitch + PID_roll + PID_depth;
   // }
 
   // //submerging
   // else if (assignedDepth > (feetDepth_read + heightThreshold)){
   //   pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
   //   pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-  //   pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
-  //   pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
+  //   pwmThruster_3 = base_thrust + PID_pitch + PID_roll - PID_depth;
+  //   pwmThruster_4 = base_thrust - PID_pitch + PID_roll + PID_depth;
   // }
   
   //////Stabilization sum
@@ -858,14 +866,14 @@ void heightControl(){
     }
     // pwmThruster_1 = base_thrust - PID_pitch - PID_roll - pid_i_depth;
     // pwmThruster_2 = base_thrust + PID_pitch - PID_roll + pid_i_depth;
-    // pwmThruster_3 = base_thrust - PID_pitch + PID_roll - pid_i_depth;
-    // pwmThruster_4 = base_thrust + PID_pitch + PID_roll + pid_i_depth;
+    // pwmThruster_3 = base_thrust + PID_pitch + PID_roll - pid_i_depth;
+    // pwmThruster_4 = base_thrust - PID_pitch + PID_roll + pid_i_depth;
   }
   
   pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
   pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-  pwmThruster_3 = base_thrust - PID_pitch + PID_roll - PID_depth;
-  pwmThruster_4 = base_thrust + PID_pitch + PID_roll + PID_depth;
+  pwmThruster_3 = base_thrust + PID_pitch + PID_roll - PID_depth;
+  pwmThruster_4 = base_thrust - PID_pitch + PID_roll + PID_depth;
 
   ///////////Thruster power buffer//////////////
   //Thruster_1
@@ -1142,20 +1150,24 @@ void movementControl(){
 //position keeping control
 void positionControl(){
   if(isDoingMovement()){
-    cout << "position isDoingMovement" << endl;
-    setMHorizontalOffset(0, 0, 0, 0);
-    //offset by opposing velocity to keep velocity as close to 0 as possible to fight drift while moving
-    // if((mControlDirection == 2 || mControlDirection == 4) || keepMovingRight || keepMovingLeft){
-    //   positionControlMOffset -= (velocityY*0.02);
-    //   setMHorizontalOffset(0, positionControlMOffset, 0, -positionControlMOffset);
-    // }
-    // else{
-    //   positionControlMOffset -= (velocityX*0.02);
-    //   setMHorizontalOffset(positionControlMOffset, 0, positionControlMOffset, 0);
-    // }
+    // cout << "position isDoingMovement" << endl;
+    // setMHorizontalOffset(0, 0, 0, 0);
+    // offset by opposing velocity to keep velocity as close to 0 as possible to fight drift while moving
+    if(isDoingStrafeMovement()){
+      // cout << "doing right/left, offset: " << positionControlMOffset << endl;
+      positionControlMOffset += (-velocityY)*keepCourseRightMult;
+      positionControlMOffset = motorPowerCap(positionControlMOffset);
+      setMHorizontalOffset(0, positionControlMOffset, 0, -positionControlMOffset);
+    }
+    else{
+      // cout << "doing forward/backward, offset: " << positionControlMOffset << endl;
+      positionControlMOffset += (-velocityX)*keepCourseForwardMult;
+      positionControlMOffset = motorPowerCap(positionControlMOffset);
+      setMHorizontalOffset(positionControlMOffset, 0, positionControlMOffset, 0);
+    }
   }
   else{
-    cout << "position keeping" << endl;
+    // cout << "position keeping" << endl;
     positionControlMOffset = 0; //rezero position keeping for movementControl
     double pDirection = DVLHelper::getDirection(positionX, positionY, keepPositionX, keepPositionY, yaw);
     double pDistance = DVLHelper::getDistance(positionX, positionY, keepPositionX, keepPositionY);
@@ -1166,41 +1178,41 @@ void positionControl(){
       //on right side of sub rightleftoffset must be positive
       if(pDirection < 90){
         //move forward positive forwardbackwardoffset
-        forwardBackwardDistance = abs(sin(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
-        forwardBackwardOffset = (forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance);
+        forwardBackwardDistance = abs(cos(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
+        forwardBackwardOffset = (forwardBackwardDistance/keepPositionForwardThreshold) * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance);
 
-        rightLeftDistance = abs(cos(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
-        rightLeftOffset = (rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance);
+        rightLeftDistance = abs(sin(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
+        rightLeftOffset = (rightLeftDistance/keepPositionRightThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance);
       }
       else{
         //move backward negative forwardbackwardoffset
         forwardBackwardDistance = abs(sin(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance);
-        forwardBackwardOffset = -((forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance));
+        forwardBackwardOffset = -((forwardBackwardDistance/keepPositionForwardThreshold) * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance));
 
         rightLeftDistance = abs(cos(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance);
-        rightLeftOffset = (rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance);
+        rightLeftOffset = (rightLeftDistance/keepPositionRightThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance);
       }
     }
     else{
       //on left side of sub rightleftoffset must be negative
       if(pDirection > -90){
         //move forward positive forwardbackwardoffset
-        forwardBackwardDistance = abs(sin(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
-        forwardBackwardOffset = (forwardBackwardDistance/keepPositionThreshold) * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance);
+        forwardBackwardDistance = abs(cos(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
+        forwardBackwardOffset = (forwardBackwardDistance/keepPositionForwardThreshold) * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance);
 
-        rightLeftDistance = abs(cos(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
-        rightLeftOffset = -((rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance));
+        rightLeftDistance = abs(sin(DVLHelper::deg2rad(abs(pDirection))) * pDistance);
+        rightLeftOffset = -((rightLeftDistance/keepPositionRightThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance));
       }
       else{
         //move backward negative forwardbackwardoffset
         forwardBackwardDistance = abs(sin(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance);
-        forwardBackwardOffset = -(forwardBackwardDistance/keepPositionThreshold * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance));
+        forwardBackwardOffset = -(forwardBackwardDistance/keepPositionForwardThreshold * keepPositionMaxPowerForwardBackward + positionForwardPID(forwardBackwardDistance));
 
         rightLeftDistance = abs(cos(DVLHelper::deg2rad(abs(pDirection) - 90)) * pDistance);
-        rightLeftOffset = -((rightLeftDistance/keepPositionThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance));
+        rightLeftOffset = -((rightLeftDistance/keepPositionRightThreshold) * keepPositionMaxPowerRightLeft + positionRightPID(rightLeftDistance));
       }
     }
-
+    // cout << "forwardBackwardDistance: " << forwardBackwardDistance << " rightLeftDistance: " << rightLeftDistance << endl;
     //keep prev distance for pid
     forwardBackwardDistancePrev = forwardBackwardDistance;
     rightLeftDistancePrev = rightLeftDistance;

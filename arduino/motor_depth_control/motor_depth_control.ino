@@ -112,7 +112,7 @@ void setup() {
   digitalWrite(RST, HIGH);
 
   //Reed switch pin
-  // pinMode(REED, INPUT);
+  pinMode(REED, INPUT);
 
   //Initialization of LCD 
  //  LcdWriteCmd(0x21);                    //LCD extended commands
