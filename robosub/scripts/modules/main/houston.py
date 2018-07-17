@@ -67,6 +67,7 @@ class Houston():
 
         ################ FLAG VARIABLES ################
         self.is_killswitch_on = False
+        self.is_task_running = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.last_time = time.time()
@@ -95,6 +96,11 @@ class Houston():
             self.cash_in
         ]
 
+        self.one_or_all_tasks = {
+            'one': self.do_one_task,
+            'all': self.start_all_tasks
+        }
+
         ################ AUV MOBILITY VARIABLES ################
         #self.rotational_movement = {-1: }
         self.height = 1
@@ -105,6 +111,7 @@ class Houston():
 
         ################ TASK THREAD ################
         self.task_thread = None
+        self.task_loop = True
 
         ################ ROS VARIABLES ################
         self.r = rospy.Rate(30) #30hz
@@ -113,6 +120,11 @@ class Houston():
         ################ CURRENT TASK VARIABLE ################
         self.current_task = None
 
+    # reset ##################################################################################
+    def reset(self):
+        self.is_task_running = False
+        self.task_loop = True
+
     # print_task ##################################################################################
     def print_tasks(self):
         counter = 0
@@ -120,55 +132,70 @@ class Houston():
             print '{}: {}'.format(counter, i)
             counter += 1
 
-    # do_task ##################################################################################
-    def start_all_tasks(self):
-        if self.state_num > 10:
-            print 'no more tasks to complete'
-
-        # Added to show mark we are able to set orientation before hand
-        print 'start_orientation {}'.format(self.orientation.start_orientation)
-        print 'start_angle {}'.format(self.orientation.start_angle)
-        self.navigation.r_nav(self.orientation.start_orientation, self.orientation.start_angle, self.r_power)
-        self.navigation.ros_sleep(3)
-        self.navigation.m_nav('power', 'forward', self.power)
-        self.navigation.ros_sleep(3)
-        
-        self.state = self.states[self.state_num]
-        if not self.state.is_task_running:
-            self.state.reset()
-            print 'doing task: {}'.format(self.tasks[self.state_num])
-            self.navigation.cancel_h_nav()
-            self.navigation.cancel_m_nav()
-            self.navigation.cancel_r_nav()
-            self.task_thread_start(self.state, self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+    # start_task ##################################################################################
+    def start_task(self, one_or_all, task_choice):
+        if not self.is_task_running:
+            self.task_thread_start(one_or_all, task_choice)
         else:
             print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
 
-        if self.state.is_complete:
-            self.state_num += 1
+    def task_thread_start(self, one_or_all, task_choice):
+        self.reset_thread()
+        self.task_thread = Thread(target = self.one_or_all_tasks[one_or_all], args = (task_choice,))
+        self.task_thread.start()
+
+    # start_all_tasks ##################################################################################
+    def start_all_tasks(self, _):
+        self.is_task_running = True
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_m_nav()
+        self.navigation.cancel_r_nav()
+        self.task_loop = True
+        while self.task_loop:
+            if self.state_num > 10:
+                self.task_loop = False
+                print 'no more tasks to complete'
+
+            # Added to show mark we are able to set orientation before hand
+            # print 'start_orientation {}'.format(self.orientation.start_orientation)
+            # print 'start_angle {}'.format(self.orientation.start_angle)
+            # self.navigation.r_nav(self.orientation.start_orientation, self.orientation.start_angle, self.r_power)
+            # self.navigation.ros_sleep(3)
+            # self.navigation.m_nav('power', 'forward', self.power)
+            # self.navigation.ros_sleep(3)
+
+            self.state = self.states[self.state_num]
+
+            self.state.reset()
+            print 'doing task: {}'.format(self.tasks[self.state_num])
+            self.state.start(self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+
+            if self.state.is_complete:
+                self.state_num += 1
+                
+        self.is_task_running = False
 
     # do_one_task ##################################################################################
     def do_one_task(self, task_num):
+        self.is_task_running = True
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_m_nav()
+        self.navigation.cancel_r_nav()
         print '\nattempting to run task number: {}\
                \ntask: {}'.format(task_num, self.tasks[task_num])
 
         self.state = self.states[task_num]
-        if not self.state.is_task_running:
-            self.state.reset()
-            self.navigation.cancel_h_nav()
-            self.navigation.cancel_m_nav()
-            self.navigation.cancel_r_nav()
-            self.task_thread_start(self.state, self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
-        else:
-            print '\nTask is currently running.'
-            print '\nPlease wait for task to finish or cancel'
+        self.state.reset()
+        self.state.start(self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+        
+        self.is_task_running = False
 
     # stop_task ##################################################################################
     def stop_task(self):
-        # self.state = self.states[self.state_num]
         try:
             self.state.stop_task = True
+            self.task_loop = False
         except:
             print 'no task currently running to stop'
 
@@ -191,10 +218,11 @@ class Houston():
             print 'camera is currently not running'
 
     # task_thread_start ##################################################################################
-    def task_thread_start(self, task_call, task_name, navigation, cvcontroller, power, rotation):
-        self.reset_thread()
-        self.task_thread = Thread(target = task_call.start, args = (task_name, navigation, cvcontroller, power, rotation))
-        self.task_thread.start()
+    # def task_thread_start(self, task_call, task_name, navigation, cvcontroller, power, rotation):
+    #     self.reset_thread()
+    #     self.task_thread = Thread(target = task_call.start, args = (task_name, navigation, cvcontroller, power, rotation))
+    #     # self.task_thread = Thread(target = self.one_or_all_tasks.start, args = ())
+    #     self.task_thread.start()
 
     # reset_thread ##################################################################################
     def reset_thread(self):

@@ -36,7 +36,6 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
         self.stop_task = False
-        self.is_task_running = False
         self.is_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
@@ -85,7 +84,6 @@ class Gate(Task):
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
-        self.is_task_running = False
         self.is_complete = False
 
         self.not_found_timer = 0
@@ -110,7 +108,6 @@ class Gate(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
-        self.is_task_running = True
         cvcontroller.start(task_name)
         self.mutex.acquire()
         count = 0
@@ -145,7 +142,6 @@ class Gate(Task):
 
         cvcontroller.stop()     
         self.mutex.release()
-        self.is_task_running = False
     # stop ##################################################################################
     def stop(self):
         # self.navigation.stop()
