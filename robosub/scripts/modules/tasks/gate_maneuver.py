@@ -22,50 +22,60 @@ class GateManeuver():
         self.heading_verify_count = 0
 
         ################ DICTIONARIES ################
-        self.horizontal_move = {-1: 'left',
-                                0: 'none',
-                                1: 'right'}
+        self.horizontal_move = {
+            -1: 'left',
+             0: 'none',
+             1: 'right'
+        }
 
-        self.vertical_movement = {-1: 'down',
-                                0: 'staying',
-                                1: 'up'}
+        self.vertical_movement = {
+            -1: 'down',
+             0: 'staying',
+             1: 'up'
+        }
                                 
-        self.rotation_movement = {-1: 'left',
-                                0: 'staying',
-                                1: 'right'}
+        self.rotation_movement = {
+            -1: 'left',
+             0: 'staying',
+             1: 'right'
+        }
 
-        self.previous_direction = {0:'right',
-                                1:'left'}
+        self.previous_direction = {
+            0:'right',
+            1:'left'
+        }
 
-        self.strafe_rotate = {0: 'left',
-                                1:'right'}
+        self.strafe_rotate = {
+            0: 'left',
+            1:'right'
+        }
 
-        self.sweep_rotation = {0:45,
-                                1:90}
+        self.sweep_rotation = {
+            0:45,
+            1:90
+        }
 
-        self.sweep_direction = {0: self.sweep_right,
-                                1: self.sweep_left,
-                                2: self.sweep_right,
-                                3: self.sweep_forward}
-
-        self.move_forward = 'forward'
-        self.move_backward = 'backward'
-
-        # self.sweep_direction = {0: 'right',
-                                # 1: 'left'}
+        self.sweep_direction = {
+            0: self.sweep_right,
+            1: self.sweep_left,
+            2: self.sweep_right,
+            3: self.sweep_forward
+        }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.rotation_angle = 15
-        self.depth_change = 1
+        self.rotation_angle = 10
+        self.depth_change = 2
         self.depth = -1
         self.h_power = 100
+        self.move_forward = 'forward'
+        self.move_backward = 'backward'
         self.rotation_direction = 'right'
         self.rotation_power = 70
         self.previous_width = 0
         # self.heading_rot_change = 2
         # self.heading_rot_power = 50
         self.is_moving_forward = False
-        self.sweep_power = 80
+        self.sweep_power = 70
         self.sweep_right_rotation_power = 60
         self.sweep_right_angle = 45
         self.sweep_left_rotation_power = 80
@@ -90,10 +100,10 @@ class GateManeuver():
         self.heading_verify_count = 0
 
     # move_forward_method ##################################################################################
-    def move_forward_method(self, navigation, coordinates, power, rotation):
-        navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
-        navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
-        navigation.m_nav('power', self.move_forward, power)
+    # def move_forward_method(self, navigation, coordinates, power, rotation):
+    #     navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+    #     navigation.cancel_and_r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
+    #     navigation.cancel_and_m_nav('power', self.move_forward, power)
     
     # move_to_gate ##################################################################################
     def move_to_gate(self, navigation, coordinates, power):
@@ -113,8 +123,9 @@ class GateManeuver():
         self.under_timer += 1
         if not self.is_moving_forward:
             self.is_moving_forward = True
-            navigation.m_nav('power', self.move_forward, power)
-            navigation.h_nav('down', self.depth_change, self.h_power)
+            navigation.cancel_r_nav()
+            navigation.cancel_and_m_nav('power', self.move_forward, power)
+            navigation.cancel_and_h_nav('down', self.depth_change, self.h_power)
             
     # sweep ##################################################################################
     def sweep(self, navigation, power, rotation):
@@ -129,16 +140,16 @@ class GateManeuver():
     # sweep_right ##################################################################################
     def sweep_right(self, navigation, power, rotation):
         # navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
-        navigation.r_nav('right', self.sweep_right_angle, self.sweep_right_rotation_power)
+        navigation.cancel_and_r_nav('right', self.sweep_right_angle, self.sweep_right_rotation_power)
     
     # sweep_left ##################################################################################
     def sweep_left(self, navigation, power, rotation):
         # navigation.r_nav(self.sweep_direction[self.sweep_switcher], self.sweep_rotation[self.sweep_switcher], 50)
-        navigation.r_nav('left', self.sweep_left_angle, self.sweep_left_rotation_power)
+        navigation.cancel_and_r_nav('left', self.sweep_left_angle, self.sweep_left_rotation_power)
 
     # sweep_forward ##################################################################################
     def sweep_forward(self, navigation, power, rotation):
-        navigation.m_nav('power', self.move_forward, power)
+        navigation.cancel_and_m_nav('power', self.move_forward, power)
 
     # strafe_to_square ##################################################################################
     def strafe_to_square(self, navigation, power, rotation, width):
@@ -147,28 +158,32 @@ class GateManeuver():
             self.strafe_direction = 1 - self.strafe_direction
 
         # TODO need to find test current rotation number to ensure circlar movement is not too large
-        navigation.m_nav('power', self.previous_direction[self.strafe_direction], power)
-        navigation.r_nav(self.strafe_rotate[self.strafe_direction], rotation, 50)
+        navigation.cancel_and_m_nav('power', self.previous_direction[self.strafe_direction], power)
+        navigation.cancel_and_r_nav(self.strafe_rotate[self.strafe_direction], rotation, 50)
         self.previous_width = width
     
     # backup_to_square ##################################################################################
     def backup_to_square(self, navigation, power):
         # the sub may return a horizontal rectangle is the sub is too close to the gate
         # if the gate is actuallt a horizontal rectangle, need to tweak buffer in gateDetector.py
-        navigation.m_nav('power', self.move_backward, power)
+        navigation.cancel_and_m_nav('power', self.move_backward, power)
 
     # center_square ##################################################################################
     def center_square(self, navigation, coordinates, power):
         # just to focus on the center of the gate to verify if sub wants to go through gate
         self.nothing_found_counter = 0
-        navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
+        if coordinates[0] != 0:
+            navigation.cancel_and_m_nav('power', self.horizontal_move[coordinates[0]], power)
+        else:
+            navigation.cancel_m_nav()
 
         if not coordinates[1] == 0:
-            navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
-
+            navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+        else:
+            navigation.cancel_h_nav()
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
-        navigation.r_nav(self.rotation_direction, rotation, power)
+        navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
         
     # completed_gate ##################################################################################
     def completed_gate(self):
@@ -181,7 +196,7 @@ class GateManeuver():
     def vertical(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
         if not self.is_heading_correct:
             # self.strafe_to_square(navigation, power, rotation, width_height[0])
-            self.strafe_to_square(navigation, 50, 50, width_height[0])
+            self.strafe_to_square(navigation, 100, 50, width_height[0])
         else:
             self.move_to_gate(navigation, coordinates, power)
         # print 'performing vertical'
@@ -194,7 +209,7 @@ class GateManeuver():
         #     self.move_to_gate(navigation, coordinates, power)
         #     self.under_timer += 1
         self.heading_verify_count += 1
-        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold:
+        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0:
             # self.getrotation.update_rot()
             self.is_heading_correct = True
 
@@ -212,7 +227,7 @@ class GateManeuver():
         #if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
 
         self.heading_verify_count += 1
-        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold:
+        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0:
             # self.getrotation.update_rot()
             self.is_heading_correct = True
 
@@ -235,3 +250,11 @@ class GateManeuver():
         else:
             self.move_to_gate(navigation, coordinates, power)
         # print 'performing no shape'
+
+    def rotate_to_center(self, navigation, coordinates):
+        if coordinates[0] != 0:
+            navigation.cancel_and_r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
+        else:
+            navigation.cancel_r_nav()
+
+        self.nothing_found_counter = 0

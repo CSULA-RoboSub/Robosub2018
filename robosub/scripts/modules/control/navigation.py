@@ -173,14 +173,26 @@ class Navigation():
         elif self.mState == self.mStates['motor_time']:
             self.runningTime = value
 
-    def cancel_m_nav(self, power = 160):
+    def cancel_m_nav(self, power = 140):
         self.m_nav('off', 'none', power)
 
     def cancel_h_nav(self, power = 100):
         self.h_nav('staying', 0, power)
 
-    def cancel_r_nav(self, power = 160):
+    def cancel_r_nav(self, power = 90):
         self.r_nav('staying', 0, power)
+
+    def cancel_and_h_nav(self, hState=None, depth=None, hPower=None):
+        self.cancel_h_nav()
+        self.h_nav(hState, depth, hPower)
+
+    def cancel_and_r_nav(self, rState=None, rotation=None, rPower=None):
+        self.cancel_r_nav()
+        self.r_nav(rState, rotation, rPower)
+
+    def cancel_and_m_nav(self, mState=None, mDirection=None, power=None, value=None):
+        self.cancel_m_nav()
+        self.m_nav(mState, mDirection, power, value)
 
     def h_nav(self, hState=None, depth=None, hPower=None):
         """
@@ -336,7 +348,7 @@ class Navigation():
         # self.cancel_h_nav()
         self.cancel_m_nav()
         self.waypoint_state = 0
-        rospy.sleep(1.5)
+        rospy.sleep(2)
         # print('going to waypoint')
         self.is_running_waypoint_rotation = True
         self.r_nav(direction_r, degree_r, power_r)
@@ -358,7 +370,13 @@ class Navigation():
         self.waypoint.enqueue_current_position()
 
     #travel to current front/top of list
-    def run_top_stack_waypoint(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+    def run_top_stack_waypoint(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         #travel to waypoint at top of stack
         if not self.waypoint.is_empty():
             last_x, last_y, last_depth = self.waypoint.pop()
@@ -368,7 +386,13 @@ class Navigation():
             direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
             self.go_waypoint(direction_r, degree_r, r_power, direction_h, distance_h, h_power, distance_m, m_power)
 
-    def run_front_queue_waypoint(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+    def run_front_queue_waypoint(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         #travel to waypoint at front of queue
         if not self.waypoint.is_empty():
             last_x, last_y, last_depth = self.waypoint.dequeue()
@@ -385,7 +409,13 @@ class Navigation():
         return False
 
     #run through all waypoints in stack/queue
-    def run_stack_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+    def run_stack_waypoints(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         # self.set_exit_waypoints(False)
@@ -396,7 +426,13 @@ class Navigation():
                 self.run_top_stack_waypoint(r_power, h_power, m_power)
         print('finished running all waypoints')
 
-    def run_queue_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+    def run_queue_waypoints(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         # self.set_exit_waypoints(False)
@@ -408,13 +444,25 @@ class Navigation():
         print('finished running all waypoints')
 
     #options to run waypoints on new thread async
-    def run_stack_waypoints_async(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+    def run_stack_waypoints_async(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         self.reset_thread()
 
         self.thread_w=Thread(target=self.run_stack_waypoints, args = (r_power,h_power,m_power))
         self.thread_w.start()
 
-    def run_queue_waypoints_async(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+    def run_queue_waypoints_async(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         self.reset_thread()
 
         self.thread_w=Thread(target=self.run_queue_waypoints, args = (r_power,h_power,m_power))

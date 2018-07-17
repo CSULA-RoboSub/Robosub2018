@@ -19,13 +19,18 @@ def main():
                     \n1: setup_ros\
                     \n2: ros_environment\
                     \n3: ros_serial_setup\
-                    \n4: set_dialout\
+                    \n4: dependencies\
+                    \n5: set_dialout\
                     \n>> '
                 )
-        if int(selection) >= -1 and int(selection) <= 3:
-            installer.install(selection)
-        elif int(selection) == 4:
-            installer.set_dialout()
+
+        try:
+            if int(selection) >= -1 and int(selection) <= 4:
+                installer.install(selection)
+            elif int(selection) == 5:
+                installer.set_dialout()
+        except ValueError:
+            print('Not a valid input.')
 
 
 if __name__ == "__main__":

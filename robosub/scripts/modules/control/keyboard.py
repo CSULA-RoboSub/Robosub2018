@@ -4,6 +4,7 @@ from modules.control.waypoint import Waypoint
 from threading import Thread
 import time
 
+
 class Keyboard():
     """Navigate the robosub using keyboard controls
     w: forwards
@@ -22,7 +23,7 @@ class Keyboard():
     x: exit
     """
 
-    def __init__(self, navigation = None):
+    def __init__(self, navigation=None):
         self.is_killswitch_on = False
         self.multiplier = 40
         self.r_multiplier = 18.0
@@ -147,8 +148,8 @@ class Keyboard():
                 elif char == 't':
                     self.navigation.run_top_stack_waypoint(self.r_power, self.h_power, self.m_power)
                 elif char == 'p':
-                    print('waiting %d seconds' %self.w_time_delay)
-                    
+                    print('waiting %d seconds' % self.w_time_delay)
+
                     time.sleep(self.w_time_delay)
                     self.navigation.run_stack_waypoints_async()
             self.navigation.set_exit_waypoints(True)
@@ -194,14 +195,14 @@ class Keyboard():
     def set_power(self, **power_type):
         """
         Sets the power to a value set_power(power_type=value)
-        Keywords: h_power, m_power, r_power
+        power_type: h_power, m_power, r_power
         """
 
-        if power_type['h_power'] > 0:
+        if 'h_power' in power_type:
             self.h_power = power_type['h_power']
-        if power_type['m_power'] > 0:
+        if 'm_power' in power_type:
             self.h_power = power_type['m_power']
-        if power_type['r_power'] > 0:
+        if 'r_power' in power_type:
             self.h_power = power_type['r_power']
 
     def start(self):

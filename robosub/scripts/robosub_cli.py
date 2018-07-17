@@ -71,16 +71,35 @@ class CLI(cmd.Cmd):
             AUV.perform_tasks()
             # print(arg)
         elif arg.lower() == 'cv stop' or arg.lower() == 'cv 0':
-            AUV.stop_tasks()
+            AUV.stop_task()
             # print(arg)
         elif arg.lower() == 'keyboard' or arg.lower() == 'kb':
             AUV.keyboard_nav()
         else:
-            print(
-                '\n[cv] toggle computer vision (start/1 or stop/0)\
-                 \n[keyboard] keyboard manual navigation'
-            )
+            print('\n[cv] toggle computer vision (start/1 or stop/0)\
+                   \n[keyboard] keyboard manual navigation')
 
+    # task #######################################################################################################
+    def do_task(self, arg):
+        '\n\
+         \n[task] followed by a number'
+        AUV.display_tasks()
+
+        if arg.lower() == 'stop' or arg.lower() == '':
+            AUV.stop_task()
+        elif not arg == '':
+            try:
+                arg = int(arg)
+            except:
+                # print '\nINVALID NUMBER INPUT'
+                pass
+
+        if arg >= 0 and arg <= 10:
+            AUV.specific_task(arg)
+        else:
+            print '\nINVALID NUMBER INPUT'
+            # AUV.display_tasks()
+        
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):
         args = ['cv', 'keyboard']

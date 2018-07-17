@@ -1,3 +1,4 @@
-pip install pandas
-pip install scikit-learn
-pip install scipy
+sudo apt install python-pip -y
+sudo pip install pandas
+sudo pip install scikit-learn
+sudo pip install scipy
