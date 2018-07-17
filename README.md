@@ -18,13 +18,17 @@ and python 2.7.13
 ## Running the program:
 
 ### In terminal:
-- ./robosub_cli.sh
+- enter command to navigate to workspace:
+	roscd 
 
-or
+- enter command to navigate to the workspace src folder:
+	cd ../src
 
-- ./robosub_gui.sh
+- enter command to run script:
+	./auv_start.bash
 
-## General Usage:
+#### or:
+
 - open a new terminal (ctrl+alt+t ubuntu shortcut) and enter following command:
 	roscore
 
@@ -40,10 +44,12 @@ or
 	python pathfindDvl.py
 
 - open a new terminal and enter following command:
-	rosrun rosserial_python serial_node.py
+	rosrun rosserial_python serial_node_mega.py
 
 - open a new terminal and enter following command:
 	rosrun hardware_interface hardware_interface
+
+#### then:
 
 - once all terminals are open and running the corresponding programs
 	- on the robosub_cli.py terminal enter '?' without quotes to see
@@ -55,7 +61,6 @@ or
 	- to run AUV manually with keyboard control type this command
 	  a list of keybindings will appear:
 		navigation keyboard
-	- to run the Computer Vision test task type this command:
-		navigation cv 1
-	  to stop:
-		navigation cv 0
+	- to run the Computer Vision test task type this command to show list:
+		task
+
