@@ -30,7 +30,7 @@ class DiceDetector:
             x, y, w, h = roi
 
         #if ( (h >= (w + buff) ) or (h >= (w - buff) )):
-        if h - w > buff:`
+        if h - w > buff:
             return self.shapes[1] # vertical
         #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
         elif w - h > buff:    

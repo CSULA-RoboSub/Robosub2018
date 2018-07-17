@@ -66,6 +66,7 @@ class Path(Task):
         self.coordinates = []
 
         self.thread_path = None
+        self.stop_task = False
 
         # self.path_maneuver.reset()
     

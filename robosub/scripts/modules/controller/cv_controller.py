@@ -39,7 +39,7 @@ class CVController():
         # self.cashindetector = CashInDetector.CashInDetector()
 
         ################ FPS COUNTER ################
-        self.fps_output = 20
+        self.fps_output = 15
 
         ################ CAMERA FRAME ################
         self.current_raw_frame = None

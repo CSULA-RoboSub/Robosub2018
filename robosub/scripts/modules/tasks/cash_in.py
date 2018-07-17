@@ -1,4 +1,14 @@
+import time
+
+from threading import Thread, Lock
+from collections import Counter
+from itertools import combinations
+
 from task import Task
+
+# from modules.sensors.computer_vision import CashInDetector
+
+# from cash_in_maneuver import CashInManeuver
 
 class CashIn(Task):
     
@@ -6,9 +16,6 @@ class CashIn(Task):
         """ To initialize CashIn """
         super(CashIn, self).__init__()
 
-        self.houston = Houston
-        
-        self.detectcashin = None
         self.coordinates = []
         self.is_found = False
         self.is_detect_done = False
@@ -17,6 +24,33 @@ class CashIn(Task):
 
         self.not_found_timer = 0
         self.found_timer = 0
+        ################ INSTANCES ################
+        self.houston = Houston
+        # self.cash_in_maneuver = CashInManeuver()
+        self.detectcashin = None
+
+        ################ THRESHOLD VARIABLES ################
+
+        ################ FLAG VARIABLES ################
+        self.is_found = False
+        self.is_detect_done = False
+        self.is_navigate_done = False
+        self.is_done = False
+        self.stop_task = False
+        self.is_task_running = False
+        self.is_complete = False
+
+        ################ TIMER VARIABLES ################
+        self.not_found_timer = 0
+        self.found_timer = 0
+
+        ################ DICTIONARIES ################
+
+        ################ AUV MOBILITY VARIABLES ################
+
+        ################ THREAD VARIABLES ################
+        self.thread_cash_in = None
+        self.mutex = Lock()
 
     def detect(self, frame):
         print('detect_dice')

@@ -124,7 +124,6 @@ class Gate(Task):
                     self.direction_list.append(directions)
 
                 if (time.time()-self.last_time > 0.05):
-                    self.last_time = time.time()
                     count += 1
 
                     try:
