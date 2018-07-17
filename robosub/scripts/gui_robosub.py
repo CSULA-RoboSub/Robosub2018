@@ -322,14 +322,27 @@ class Ui_MainWindow(object):
 
         # Controller connections
 
-        # mode selection
+        # Cameras
+        # TODO display cameras
+        # TODO add camera button connections
+
+        # Sensor Data
+        # TODO Sensor Data
+
+        # Messages
+        # TODO messages
+
+        # Mode Selection
         self.load_default_button.clicked.connect(self.Controller.load_default_params)
         self.change_params_button.clicked.connect(self.Controller.change_params)
         self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
         self.tab_state_changed()
         self.tabWidget.currentChanged.connect(self.tab_state_changed)
 
-        # manual mode buttons
+        # Auto Mode
+        # TODO dynamic auto mode buttons
+
+        # Manual Mode Buttons
         self.forward.clicked.connect(lambda: self.Controller.manual_move('forward', self.power.value(), self.rotation.value(), self.depth.value()))
         self.backward.clicked.connect(lambda: self.Controller.manual_move('backward', self.power.value(), self.rotation.value(), self.depth.value()))
         self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('strafe_l', self.power.value(), self.rotation.value(), self.depth.value()))
@@ -339,6 +352,9 @@ class Ui_MainWindow(object):
         self.up.clicked.connect(lambda: self.Controller.manual_move('up', self.power.value(), self.rotation.value(), self.depth.value()))
         self.down.clicked.connect(lambda: self.Controller.manual_move('down', self.power.value(), self.rotation.value(), self.depth.value()))
         self.brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.power.value(), self.rotation.value(), self.depth.value()))
+
+        # Computer Vision
+        # TODO computer vision sliders
 
     def checkbox_state_changed(self):
         if self.auto_checkbox.isChecked():
@@ -427,9 +443,10 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-    sys.exit(app.exec_())
 
     if(roscore):
         subprocess.Popen.kill(roscore)
         os.system('killall -9 rosmaster')
         os.system('killall -9 rosout')
+
+    sys.exit(app.exec_())
