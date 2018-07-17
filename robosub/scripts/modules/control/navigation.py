@@ -173,14 +173,26 @@ class Navigation():
         elif self.mState == self.mStates['motor_time']:
             self.runningTime = value
 
-    def cancel_m_nav(self, power = 160):
+    def cancel_m_nav(self, power = 140):
         self.m_nav('off', 'none', power)
 
     def cancel_h_nav(self, power = 100):
         self.h_nav('staying', 0, power)
 
-    def cancel_r_nav(self, power = 160):
+    def cancel_r_nav(self, power = 90):
         self.r_nav('staying', 0, power)
+
+    def cancel_and_h_nav(self, hState=None, depth=None, hPower=None):
+        self.cancel_h_nav()
+        self.h_nav(hState, depth, hPower)
+
+    def cancel_and_r_nav(self, rState=None, rotation=None, rPower=None):
+        self.cancel_r_nav()
+        self.r_nav(rState, rotation, rPower)
+
+    def cancel_and_m_nav(self, mState=None, mDirection=None, power=None, value=None):
+        self.cancel_m_nav()
+        self.m_nav(mState, mDirection, power, value)
 
     def h_nav(self, hState=None, depth=None, hPower=None):
         """

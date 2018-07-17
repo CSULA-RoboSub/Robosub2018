@@ -29,14 +29,14 @@ or
 	roscore
 
 - open a new terminal and enter following commands:
-	cd robosub/scripts/
+	roscd robosub/scripts/
 	python robosub_cli.py
 
 - open a new terminal and enter following command:
 	rosrun ez_async_data ez_async_data
 
 - open a new terminal and enter following commands:
-	cd pathfinder_dvl/scripts/
+	roscd pathfinder_dvl/scripts/
 	python pathfindDvl.py
 
 - open a new terminal and enter following command:

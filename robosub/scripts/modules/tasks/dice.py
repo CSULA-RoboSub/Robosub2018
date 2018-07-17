@@ -69,7 +69,8 @@ class Dice(Task):
         self.direction_list = []
 
         self.thread_dice = None
-
+        self.stop_task = False
+        
         self.dice_maneuver.reset()
     
     # start ##################################################################################

@@ -23,6 +23,7 @@ class GateClassifier:
         self.cell_size = (8, 8)
         self.bins = 9
         self.dims = (80, 80)
+        self.min_prob = .7
         self.hog = cv2.HOGDescriptor(
             self.dims,
             self.block_size,
@@ -95,7 +96,6 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
-        min_prob = .1
         
         for box in roi:
             x, y, w, h = box
@@ -106,6 +106,7 @@ class GateClassifier:
             prob = self.lsvm.predict_proba(feat_reshape)[0]
             prediction = self.lsvm.predict(feat_reshape)
             gate_class = prob[1] # corresponds to class 1 (positive gate)
-            if(prediction > 0 and gate_class > min_prob and gate_class > max_val):
+            # print(gate_class)
+            if(prediction > 0 and gate_class > self.min_prob and gate_class > max_val):
                 gate = box
         return gate

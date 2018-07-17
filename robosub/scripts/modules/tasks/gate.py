@@ -64,11 +64,11 @@ class Gate(Task):
 
         ################ AUV MOBILITY VARIABLES ################
         self.depth_change = 1
-        self.rotation_angle = 15
+        self.rotation_angle = 40
         self.is_heading_correct = False
         self.previous_width_height = (0,0)
         self.direction_list = []
-        self.r_power=100
+        self.r_power=70
         self.h_power=100
         self.m_power=120   
         self.rotated_to_center = False
@@ -117,7 +117,7 @@ class Gate(Task):
         self.last_time = time.time()
         #self.run_detect_for_task(navigation, m_power, rotation)
         while not self.stop_task:
-            try:
+            # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
                 # if directions:
                 if found:
@@ -141,9 +141,8 @@ class Gate(Task):
                     
                     self.counter = Counter()
                     self.direction_list = []
-                    self.last_time = time.time()
-            except:
-                print('gate task error')
+            # except:
+            #     print('gate task error')
 
         cvcontroller.stop()     
         self.mutex.release()
@@ -179,17 +178,16 @@ class Gate(Task):
     
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
-        if not self.gate_maneuver.is_moving_forward:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
+        # if not self.gate_maneuver.is_moving_forward:
+        #     navigation.cancel_r_nav()
+        #     navigation.cancel_m_nav()
+        #     navigation.cancel_h_nav()
  
-        if not self.rotated_to_center:
-            if gate_shape:
-                if coordinates[0] == 0:
-                    self.rotated_to_center = True
-                else:
-                    self.gate_maneuver.rotate_to_center()
+        if not self.rotated_to_center and gate_shape:
+            if coordinates[0] == 0:
+                self.rotated_to_center = True
+            else:
+                self.gate_maneuver.rotate_to_center(navigation, coordinates)
         else:
             self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
 
