@@ -112,7 +112,6 @@ class Gate(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        #self.run_detect_for_task(navigation, m_power, rotation)
         while not self.stop_task:
             # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
@@ -135,6 +134,7 @@ class Gate(Task):
                     print 'type: navigation cv 0, or task to cancel task'
                     self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
+                    self.last_time = time.time()
                     self.counter = Counter()
                     self.direction_list = []
             # except:
@@ -142,6 +142,7 @@ class Gate(Task):
 
         cvcontroller.stop()     
         self.mutex.release()
+        
     # stop ##################################################################################
     def stop(self):
         # self.navigation.stop()

@@ -77,7 +77,6 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
-        self.is_task_running = True
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
@@ -103,15 +102,14 @@ class Dice(Task):
                     print 'type: navigation cv 0, or task to cancel task'
                     self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
                     
+                    self.last_time = time.time()
                     self.counter = Counter()
                     self.direction_list = []
-                    self.last_time = time.time()
             except:
                 print 'dice detect error'
 
         cvcontroller.stop()
         self.mutex.release()
-        self.is_task_running = False
     
     # stop ##################################################################################
     def stop(self):

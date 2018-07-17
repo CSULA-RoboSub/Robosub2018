@@ -111,7 +111,7 @@ class Houston():
 
         ################ TASK THREAD ################
         self.task_thread = None
-        self.task_loop = True
+        self.all_task_loop = True
 
         ################ ROS VARIABLES ################
         self.r = rospy.Rate(30) #30hz
@@ -123,7 +123,7 @@ class Houston():
     # reset ##################################################################################
     def reset(self):
         self.is_task_running = False
-        self.task_loop = True
+        self.all_task_loop = True
 
     # print_task ##################################################################################
     def print_tasks(self):
@@ -140,21 +140,16 @@ class Houston():
             print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
 
-    def task_thread_start(self, one_or_all, task_choice):
-        self.reset_thread()
-        self.task_thread = Thread(target = self.one_or_all_tasks[one_or_all], args = (task_choice,))
-        self.task_thread.start()
-
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
         self.is_task_running = True
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
-        self.task_loop = True
-        while self.task_loop:
+        self.all_task_loop = True
+        while self.all_task_loop:
             if self.state_num > 10:
-                self.task_loop = False
+                self.all_task_loop = False
                 print 'no more tasks to complete'
 
             # Added to show mark we are able to set orientation before hand
@@ -195,7 +190,7 @@ class Houston():
     def stop_task(self):
         try:
             self.state.stop_task = True
-            self.task_loop = False
+            self.all_task_loop = False
         except:
             print 'no task currently running to stop'
 
@@ -223,6 +218,10 @@ class Houston():
     #     self.task_thread = Thread(target = task_call.start, args = (task_name, navigation, cvcontroller, power, rotation))
     #     # self.task_thread = Thread(target = self.one_or_all_tasks.start, args = ())
     #     self.task_thread.start()
+    def task_thread_start(self, one_or_all, task_choice):
+        self.reset_thread()
+        self.task_thread = Thread(target = self.one_or_all_tasks[one_or_all], args = (task_choice,))
+        self.task_thread.start()
 
     # reset_thread ##################################################################################
     def reset_thread(self):
