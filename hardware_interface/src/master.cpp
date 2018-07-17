@@ -186,8 +186,8 @@ const double heightThreshold = 0.3;
 ///////////////////////////////////////////////
 
 /////////////////PID_heading constants and variables/////////////////
-const double kp_heading=11; //11;//3.55;//3.55
-const double kd_heading=0.7;//0.75;//2.05;//2.05
+const double kp_heading=9; //11;//3.55;//3.55
+const double kd_heading=0.4; //0.75;//2.05;//2.05
 const double ki_heading=0.003;
 
 double pid_i_heading = 0;
@@ -238,6 +238,14 @@ double millis(){
 void setKeepPosition(){
   keepPositionX = positionX;
   keepPositionY = positionY;
+}
+
+bool isDoingMovement(){
+  return (mControlMode1 || mControlMode2 || mControlMode3 || mControlMode4 || mControlMode5);
+}
+
+bool isDoingStrafeMovement(){
+  return ((isDoingMovement() && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft);
 }
 
 //sets offset for position keeping use
@@ -325,14 +333,6 @@ double positionRightPID(const double error_positionX){
   return pid_d_positionX + pid_i_positionX;
 }
 
-bool isDoingMovement(){
-  return (mControlMode1 || mControlMode2 || mControlMode3 || mControlMode4 || mControlMode5);
-}
-
-bool isDoingStrafeMovement(){
-  return ((isDoingMovement() && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft);
-}
-
 //Return 0 to 180
 double degreeToTurn(){
   double difference = max(yaw, assignedYaw) - min(yaw, assignedYaw);
@@ -365,7 +365,7 @@ void rotateLeftDynamically(){
   if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust + rotatePower, -1, base_thrust + rotatePower);
+    setMHorizontal(-1, base_thrust + rotatePower/2, -1, base_thrust + rotatePower/2);
   }
   else{
     setMHorizontal(base_thrust - rotatePower, -1, base_thrust + rotatePower, -1);
@@ -380,7 +380,7 @@ void rotateRightDynamically(){
   if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
   if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
   if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust - rotatePower, -1, base_thrust - rotatePower);
+    setMHorizontal(-1, base_thrust - rotatePower/2, -1, base_thrust - rotatePower/2);
   }
   else{
     setMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
@@ -854,7 +854,8 @@ void heightControl(){
   // }
   
   //////Stabilization sum
-  else{
+  // else{
+  if((feetDepth_read - heightThreshold) < assignedDepth && assignedDepth < (feetDepth_read + heightThreshold)){
     if(isGoingUp || isGoingDown){
       isGoingUp = false;
       isGoingDown = false;
@@ -934,8 +935,8 @@ void rotationControl(){
 //      yaw +=360;
   }
   // AutoRotation to the assignedYaw
-  // else if(delta > rotationThreshold){
-  else{
+  else if(delta > rotationThreshold){
+  // else{
     // cout << "in rotationThreshold delta: " << delta << " assignedYaw: " << assignedYaw << " yaw: " << yaw << endl;
     // if(isTurningRight){
     //   // ROS_INFO("isTurningRight");

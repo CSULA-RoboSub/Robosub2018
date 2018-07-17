@@ -71,7 +71,7 @@ class Dice(Task):
 
         self.thread_dice = None
         self.stop_task = False
-
+        
         self.dice_maneuver.reset()
     
     # start ##################################################################################
