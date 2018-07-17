@@ -39,13 +39,15 @@ class DiceDetector:
             return self.shapes[3] # square
 
     def detect(self,frame):
+        ht, wd, ch =  frame.shape
         interest_regions =  self.preprocessor.get_interest_regions(frame)
         # die = [die for die in interest_regions if self.classifier.predict(die) > .1]
+        for x, y, w, h in regions_of_interest:
+            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
         dice = self.classifier.classify(frame, interest_regions)
 
-        ht, wd, ch =  frame.shape
         if not dice:
-            found = False
+            self.found = False
             dice_shape = None
             self.directions = [0,0]
             w,h = 0,0
@@ -53,10 +55,11 @@ class DiceDetector:
             x, y, w, h  = dice[0]
             # dice_shape = self.get_shape(dice, self.shape_buffer)
             dice_shape = None
+            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
             self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
             self.found = True
 
-        #found, direction, shape, width, heightk
+        #found, direction, shape, width, height
         # return (self.found, self.directions, None, (0, 0)) 
         return (self.found, self.directions, dice_shape, (w, h))
 
