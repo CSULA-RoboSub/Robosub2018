@@ -87,8 +87,8 @@ class CVController():
             'down' : None
         }
         self.camera_serials = {
-            'forward' : 'placeholder1',
-            'down' : 'placeholder2'
+            'forward' : '07714031',
+            'down' : '35710219'
         }
         self.camera_callbacks = {
             'forward' : self.camera_forward_callback,
@@ -132,7 +132,7 @@ class CVController():
     def sub_driver_camera_start(self, task_name):
         print 'setup pipeline'
         for key in self.pipeline:
-            self.setup_pipline(key)
+            self.setup_pipeline(key)
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -149,6 +149,30 @@ class CVController():
         self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
         print 'laptop/default camera found'
 
+    def display_output(self, camera_direction):
+        if self.sample[camera_direction]:
+            buf = self.sample[camera_direction].get_buffer()
+
+            caps = self.sample[camera_direction].get_caps()
+            width = caps[0].get_value("width")
+            height = caps[0].get_value("height")
+            try:
+                res, mapinfo = buf.map(Gst.MapFlags.READ)
+                # actual image buffer and size
+                # data = mapinfo.data
+                # size = mapinfo.size
+
+                # Create a numpy array from the data
+                img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+                frame = img_array.reshape((height, width, 3))
+                self.show_img(camera_direction, frame)
+
+            except KeyboardInterrupt:
+                self.state.is_detect_done = True
+                # raise
+            finally:
+                buf.unmap(mapinfo)
+                
     # sub_driver_camera_detect ##################################################################################
     def sub_driver_camera_detect(self, task, camera_direction = None):
         if not task:
@@ -158,11 +182,13 @@ class CVController():
             camera_direction = 'forward'
 
         self.cv_task = self.tasks[task]
+        self.display_output('down')
+
         if self.sample[camera_direction]:
             # print("have sample")
-            buf = self.sample.get_buffer()
+            buf = self.sample[camera_direction].get_buffer()
 
-            caps = self.sample.get_caps()
+            caps = self.sample[camera_direction].get_caps()
             width = caps[0].get_value("width")
             height = caps[0].get_value("height")
             try:
@@ -189,7 +215,7 @@ class CVController():
                 self.outprocessed.write(frame)
                 self.current_processed_frame = copy.copy(frame)
 
-                self.show_img(frame)
+                self.show_img(camera_direction, frame)
 
             except KeyboardInterrupt:
                 self.state.is_detect_done = True
@@ -214,20 +240,20 @@ class CVController():
     
     # detect ##################################################################################
     def detect(self, task):
-        try:
+        # try:
             return self.camera_detect[self.sub_camera_found](task)
-        except:
-            print 'detect for that task is not available'
-            return False, [0,0], None, (0,0)
+        # except:
+        #     print 'detect for that task is not available'
+        #     return False, [0,0], None, (0,0)
 
     # show_img ##################################################################################
-    def show_img(self, img):
+    def show_img(self, camera_direction, img):
         bytebuffer = img.tobytes()
-        self.display_buffers.append(bytebuffer)
-        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
-        self.display_input.emit("push-buffer", new_buf)
+        self.display_buffers[camera_direction].append(bytebuffer)
+        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers[camera_direction].pop(0))
+        self.display_input[camera_direction].emit("push-buffer", new_buf)
 
-    # setup_pipline ##################################################################################
+    # setup_pipeline ##################################################################################
     def setup_pipeline(self, camera_direction = None):
         if camera_direction == None:
             print 'need camera_direction to setup pipeline'

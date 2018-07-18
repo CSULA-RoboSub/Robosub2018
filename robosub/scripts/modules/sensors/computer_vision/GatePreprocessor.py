@@ -38,7 +38,7 @@ class GatePreprocessor:
 
         return green_blue
 
-    def filter_contours(frame_countours):
+    def filter_contours(self, frame_contours):
         new_cont_list = []
         for cont in frame_contours:
             cont_len = len(cont)

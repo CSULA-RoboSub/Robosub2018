@@ -36,7 +36,7 @@ class GateClassifier:
         )
 
         self.model_name = self.get_model_name('cv', self.task_model_config_name)
-        self.lsvm = self.set_model(self.model_name)
+        self.set_model(self.model_name)
 
 
     # returns the model file name as a string from henrys config file
@@ -108,7 +108,8 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
-        
+        if self.lsvm is None:
+            print 'error lsvm not trained'
         for box in roi:
             x, y, w, h = box
             window = frame[y:y + h, x:x + w, :]
