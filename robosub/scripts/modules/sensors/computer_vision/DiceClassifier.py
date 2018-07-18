@@ -84,7 +84,7 @@ class DiceClassifier:
             lsvm = svm.SVC(gamma=5, C= .5 , kernel="linear", probability=True)
             lsvm.fit(train_feat, train_label)
 
-            joblib.dump(lsvm,'modules/sensors/computer_vision/models/DiceSVMstd.pkl')
+            joblib.dump(lsvm,'modules/sensors/computer_vision/models/dice/DiceSVMstd.pkl')
             result = lsvm.predict(test_feat)
 
             #print "test accuracy ", lsvm.score(test_feat, test_label)
