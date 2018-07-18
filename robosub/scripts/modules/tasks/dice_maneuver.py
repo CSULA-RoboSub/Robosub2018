@@ -7,6 +7,9 @@ class DiceManeuver():
         ################ FLAG VARIABLES ################
         self.is_moving_forward = False
         self.is_rotated_to_center = False
+        self.is_1st_die_touched = False
+        self.is_2nd_die_touched = False
+        self.is_task_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
 
@@ -50,6 +53,9 @@ class DiceManeuver():
     def reset(self):
         self.is_moving_forward = False
         self.is_rotated_to_center = False
+        self.is_1st_die_touched = False
+        self.is_2nd_die_touched = False
+        self.is_task_complete = False
     
     # touch_die ##################################################################################
     def touch_die(self, navigation, coordinates, power, rotation):
@@ -75,3 +81,13 @@ class DiceManeuver():
     # rotate_to_center ##################################################################################
     def rotate_to_center(self, navigation, coordinates, power, rotation):
         navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
+
+    # completed_dice ##################################################################################
+    def completed_dice(self):
+        check_1st = self.is_1st_die_touched
+        check_2nd = self.is_2nd_die_touched
+
+        if check_1st and check_2nd:
+            self.is_task_complete = True
+
+        return self.is_task_complete

@@ -6,17 +6,20 @@ class GateManeuver():
         self.sweep_timer = 60
         self.nothing_found_threashold = 100
         self.heading_verify_threshold = 200
+        self.forward_movement_threshold = 400
 
         ################ FLAG VARIABLES ################
         self.is_heading_correct = False
+        self.is_passed_gate = False
+        self.is_moving_forward = False
+        self.is_task_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.sweep_forward_counter = 0
         self.sweep_switcher = 0
         self.sweep_counter = 0
         self.change_m_nav_timer = 0
-        self.under_gate = 0
-        self.under_timer = 0
+        self.forward_movement_timer = 0
         self.strafe_direction = 0
         self.nothing_found_counter = 0
         self.heading_verify_count = 0
@@ -74,7 +77,6 @@ class GateManeuver():
         self.previous_width = 0
         # self.heading_rot_change = 2
         # self.heading_rot_power = 50
-        self.is_moving_forward = False
         self.sweep_power = 70
         self.sweep_right_rotation_power = 60
         self.sweep_right_angle = 45
@@ -91,12 +93,14 @@ class GateManeuver():
         self.previous_width = 0
         self.change_m_nav_timer = 0
 
-        self.under_gate = 0
-        self.under_timer = 0
+        self.forward_movement_timer = 0
+
         self.is_moving_forward = False
+        self.is_heading_correct = False
+        self.is_passed_gate = False
+        self.is_task_complete = False
 
         self.nothing_found_counter = 0
-        self.is_heading_correct = False
         self.heading_verify_count = 0
 
     # move_forward_method ##################################################################################
@@ -107,7 +111,6 @@ class GateManeuver():
     
     # move_to_gate ##################################################################################
     def move_to_gate(self, navigation, coordinates, power):
-        print 'move_to_gate_method'
         # get_rot.update_rot()
         # yaw_change = heading - get_rot.get_yaw()
         # if yaw_change < 0:
@@ -120,12 +123,15 @@ class GateManeuver():
         # navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
         # navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
         
-        self.under_timer += 1
+        self.forward_movement_timer += 1
         if not self.is_moving_forward:
             self.is_moving_forward = True
             navigation.cancel_r_nav()
             navigation.cancel_and_m_nav('power', self.move_forward, power)
             navigation.cancel_and_h_nav('down', self.depth_change, self.h_power)
+
+        if self.forward_movement_timer >= self.forward_movement_threshold:
+            self.is_passed_gate = True
             
     # sweep ##################################################################################
     def sweep(self, navigation, power, rotation):
@@ -172,7 +178,7 @@ class GateManeuver():
     def center_square(self, navigation, coordinates, power):
         # just to focus on the center of the gate to verify if sub wants to go through gate
         self.nothing_found_counter = 0
-        if coordinates[0] != 0:
+        if not coordinates[0] == 0:
             navigation.cancel_and_m_nav('power', self.horizontal_move[coordinates[0]], power)
         else:
             navigation.cancel_m_nav()
@@ -181,16 +187,24 @@ class GateManeuver():
             navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
         else:
             navigation.cancel_h_nav()
+
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
         navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
         
     # completed_gate ##################################################################################
     def completed_gate(self):
-        print 'sub has passed gate'
         #if heading is not None
         #if self.passed_gate = 1
         #return True
+        check_head = self.is_heading_correct
+        check_forward = self.is_moving_forward
+        check_gate = self.is_passed_gate
+
+        if check_head and check_forward and check_gate:
+            self.is_task_complete = True
+
+        return self.is_task_complete
 
     # vertical ##################################################################################
     def vertical(self, navigation, coordinates, power, rotation, width_height, is_heading_correct):
@@ -207,7 +221,7 @@ class GateManeuver():
         #     self.backup_to_square(navigation, power)
         # else:
         #     self.move_to_gate(navigation, coordinates, power)
-        #     self.under_timer += 1
+        #     self.forward_movement_timer += 1
         self.heading_verify_count += 1
         if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0:
             # self.getrotation.update_rot()
@@ -250,7 +264,8 @@ class GateManeuver():
         else:
             self.move_to_gate(navigation, coordinates, power)
         # print 'performing no shape'
-
+        
+    # rotate_to_center ##################################################################################
     def rotate_to_center(self, navigation, coordinates):
         if coordinates[0] != 0:
             navigation.cancel_and_r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)

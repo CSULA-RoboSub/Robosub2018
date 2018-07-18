@@ -80,7 +80,7 @@ class Dice(Task):
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
-        while not self.stop_task:
+        while not self.stop_task and not self.complete():
             try:
                 found, direction, shape, width_height = cvcontroller.detect(task_name)
                 if found:
@@ -164,7 +164,8 @@ class Dice(Task):
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = True
+        self.is_complete = self.dice_maneuver.completed_dice()
+        return self.is_complete
 
     # bail_task ##################################################################################
     def bail_task(self):

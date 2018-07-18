@@ -112,7 +112,7 @@ class Gate(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        while not self.stop_task:
+        while not self.stop_task and not self.complete():
             # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
                 # if directions:
@@ -142,7 +142,7 @@ class Gate(Task):
 
         cvcontroller.stop()     
         self.mutex.release()
-        
+
     # stop ##################################################################################
     def stop(self):
         # self.navigation.stop()
@@ -190,13 +190,14 @@ class Gate(Task):
                     
         self.previous_width_height = width_height
 
-        if self.gate_maneuver.under_timer > self.under_threshold:
-            self.passed_gate = 1
-            print 'sub has gone under and past gate'
+        # if self.gate_maneuver.under_timer > self.under_threshold:
+        #     self.passed_gate = 1
+        #     print 'sub has gone under and past gate'
             
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = True
+        self.is_complete = self.gate_maneuver.completed_gate()
+        return self.is_complete
 
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, direction_list, counter):

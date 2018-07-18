@@ -166,7 +166,7 @@ class Houston():
             print 'doing task: {}'.format(self.tasks[self.state_num])
             self.state.start(self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
 
-            if self.state.is_complete:
+            if self.state.complete():
                 self.state_num += 1
                 
         self.is_task_running = False
