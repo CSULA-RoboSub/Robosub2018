@@ -38,6 +38,15 @@ class GatePreprocessor:
 
         return green_blue
 
+    def filter_contours(frame_countours):
+        new_cont_list = []
+        for cont in frame_contours:
+            cont_len = len(cont)
+            if ( (cont_len > self.min_cont_size) and (cont_len < self.max_cont_size) ):
+                new_cont_list.append(cont)
+        filtered_contours = np.array(new_cont_list)
+        return filtered_contours
+
 
     # returns ROI
     def get_interest_regions(self, frame):
@@ -55,14 +64,9 @@ class GatePreprocessor:
         ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        # filter the contours based on size
-        new_contours_list = []
-        for cont in frame_contours:
-            if ( (len(cont) > self.min_cont_size) and (len(cont) < self.max_cont_size) ):
-                new_contours_list.append(cont)
-        filtered_contours = np.array(new_contours_list)
+        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
 
-        boxes = [cv2.boundingRect(c) for c in filtered_contours]
+        boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
         
         return interest_regions
