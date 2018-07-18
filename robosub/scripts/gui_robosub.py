@@ -354,7 +354,7 @@ class Ui_MainWindow(object):
         self.brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.power.value(), self.rotation.value(), self.depth.value()))
 
         # Computer Vision
-        # TODO computer vision sliders
+        # TODO use color slider widget
 
     def checkbox_state_changed(self):
         if self.auto_checkbox.isChecked():
