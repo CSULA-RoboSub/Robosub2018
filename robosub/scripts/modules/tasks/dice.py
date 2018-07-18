@@ -38,7 +38,7 @@ class Dice(Task):
         self.not_found_timer = 0
         self.found_timer = 0
         self.last_time = 0
-        self.back_up_counter = 0
+        # self.back_up_counter = 0
         self.counter = Counter()
 
         ################ DICTIONARIES ################
@@ -176,11 +176,18 @@ class Dice(Task):
             if self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
                 self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
             else:
-                self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
+                if self.dice_maneuver.back_up_counter < self.dice_maneuver.back_up_threshold:
+                    self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
+                else:
+                    self.dice_maneuver.is_1st_die_touched = True
+                    print 'auv has touched successfully touched a die'
+                    self.dice_maneuver.touching_die_counter = 0
+                    self.dice_maneuver.back_up_from_die = 0
+                    # TODO here we will need to reset all the dice variables but change detect 
+                    # to detect the next die. 
+                    pass
         # else:
-        #     pass
-
-        
+        #     pass        
     
     # complete ##################################################################################
     def complete(self):
