@@ -23,6 +23,7 @@ class Dice(Task):
 
         ################ THRESHOLD VARIABLES ################
         #self.found_threshold = 300
+        self.back_up_threshold = 200
 
         ################ FLAG VARIABLES ################
         self.is_found = False
@@ -37,10 +38,17 @@ class Dice(Task):
         self.not_found_timer = 0
         self.found_timer = 0
         self.last_time = 0
+        self.back_up_counter = 0
         self.counter = Counter()
 
         ################ DICTIONARIES ################
         self.direction_list = []
+        self.dies = {
+            0: 1,
+            1: 6
+        }
+
+        self.die_num = 0
 
         ################ AUV MOBILITY VARIABLES ################
         self.r_power=100
@@ -50,6 +58,14 @@ class Dice(Task):
         ################ THREAD VARIABLES ################  
         self.thread_dice = None
         self.mutex = Lock()
+
+        ################ DICE VARIABLES ################
+        self.die_1 = 1
+        self.die_2 = 6
+
+        ################ FRAME VARIABLES ################
+        self.laptop_camera = (640, 480)
+        self.sub_driver_camera = (744, 480)
 
     # reset ################################################################################## 
     def reset(self):
@@ -62,6 +78,7 @@ class Dice(Task):
         self.is_done = False
         self.is_complete = False
 
+        self.die_num = 0
         self.not_found_timer = 0
         self.found_timer = 0
         self.last_time = 0
@@ -95,7 +112,8 @@ class Dice(Task):
                     except:
                         most_occur_coords = [0, 0]
 
-                    print 'shape: {}, widthxheight: {}'.format(shape, width_height)
+                    print 'running dice task'
+                    print 'widthxheight: {}'.format(width_height)
                     print 'current count: {}'.format(count)
                     print 'coordinates: {}'.format(most_occur_coords)
                     print '--------------------------------------------'
@@ -147,16 +165,18 @@ class Dice(Task):
             navigation.cancel_h_nav()
 
         # if found:
-        if not self.dice_maneuver.is_rotated_to_center:
-            if shape:
-                if coordinates[0] == 0:
-                    self.dice_maneuver.is_rotated_to_center = True
-                else:
-                    self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
+        if not self.dice_maneuver.is_rotated_to_center and shape:
+            if coordinates[0] == 0:
+                self.dice_maneuver.is_rotated_to_center = True
             else:
-                self.dice_maneuver.find_die(navigation, power, rotation)
+                self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
+            # else:
+            #     self.dice_maneuver.rotate_to_find_die(navigation, power, rotation)
         else:
-            self.dice_maneuver.touch_die(navigation, coordinates, power, rotation)
+            if self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
+                self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
+            else:
+                self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
         # else:
         #     pass
 

@@ -77,7 +77,7 @@ class Path(Task):
         cvcontroller.start(task_name)
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
-            print 'moving to next task was successful'
+            print 'running path task'
         # TODO implement path cvcontroller and path navigate
         # while not self.stop_task:
         #     try:

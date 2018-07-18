@@ -82,10 +82,10 @@ class PathManeuver():
         navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
         navigation.r_nav(self.line_up_movement[coordinates[0]], rotation, self.rotation_power)
 
-    def completed_path(self)
+    def completed_path(self):
         check_path = self.is_no_more_path
         
         if check_path:
             self.is_task_complete = True
-            
+
         return self.is_task_complete

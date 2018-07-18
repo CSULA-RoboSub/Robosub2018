@@ -3,7 +3,7 @@ import math
 import cv2
 import sys
 import time
-import gi
+import gi 
 import threading
 import copy
 import numpy as np

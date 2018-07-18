@@ -127,6 +127,7 @@ class Gate(Task):
                     except:
                         most_occur_coords = [0, 0]
 
+                    print 'running gate task'
                     print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                     print 'current count: {}'.format(count)
                     print 'coordinates: {}'.format(most_occur_coords)

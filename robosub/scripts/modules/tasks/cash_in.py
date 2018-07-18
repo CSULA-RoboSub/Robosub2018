@@ -52,16 +52,19 @@ class CashIn(Task):
         self.thread_cash_in = None
         self.mutex = Lock()
 
+    # reset ##################################################################################
     def reset(self): 
         pass
-
+    
+    # start ##################################################################################
     def start(self):
         pass
-    
+
+    # stop ##################################################################################
     def stop(self):
         pass
         
-
+    # detect ##################################################################################
     def detect(self, frame):
         print('detect_dice')
         if not self.detectcashin:
@@ -79,21 +82,27 @@ class CashIn(Task):
             self.is_gate_found = True
             self.task_num += 1
 
+    # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation):
         pass
     
+    # complete ##################################################################################
     def complete(self):
         pass
 
+    # bail_task ##################################################################################
     def bail_task(self):
         pass
 
+    # restart_task ##################################################################################
     def restart_task(self):
         pass
         
+    # search ##################################################################################
     def search(self):
         pass
 
+    # run_detect_for_task ##################################################################################
     def run_detect_for_task(self):
         pass
 
