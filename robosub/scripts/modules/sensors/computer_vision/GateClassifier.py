@@ -2,21 +2,27 @@ import cv2
 import glob
 import numpy as np
 import pandas as pd
-#import utils as ut # not used
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import Classifier
 import sys
 from sklearn.externals import joblib
+from config.config import Config
 
 class GateClassifier:
 
     def __init__(self):
+        self.config = Config()
         self.new_struct_path = 'modules/sensors/computer_vision/'
+        
         self.model_path = self.new_struct_path + 'models/gate/'
-        self.model_file_name = 'svm.pkl'
-        self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg' # maybe add different file formats??
+        self.task_model_config_name = "gate_model"
+        self.model_name = self.get_model_name(self.task_model_config_name)
+        self.lsvm = self.set_model(self.model_name)
+        
+        self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg'
         self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
+
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
@@ -31,19 +37,24 @@ class GateClassifier:
             self.cell_size,
             self.bins
         )
-        self.vers_label = "py2" # for appending python version to file name
-        if (sys.version_info >= (3, 0) ): # since joblib is picky with versions
-            self.vers_label = "py3" # just for my mac
 
-        try: # load/store trained model
-            self.lsvm = joblib.load(self.model_path + self.vers_label + "_" + self.model_file_name) # load model from disk
+
+    # returns the model file name as a string from henrys config file
+    def get_model_name(self, task_model):
+        return self.config.get_config(task_model)
+
+        
+    def set_model(self, task_model_name=self.task_model_config_name):
+        try:
+            self.lsvm = joblib.load(self.model_path + task_model_name + ".pkl")
             print("\nLoading Gate model from disk...\n")
         except:
             print("\nTraining model...")
             self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)
             self.train_lsvm()
-            joblib.dump(self.lsvm, self.model_path + self.vers_label + "_" + self.model_file_name) # store model object to disk
+            joblib.dump(self.lsvm, self.model_path + task_model_name) # store model object to disk
             print("\nStoring model to location: " + "\"" + self.model_path + "\"\n")
+            
 
     def get_features_with_label(self, img_data, label):
         data = []
@@ -87,7 +98,6 @@ class GateClassifier:
         )
         self.lsvm.fit(feat_train, label_train)
         
-
 
     '''
     this returns the max value for the GATE, (x,y) as topleft corner
