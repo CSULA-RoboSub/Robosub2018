@@ -5,32 +5,17 @@ import numpy as np
 class DicePreprocessor:
 
     def __init__(self):
-        self.lower = [0, 80, 80]
-        self.upper = [170, 255, 255]
+        self.lower = np.array([0, 80, 80], 'uint8')
+        self.upper = np.array([170, 255, 255], 'uint8')
         self.dots_lower = [0, 0, 0]
         self.dits_upper = [180, 255, 60]
         self.roi_size = 300
         self.detect_dots = False
 
-    def preprocess(self,  frame):
-
-        imhsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
-        imhsv_blur = cv2.medianBlur(imhsv,11)
-        im_blur = cv2.medianBlur(frame,25)
-
-        hsv_lower = np.array([40,40,40])
-        hsv_upper = np.array([100,255,255])
-
-        hsv_mask = cv2.inRange(imhsv_blur,hsv_lower,hsv_upper)
-        hsv_filter = cv2.bitwise_and(imhsv_blur,imhsv_blur,mask=hsv_mask)
-
-        lower = np.array(self.lower, dtype='uint8')
-        upper = np.array(self.upper, dtype='uint8')
-        mask = cv2.inRange(frame,  lower,  upper)
-
-        output = cv2.bitwise_and(frame,  frame,  mask=mask)
-
-        return output, mask, imhsv, imhsv_blur, hsv_filter
+    def preprocess(self, img):
+        mask = cv2.inRange(img, self.lower, self.upper)
+        output = cv2.bitwise_and(img, img, mask=mask)
+        return output, mask
 
     def get_interest_regions(self,frame):
         
