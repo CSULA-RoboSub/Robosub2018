@@ -8,7 +8,7 @@ class DicePreprocessor:
         self.lower = np.array([0, 80, 80], 'uint8')
         self.upper = np.array([170, 255, 255], 'uint8')
         self.dots_lower = [0, 0, 0]
-        self.dits_upper = [180, 255, 60]
+        self.dots_upper = [180, 255, 60]
         self.min_cont_size = 100
         self.max_cont_size = 1000
         self.roi_size = 300
@@ -41,8 +41,6 @@ class DicePreprocessor:
         edges = cv2.Canny(binary_image, 50, 150)
 
         im, contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #cv2.imshow('pimage',pimage)
-        #cv2.imshow('mask',mask)
         boxes = [cv2.boundingRect(c) for c in contours]
 
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
