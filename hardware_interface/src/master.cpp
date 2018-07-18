@@ -3,6 +3,8 @@ This is a quick translation of the old arduino code from level_with_motors.ino t
 hardware_interface is a much faster version of the arduino node.
 Arduino cannot operate as a node that receives the amount of data we send
 
+Robosub 2018, Jonathan Song
+
 important note: dvl works with 0 to 359.999 degrees with 0 locked to north, 90 east,
                 180 south, and 270 west.
                 imu works with -179.999 to 179.999 degrees with 90 north, +- 180 east,
@@ -81,8 +83,6 @@ bool isTurningLeft;
 bool keepTurningRight;
 bool keepTurningLeft;
 //bool flags for control modes
-bool rControlMode3;
-bool rControlMode4;
 bool mControlMode1 = false;
 bool mControlMode2 = false;
 bool mControlMode3 = false;
@@ -134,8 +134,6 @@ ros::Subscriber rotationSubscriber;
 ros::Subscriber dvlSubscriber;
 
 //depth control variables
-// int pwm_submerge = 200;
-// int pwm_emerge = 150;
 double hControlPower;
 //thrusters off value does not change
 const double base_thrust = 1500;
@@ -183,17 +181,18 @@ const double desired_angle = 0; //This is the angle in which we whant the
                          //balance to stay steady
 //// threshold for going_up, going_down and hover
 const double heightThreshold = 0.3;
+const double defaultHeightPower = 100;
 ///////////////////////////////////////////////
 
 /////////////////PID_heading constants and variables/////////////////
-const double kp_heading=9; //11;//3.55;//3.55
+const double kp_heading=11; //11;//3.55;//3.55
 const double kd_heading=0.4; //0.75;//2.05;//2.05
 const double ki_heading=0.003;
 
 double pid_i_heading = 0;
 // double headingTimePrev = 0;
 double prev_error_heading = 0;
-double rotationThreshold = 1;
+double rotationThreshold = 3;
 ///////////////////////////////////////////////
 
 /////////////////PID_positionX constants and variables/////////////////
@@ -218,9 +217,9 @@ double forwardBackwardDistancePrev = 0;
 double keepPositionX = 0;
 double keepPositionY = 0;
 double positionControlMOffset = 0;
-const double keepPositionForwardThreshold = 0.9; //meters
+const double keepPositionForwardThreshold = 1.0; //meters
 const double keepPositionRightThreshold = 0.5; //meters
-const double keepPositionMaxPowerForwardBackward = 160;
+const double keepPositionMaxPowerForwardBackward = 200;
 const double keepPositionMaxPowerRightLeft = 200;
 const double keepCourseRightMult = 0.05;
 const double keepCourseForwardMult = 0.1;
@@ -228,26 +227,53 @@ const double keepCourseForwardMult = 0.1;
 //----------------------------------------------------------------------------
 //---------------------------- helper functions ------------------------------
 //----------------------------------------------------------------------------
+//set all used variables to initial state
+void resetAll(){
+  mControlDirection = 0;
+  mControlPower = 0;
+  rControlPower = 0;
+  hControlPower = 0;
+  mControlDistance = 0;
+  mControlRunningTime = 0;
+  mControlMode5Timer = 0;
+  centerTimer = 0;
+  rotationTimer = 0;
+  rotationTime = 10;
+  subIsReady = false;
+  isGoingUp = false;
+  isGoingDown = false;
+  isTurningRight = false;
+  isTurningLeft = false;
+  keepTurningRight = false;
+  keepTurningLeft = false;
+  mControlMode1 = false;
+  mControlMode2 = false;
+  mControlMode3 = false;
+  mControlMode4 = false;
+  mControlMode5 = false;
+  keepMovingForward = false;
+  keepMovingRight = false;
+  keepMovingBackward = false;
+  keepMovingLeft = false;
+  positionControlMOffset = 0;
+}
 
 //returns time in milliseconds
 double millis(){
   return ros::WallTime::now().toNSec()/1000000;
 }
 
-//sets position keeping to current position
-void setKeepPosition(){
-  keepPositionX = positionX;
-  keepPositionY = positionY;
-}
-
+//if doing any mControl movement
 bool isDoingMovement(){
   return (mControlMode1 || mControlMode2 || mControlMode3 || mControlMode4 || mControlMode5);
 }
 
+//if doing strafe movement
 bool isDoingStrafeMovement(){
   return ((isDoingMovement() && (mControlDirection == 2 || mControlDirection == 4)) || keepMovingRight || keepMovingLeft);
 }
 
+//---------- motor helper functions ----------
 //sets offset for position keeping use
 void setMHorizontalOffset(const double t5, const double t6, const double t7, const double t8){
   // cout << "setMHorizontalOffset: " << t5 << " " << t6 << " " << t7 << " " << t8 << endl;
@@ -303,10 +329,18 @@ void motorsOff(){
   setMHorizontalOffset(0, 0, 0, 0);
 }
 
-double motorPowerCap(double power){
+//helper function to cap power with range
+double motorPowerCap(const double power){
   if(power > motorRange) return motorRange;
   else if(power < -motorRange) return -motorRange;
   return power;
+}
+
+//---------- position keeping helper functions ----------
+//sets position keeping to current position
+void setKeepPosition(){
+  keepPositionX = positionX;
+  keepPositionY = positionY;
 }
 
 //pid for forward axis
@@ -333,6 +367,7 @@ double positionRightPID(const double error_positionX){
   return pid_d_positionX + pid_i_positionX;
 }
 
+//---------- rotation helper functions ----------
 //Return 0 to 180
 double degreeToTurn(){
   double difference = max(yaw, assignedYaw) - min(yaw, assignedYaw);
@@ -340,45 +375,14 @@ double degreeToTurn(){
   else return difference;
 }
 
-double rotationPID(){
-  double error_heading = degreeToTurn();
-  // double rotationElapsedTime = (loopTime - headingTimePrev)/base_thrust;
-  // headingTimePrev = loopTime;
-
-  double pid_p_heading = kp_heading*error_heading;
-  double pid_d_heading = kd_heading*((error_heading - prev_error_heading)/elapsedTime);
-
-  if(-rotationThreshold < error_heading && error_heading < rotationThreshold)
-    pid_i_heading = pid_i_heading+(ki_heading*error_heading);
-  else
-    pid_i_heading = 0;
-
-  return pid_p_heading + pid_i_heading + pid_d_heading;
-}
-
-//dynamic rotations left/right
-void rotateLeftDynamically(){
-  // cout << "rotate left dyn" << endl;
-  // double rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffset;
-  double rotatePower = rotationPID();
-
-  if(rotatePower > rControlPower && isTurningLeft) rotatePower = rControlPower;
-  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
-  if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust + rotatePower/2, -1, base_thrust + rotatePower/2);
-  }
-  else{
-    setMHorizontal(base_thrust - rotatePower, -1, base_thrust + rotatePower, -1);
-  }
-}
-
-void rotateRightDynamically(){
-  // cout << "rotate right dyn" << endl;
-  // double rotatePower = PWM_Motors_orient * rotationMultiplier + rotationMinOffset;
-  double rotatePower = rotationPID();
-
-  if(rotatePower > rControlPower && isTurningRight) rotatePower = rControlPower;
-  if(rotatePower > rotatePowerMax) rotatePower = rotatePowerMax;
+//helper function to set power for rotation
+//rotatePower must be negative to rotate left
+void setRotationPower(double rotatePower){
+  if(rotatePower > rControlPower && rControlPower > 40) rotatePower = rControlPower;
+  if(rotatePower < -rControlPower && -rControlPower < -40) rotatePower = -rControlPower;
+  
+  rotatePower = motorPowerCap(rotatePower);
+  
   if(isDoingStrafeMovement()){
     setMHorizontal(-1, base_thrust - rotatePower/2, -1, base_thrust - rotatePower/2);
   }
@@ -387,6 +391,37 @@ void rotateRightDynamically(){
   }
 }
 
+//pid calculations for rotation power
+double rotationPID(double error_heading){
+  // double error_heading = degreeToTurn();
+  // double rotationElapsedTime = (loopTime - headingTimePrev)/base_thrust;
+  // headingTimePrev = loopTime;
+  if(-rotationThreshold <= error_heading && error_heading <= rotationThreshold)
+    pid_i_heading = pid_i_heading+(ki_heading*error_heading);
+  else
+    pid_i_heading = 0;
+
+  double pid_p_heading = kp_heading*error_heading;
+  double pid_d_heading = kd_heading*((error_heading - prev_error_heading)/elapsedTime);
+
+  return pid_p_heading + pid_i_heading + pid_d_heading;
+}
+
+//dynamic rotations left/right
+//error_heading comes from degreeToTurn() which is always positive
+void rotateLeftDynamically(const double& error_heading){
+  // cout << "rotate left dyn" << endl;
+  double rotatePower = rotationPID(-error_heading); //negative error for left
+  setRotationPower(rotatePower);
+}
+
+void rotateRightDynamically(const double& error_heading){
+  // cout << "rotate right dyn" << endl;
+  double rotatePower = rotationPID(error_heading); //positive error for right
+  setRotationPower(rotatePower);
+}
+
+//---------- movement helper functions ----------
 //publish finished movement
 void movementControlFinish(){
   mControlMode1 = false;
@@ -419,8 +454,8 @@ void movementControlFinish(){
 
 void rotationCallback(const ez_async_data::Rotation& rotation){
   yaw = rotation.yaw;
-  roll = -rotation.roll;
-  pitch = -rotation.pitch;
+  roll = rotation.roll;
+  pitch = rotation.pitch;
 }
 
 //xvel is left right strafe velocity, yvel is forward backward velocity,
@@ -439,10 +474,10 @@ void currentDepthCallback(const std_msgs::Float32& currentDepth){
   feetDepth_read = currentDepth.data;
 }
 
+//height callback function
 void hControlCallback(const robosub::HControl& hControl) {
   int hState = hControl.state;
   double depth = hControl.depth;
-  hControlPower = hControl.power;
 
   if(hControl.state == 0){
     if(!isGoingUp && !isGoingDown){
@@ -499,19 +534,10 @@ void hControlCallback(const robosub::HControl& hControl) {
     setMVertical(base_thrust,base_thrust,base_thrust,base_thrust);
     setMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
     setMHorizontalOffset(0, 0, 0, 0);
-    mControlMode1 = false;
-    mControlMode2 = false;
-    mControlMode3 = false;
-    mControlMode4 = false;
-    mControlMode5 = false;
-    keepMovingForward = false;
-    keepMovingRight = false;
-    keepMovingBackward = false;
-    keepMovingLeft = false;
-    isGoingUp = false;
-    isGoingDown = false;
+    resetAll();
   }
 
+  hControlPower = hControl.power;
   hControlStatus.state = hState;
   hControlStatus.depth = assignedDepth;
   hControlStatus.power = hControlPower;
@@ -520,7 +546,7 @@ void hControlCallback(const robosub::HControl& hControl) {
 
 }
 
-
+//rotation callback function
 void rControlCallback(const robosub::RControl& rControl){
   if(rControl.rotation > 180){
     ROS_INFO("Error rotation must be less than or equal to 180 degrees");
@@ -528,13 +554,12 @@ void rControlCallback(const robosub::RControl& rControl){
   }
 
   double rotation = rControl.rotation;
-  rControlPower = rControl.power;
   rControlStatus.state = rControl.state;
   rControlStatus.rotation = rControl.rotation;
   rControlStatus.power = rControlPower;
 
   if(rControl.state == 0){
-    if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
+    if(!isTurningRight && !isTurningLeft){
       if(rotation == -1) {
         keepTurningLeft = true;
         //Testing---------------------------------------------------
@@ -554,7 +579,7 @@ void rControlCallback(const robosub::RControl& rControl){
       ROS_INFO("Sub is still rotating. Command abort.");
   }
   else if(rControl.state == 1){
-    if(isTurningRight || isTurningLeft || keepTurningRight || keepTurningLeft || rControlMode3 || rControlMode4){
+    if(isTurningRight || isTurningLeft || keepTurningRight || keepTurningLeft){
       ROS_INFO("Rotation control is now cancelled\n");
       rControlStatus.state = 1;
       rControlStatus.rotation = 0;
@@ -566,11 +591,9 @@ void rControlCallback(const robosub::RControl& rControl){
     isTurningLeft = false;
     keepTurningRight = false;
     keepTurningLeft = false;
-    rControlMode3 = false;
-    rControlMode4 = false;
   }
   else if(rControl.state == 2){
-    if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
+    if(!isTurningRight && !isTurningLeft){
       if(rotation == -1) {
         keepTurningRight = true;
         //Testing---------------------------------------------------------------
@@ -589,32 +612,16 @@ void rControlCallback(const robosub::RControl& rControl){
     }else
       ROS_INFO("Sub is still rotating.Command abort.");
   }
-  else if(rControl.state == 3){
-    if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
-      rControlMode3 = true;
-      rotationTime = 3;
-      rotationTimer = 0;
-      ROS_INFO("Rotate with front camera horizontal distance.\n");
-    }
-    else
-      ROS_INFO("Sub is still rotating.Command abort.");
-  }
-  else if(rControl.state == 4){
-    if(!isTurningRight && !isTurningLeft && !rControlMode3 && !rControlMode4){
-      rControlMode4 = true;
-      ROS_INFO("Keep rotating with front camera horizontal distance.\n");
-    }
-    else
-      ROS_INFO("Sub is still rotating.Command abort.");
-    
-  }
+
+  rControlPower = rControl.power;
 }
 
-// MControl
-// state => 0: off, 1: on with power, 2: on with distance, 3: centered with front cam, 4: centered with bottom cam
+//movement callback function
+// state => 0: off, 1: on with power, 2: on with distance, 5: on with duration
 // direction => 1: forward, 2: right, 3: backward, 4: left
 // power => 0: none, x: x power add to the motors
 // distance => 0: none, x: x units away from the object
+// time => 0: none, x: x seconds
 void mControlCallback(const robosub::MControl& mControl){
   double power = mControl.power;
   double distance = mControl.distance;
@@ -627,33 +634,31 @@ void mControlCallback(const robosub::MControl& mControl){
   mControlStatus.distance = mControl.distance;
   mControlStatus.runningTime = mControl.runningTime;
 
-
   if(mControl.state == 0){
     if(isDoingMovement()){
-      // T6.writeMicroseconds(base_thrust);
-      // T8.writeMicroseconds(base_thrust);
-      // T5.writeMicroseconds(base_thrust);
-      // T7.writeMicroseconds(base_thrust);
+      mControlMode1 = false;
+      mControlMode2 = false;
+      mControlMode3 = false;
+      mControlMode4 = false;
+      mControlMode5 = false;
+      keepMovingForward = false;
+      keepMovingRight = false;
+      keepMovingBackward = false;
+      keepMovingLeft = false;
+      positionControlMOffset = 0;
+
+      mControlDirection = 0;
+      mControlPower = 0;
+      mControlDistance = 0;
+
+      setMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
+      setKeepPosition();
+
       ROS_INFO("Movement control is now cancelled\n");
       mControlPublisher.publish(mControlStatus);
-      positionControlMOffset = 0;
     }
-    mControlDirection = 0;
-    mControlPower = 0;
-    mControlDistance = 0;
-    setMHorizontal(base_thrust,base_thrust,base_thrust,base_thrust);
-    mControlMode1 = false;
-    mControlMode2 = false;
-    mControlMode3 = false;
-    mControlMode4 = false;
-    mControlMode5 = false;
-    keepMovingForward = false;
-    keepMovingRight = false;
-    keepMovingBackward = false;
-    keepMovingLeft = false;
-    setKeepPosition();
   }
-  else if(mControl.state == 1){
+  else if(mControl.state == 1){ //power, will move til canceled
     if(isDoingMovement())
       ROS_INFO("Sub is still moving. Command abort.");
     else if(mControl.mDirection != 1 && mControl.mDirection != 2 && mControl.mDirection != 3 && mControl.mDirection != 4)
@@ -687,11 +692,10 @@ void mControlCallback(const robosub::MControl& mControl){
       // movementTimer = 0;
       mControlMode1 = true;
       mControlDirection = mControl.mDirection;
-      mControlPower = mControl.power;
       mControlDistance = 0;
     }
   }
-  else if(mControl.state == 2){
+  else if(mControl.state == 2){ //distance
     if(isDoingMovement())
       ROS_INFO("Sub is still moving. Command abort.");
     else if(mControl.mDirection != 1 && mControl.mDirection != 2 && mControl.mDirection != 3 && mControl.mDirection != 4)
@@ -717,7 +721,6 @@ void mControlCallback(const robosub::MControl& mControl){
       // ROS_INFO(distanceChar);
       // ROS_INFO("away from the target.../n");
       mControlMode2 = true;
-      mControlPower = mControl.power;
       mControlDirection = mControl.mDirection;
       mControlDistance = mControl.distance;
       //save starting point for use in distance checking
@@ -726,7 +729,7 @@ void mControlCallback(const robosub::MControl& mControl){
       cout << "going " << directionStr << " " << mControlDistance << " meters."<< endl;
     }
   }
-  else if(mControl.state == 5){
+  else if(mControl.state == 5){ //time
     if(isDoingMovement())
       ROS_INFO("Sub is still moving. Command abort.");
     else if(mControl.mDirection != 1 && mControl.mDirection != 2 && mControl.mDirection != 3 && mControl.mDirection != 4)
@@ -756,13 +759,13 @@ void mControlCallback(const robosub::MControl& mControl){
 
       mControlMode5 = true;
       mControlDirection = mControl.mDirection;
-      mControlPower = mControl.power;
-      mControlRunningTime = mControl.runningTime;
+      mControlRunningTime = mControl.runningTime * 1000; //convert from seconds to ms
       mControlMode5Timer = loopTime;
       mControlDistance = 0;
     }
   }
 
+  mControlPower = mControl.power;
 }
 
 
@@ -819,11 +822,12 @@ void heightControl(){
   if(PID_roll < -800){PID_roll=-800;}
   if(PID_roll > 800){PID_roll=800;}
 
-  //depth max speed set to pwm_submerge and pwm_emerge
+  //depth max speed set to defaultHeightPower if no power given
+  if(hControlPower == 0) hControlPower = defaultHeightPower;
   //negative number for submerge
-  if(PID_depth < -hControlPower){PID_depth = -hControlPower;}
+  if(PID_depth < -hControlPower && hControlPower != 0){PID_depth = -hControlPower;}
   //positive for emerge
-  if(PID_depth > hControlPower){PID_depth = hControlPower;}
+  if(PID_depth > hControlPower && hControlPower != 0){PID_depth = hControlPower;}
   
   //Emerging and submerging thruster pwm requirments:
   /*Submerging: pwmThruster_1 > base_thrust 
@@ -871,31 +875,23 @@ void heightControl(){
     // pwmThruster_4 = base_thrust - PID_pitch + PID_roll + pid_i_depth;
   }
   
-  pwmThruster_1 = base_thrust - PID_pitch - PID_roll - PID_depth;
-  pwmThruster_2 = base_thrust + PID_pitch - PID_roll + PID_depth;
-  pwmThruster_3 = base_thrust + PID_pitch + PID_roll - PID_depth;
-  pwmThruster_4 = base_thrust - PID_pitch + PID_roll + PID_depth;
+  pwmThruster_1 = 0 + PID_pitch + PID_roll - PID_depth;
+  pwmThruster_2 = 0 - PID_pitch + PID_roll + PID_depth;
+  pwmThruster_3 = 0 - PID_pitch - PID_roll - PID_depth;
+  pwmThruster_4 = 0 + PID_pitch - PID_roll + PID_depth;
 
   ///////////Thruster power buffer//////////////
-  //Thruster_1
-  if(pwmThruster_1 < motorMin){pwmThruster_1= motorMin;}
-  if(pwmThruster_1 > motorMax){pwmThruster_1=motorMax;}
-  //Thruster_2
-  if(pwmThruster_2 < motorMin){pwmThruster_2= motorMin;}
-  if(pwmThruster_2 > motorMax){pwmThruster_2=motorMax;}
-  //Thruster_3
-  if(pwmThruster_3 < motorMin){pwmThruster_3= motorMin;}
-  if(pwmThruster_3 > motorMax){pwmThruster_3=motorMax;}
-  //Thruster_4
-  if(pwmThruster_4 < motorMin){pwmThruster_4= motorMin;}
-  if(pwmThruster_4 > motorMax){pwmThruster_4=motorMax;}
-          
+  pwmThruster_1 = motorPowerCap(pwmThruster_1);
+  pwmThruster_2 = motorPowerCap(pwmThruster_2);
+  pwmThruster_3 = motorPowerCap(pwmThruster_3);
+  pwmThruster_4 = motorPowerCap(pwmThruster_4);
+
   prev_error_pitch = error_pitch;
   prev_error_roll = error_roll;
   prev_error_depth = error_depth;
 
   /*Create the PWM pulses with the calculated width for each pulse*/
-  setMVertical(pwmThruster_1, pwmThruster_2, pwmThruster_3, pwmThruster_4);
+  setMVertical(base_thrust + pwmThruster_1, base_thrust + pwmThruster_2, base_thrust + pwmThruster_3, base_thrust + pwmThruster_4);
 }
 
 //read rotation is from -179.999 to 179.999
@@ -935,8 +931,8 @@ void rotationControl(){
 //      yaw +=360;
   }
   // AutoRotation to the assignedYaw
-  else if(delta > rotationThreshold){
-  // else{
+  // else if(delta > rotationThreshold){
+  else{
     // cout << "in rotationThreshold delta: " << delta << " assignedYaw: " << assignedYaw << " yaw: " << yaw << endl;
     // if(isTurningRight){
     //   // ROS_INFO("isTurningRight");
@@ -955,11 +951,11 @@ void rotationControl(){
       if(isTurningLeft){
         // ROS_INFO("aw - delta == assignedYaw");
         // cout << "aw - delta == assignedYaw" << endl;
-        rotateLeftDynamically();
+        rotateLeftDynamically(delta);
       }else{
         // ROS_INFO("aw - delta == assignedYaw else");
         // cout << "aw - delta == assignedYaw else" << endl;
-        rotateRightDynamically();
+        rotateRightDynamically(delta);
       }
     }
     else if(yaw - delta < rotationLowerBound && (-yaw + assignedYaw) > 180){
@@ -970,23 +966,23 @@ void rotationControl(){
       if(isTurningRight){
         // ROS_INFO("yaw + delta == assignedYaw");
         // cout << "yaw + delta == assignedYaw" << endl;
-        rotateRightDynamically();
+        rotateRightDynamically(delta);
       }
       else{
         // ROS_INFO("yaw + delta == assignedYaw else");
         // cout << "yaw + delta == assignedYaw else" << endl;
-        rotateLeftDynamically();
+        rotateLeftDynamically(delta);
       }
     }
     else if(yaw < assignedYaw){
       // ROS_INFO("yaw < assignedYaw");
       // cout << "yaw < assignedYaw" << endl;
-      rotateRightDynamically();
+      rotateRightDynamically(delta);
     }
     else if(yaw > assignedYaw){
       // ROS_INFO("yaw < assignedYaw else");
       // cout << "yaw < assignedYaw else" << endl;
-      rotateLeftDynamically();
+      rotateLeftDynamically(delta);
     }
     else{
       if(isDoingStrafeMovement()){
@@ -1012,14 +1008,14 @@ void rotationControl(){
       rControlStatus.power = rControlPower;
       rControlPublisher.publish(rControlStatus);
     }
-    if(isDoingStrafeMovement()){
-      // cout << "base_thrust 6 and 8" << endl;
-      setMHorizontal(-1, base_thrust, -1, base_thrust);
-    }
-    else{
-      // cout << "base_thrust 5 and 7" << endl;
-      setMHorizontal(base_thrust, -1, base_thrust, -1);
-    }
+    // if(isDoingStrafeMovement()){
+    //   // cout << "base_thrust 6 and 8" << endl;
+    //   setMHorizontal(-1, base_thrust, -1, base_thrust);
+    // }
+    // else{
+    //   // cout << "base_thrust 5 and 7" << endl;
+    //   setMHorizontal(base_thrust, -1, base_thrust, -1);
+    // }
     
   }
 
@@ -1140,7 +1136,7 @@ void movementControl(){
       movementControlFinish();
     }
     // cout << "loopTime - mControlMode5Timer: " << (loopTime - mControlMode5Timer) << " mControlRunningTime: " << mControlRunningTime << endl;
-    if((loopTime - mControlMode5Timer) > (mControlRunningTime*1000)){
+    if((loopTime - mControlMode5Timer) > (mControlRunningTime)){
       // mControlMode5 = false;
       ROS_INFO("Mode 5 finished.\n");
       movementControlFinish();
@@ -1154,17 +1150,18 @@ void positionControl(){
     // cout << "position isDoingMovement" << endl;
     // setMHorizontalOffset(0, 0, 0, 0);
     // offset by opposing velocity to keep velocity as close to 0 as possible to fight drift while moving
+    double keepCoursePower = 0;
     if(isDoingStrafeMovement()){
       // cout << "doing right/left, offset: " << positionControlMOffset << endl;
       positionControlMOffset += (-velocityY)*keepCourseRightMult;
-      positionControlMOffset = motorPowerCap(positionControlMOffset);
-      setMHorizontalOffset(0, positionControlMOffset, 0, -positionControlMOffset);
+      keepCoursePower = motorPowerCap(positionControlMOffset);
+      setMHorizontalOffset(0, keepCoursePower, 0, -keepCoursePower);
     }
     else{
       // cout << "doing forward/backward, offset: " << positionControlMOffset << endl;
       positionControlMOffset += (-velocityX)*keepCourseForwardMult;
-      positionControlMOffset = motorPowerCap(positionControlMOffset);
-      setMHorizontalOffset(positionControlMOffset, 0, positionControlMOffset, 0);
+      keepCoursePower = motorPowerCap(positionControlMOffset);
+      setMHorizontalOffset(keepCoursePower, 0, keepCoursePower, 0);
     }
   }
   else{
@@ -1246,41 +1243,15 @@ void setup() {
   mHorizontal.t6 = base_thrust;
   mHorizontal.t7 = base_thrust;
   mHorizontal.t8 = base_thrust;
+
   //initialize offset for position keeping
   mHorizontalOffsetT5 = 0;
   mHorizontalOffsetT6 = 0;
   mHorizontalOffsetT7 = 0;
   mHorizontalOffsetT8 = 0;
+
   //Initialize variables
-  mControlDirection = 0;
-  mControlPower = 0;
-  rControlPower = 0;
-  hControlPower = 0;
-  mControlDistance = 0;
-  mControlRunningTime = 0;
-  mControlMode5Timer = 0;
-  centerTimer = 0;
-  rotationTimer = 0;
-  rotationTime = 10;
-  subIsReady = false;
-  isGoingUp = false;
-  isGoingDown = false;
-  isTurningRight = false;
-  isTurningLeft = false;
-  keepTurningRight = false;
-  keepTurningLeft = false;
-  rControlMode3 = false;
-  rControlMode4 = false;
-  mControlMode1 = false;
-  mControlMode2 = false;
-  mControlMode3 = false;
-  mControlMode4 = false;
-  mControlMode5 = false;
-  keepMovingForward = false;
-  keepMovingRight = false;
-  keepMovingBackward = false;
-  keepMovingLeft = false;
-  positionControlMOffset = 0;
+  resetAll();
 
   //Testing------------------
   feetDepth_read = 0;
@@ -1335,11 +1306,6 @@ void setup() {
 //main program loop
 void loop() {
   loopTime = millis();  // update time
-
-  // --Rotation--
-  // --duty cycle and PWM calculation for orientation--
-  // dutyCycl_orient = degreeToTurn() / 180.0;
-  // PWM_Motors_orient = dutyCycl_orient * 400; 
   
   if(subIsReady){
     // heightControl();
@@ -1395,7 +1361,7 @@ int main(int argc, char **argv){
   dvlSubscriber = nh.subscribe("dvl_status", 1, dvlCallback);
   // dvlHeadingSubscriber = nh.subscribe("dvl_heading", 1, dvlHeadingCallback);
 
-  ros::AsyncSpinner spinner(2);
+  ros::AsyncSpinner spinner(3);
   spinner.start();
   setup();
   while(ros::ok()){

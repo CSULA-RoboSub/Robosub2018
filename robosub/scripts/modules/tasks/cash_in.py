@@ -51,7 +51,16 @@ class CashIn(Task):
         ################ THREAD VARIABLES ################
         self.thread_cash_in = None
         self.mutex = Lock()
+        
+    def reset(self): 
+        pass
 
+    def start(self):
+        pass
+    
+    def stop(self):
+        pass
+        
     def detect(self, frame):
         print('detect_dice')
         if not self.detectcashin:
@@ -84,12 +93,6 @@ class CashIn(Task):
     def search(self):
         pass
 
-    def start(self):
-        pass
-    
-    def stop(self):
-        pass
-        
     def run_detect_for_task(self):
         pass
 
@@ -98,5 +101,3 @@ class CashIn(Task):
 
     def get_most_occur_coordinates(self): 
         pass 
-        
-    def reset(self): pass

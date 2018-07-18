@@ -77,7 +77,6 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
-        self.is_task_running = True
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
@@ -105,13 +104,11 @@ class Dice(Task):
                     
                     self.counter = Counter()
                     self.direction_list = []
-                    self.last_time = time.time()
             except:
                 print 'dice detect error'
 
         cvcontroller.stop()
         self.mutex.release()
-        self.is_task_running = False
     
     # stop ##################################################################################
     def stop(self):
@@ -166,7 +163,8 @@ class Dice(Task):
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = True
+        self.is_complete = self.dice_maneuver.completed_dice()
+        return self.is_complete
 
     # bail_task ##################################################################################
     def bail_task(self):
