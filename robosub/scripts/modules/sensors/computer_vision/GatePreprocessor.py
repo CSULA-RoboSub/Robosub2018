@@ -16,7 +16,7 @@ class GatePreprocessor:
 
 
     # color filtering
-    def preprocess(self,  img):
+    def preprocess(self, img):
         mask = cv2.inRange(img, self.lower, self.upper)
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
@@ -41,32 +41,23 @@ class GatePreprocessor:
 
     # returns ROI
     def get_interest_regions(self, frame):
-        height, width, lines = frame.shape
-
-        blur = cv2.bilateralFilter(frame, 9, 100, 100) # blur
-
-        #frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
-        frame_hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV) # to HSV colorspace
         
-        pimage, mask = self.preprocess(frame_hsv)
-        imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
         
-        #imgray = self.color_subtract(frame) # new test method - instead of color filter preproces
+        color_filt_frame, mask = self.preprocess(hsv_frame) # color filtering
         
-        flag, binary_image = cv2.threshold(imgray, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+        dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
 
-        if(self.morph_ops):
-            #erode_frame = cv2.erode(binary_image, self.kernel, iterations=1) # fade/trim
-            #open_frame = cv2.morphologyEx(binary_image, cv2.MORPH_OPEN, self.kernel) # remove specs
-            close_frame = cv2.morphologyEx(binary_image, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+        hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+        grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
 
-        #im, contours, ret = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        im, contours, ret = cv2.findContours(dilate_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # filter the contours based on size
         new_contours_list = []
-        for cont in contours:
+        for cont in frame_contours:
             if ( (len(cont) > self.min_cont_size) and (len(cont) < self.max_cont_size) ):
                 new_contours_list.append(cont)
         filtered_contours = np.array(new_contours_list)
