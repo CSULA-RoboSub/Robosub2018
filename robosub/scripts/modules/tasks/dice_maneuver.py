@@ -69,6 +69,16 @@ class DiceManeuver():
         self.nothing_found_counter = 0
         self.back_up_counter = 0
     
+    # reset_after_1st_die ##################################################################################
+    def reset_after_1st_die(self):
+        self.is_moving_forward = False
+        self.is_rotated_to_center = False
+        self.is_task_complete = False
+
+        self.touching_die_counter = 0
+        self.nothing_found_counter = 0
+        self.back_up_counter = 0
+
     # touch_die ##################################################################################
     def touch_die(self, navigation, coordinates, power, rotation, width_height):
         navigation.m_nav('power', self.horizontal_move_with_forward[coordinates[0]], power)
