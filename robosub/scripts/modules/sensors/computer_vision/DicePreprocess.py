@@ -7,7 +7,10 @@ class DicePreprocessor:
     def __init__(self):
         self.lower = [0, 80, 80]
         self.upper = [170, 255, 255]
+        self.dots_lower = [0, 0, 0]
+        self.dits_upper = [180, 255, 60]
         self.roi_size = 300
+        self.detect_dots = False
 
     def preprocess(self,  frame):
 
