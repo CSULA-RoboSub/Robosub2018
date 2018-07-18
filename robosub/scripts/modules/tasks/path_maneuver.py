@@ -87,5 +87,5 @@ class PathManeuver():
         
         if check_path:
             self.is_task_complete = True
-            
+
         return self.is_task_complete

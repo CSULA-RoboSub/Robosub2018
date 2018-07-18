@@ -22,6 +22,15 @@ class DiceDetector:
 
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
+        self.die_1 = 1
+        self.die_2 = 6
+        self.frame_size = (744, 480)
+
+        self.dies = {
+            0: 1,
+            1: 6
+        }
+        self.die_num = 0
 
     def get_shape(self, roi, buff):
         if roi == None:
@@ -42,6 +51,13 @@ class DiceDetector:
         interest_regions =  self.preprocessor.get_interest_regions(frame)
         # die = [die for die in interest_regions if self.classifier.predict(die) > .1]
         dice = self.classifier.classify(frame, interest_regions)
+
+        #TODO we need to implement a way to use self.die_1 and self.die_2
+        # in the detect to return the right coordinates. we can check if the die
+        # is touched by the sub if the frame is equal to the region of interest (744x480)
+        # or (640x480) for the laptop camera
+
+        # we can also use the dictionary, whichever one is easier
 
         ht, wd, ch =  frame.shape
         if not dice:
