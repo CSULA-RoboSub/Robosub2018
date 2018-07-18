@@ -19,7 +19,6 @@ class Dice(Task):
         ################ INSTANCES ################
         self.houston = Houston
         self.dice_maneuver = DiceManeuver()
-        self.detectdice = None
 
         ################ THRESHOLD VARIABLES ################
         #self.found_threshold = 300
@@ -38,7 +37,7 @@ class Dice(Task):
         self.not_found_timer = 0
         self.found_timer = 0
         self.last_time = 0
-        self.back_up_counter = 0
+        # self.back_up_counter = 0
         self.counter = Counter()
 
         ################ DICTIONARIES ################
@@ -69,8 +68,6 @@ class Dice(Task):
 
     # reset ################################################################################## 
     def reset(self):
-        self.detectdice = None
-
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
@@ -132,30 +129,18 @@ class Dice(Task):
     def stop(self):
         self.local_cvcontroller.stop()
 
-    #TODO remove soon, since thread is being created in Houston
     # run_detect_for_task ##################################################################################
     def run_detect_for_task(self, m_power=120, rotation=15):
-        self.reset_thread()
-
-        self.thread_dice = Thread(target = self.detect, args = (m_power,rotation))
-        #self.thread_dice = Thread(target=self.test)
-        self.thread_dice.start()
-        #self.thread_dice.join()
+        pass
 
     # reset_thread ##################################################################################
     def reset_thread(self):
-        if self.thread_dice:
-            self.thread_dice = None
+        pass
 
     # detect ##################################################################################
     def detect(self, frame):
-        print('detect_dice')
-        if not self.detectdice:
-            self.detectdice = DiceDetector.DiceDetector()
-
-        #found, coordinates = self.detectdice.detect()
-
-        return self.detectdice.detect()
+        pass
+        
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
         if not self.dice_maneuver.is_moving_forward:
@@ -175,11 +160,18 @@ class Dice(Task):
             if self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
                 self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
             else:
-                self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
+                if self.dice_maneuver.back_up_counter < self.dice_maneuver.back_up_threshold:
+                    self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
+                else:
+                    self.dice_maneuver.is_1st_die_touched = True
+                    print 'auv has touched successfully touched a die'
+                    self.dice_maneuver.touching_die_counter = 0
+                    self.dice_maneuver.back_up_from_die = 0
+                    # TODO here we will need to reset all the dice variables but change detect 
+                    # to detect the next die. 
+                    pass
         # else:
-        #     pass
-
-        
+        #     pass        
     
     # complete ##################################################################################
     def complete(self):
