@@ -81,8 +81,10 @@ class CLI(cmd.Cmd):
 
     # task #######################################################################################################
     def do_task(self, arg):
-        '\n\
-         \n[task] followed by a number'
+        print '\nto start please enter\
+               \n[task] <0-10>\
+               \nstop task by entering [task]\
+               \n'
         AUV.display_tasks()
 
         if arg.lower() == 'stop' or arg.lower() == '':
@@ -90,14 +92,9 @@ class CLI(cmd.Cmd):
         elif not arg == '':
             try:
                 arg = int(arg)
-            except:
-                # print '\nINVALID NUMBER INPUT'
-                pass
 
         if arg >= 0 and arg <= 10:
             AUV.specific_task(arg)
-        else:
-            print '\nINVALID NUMBER INPUT'
             # AUV.display_tasks()
         
     # auto-complete navigation
