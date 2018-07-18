@@ -9,13 +9,27 @@ class DicePreprocessor:
         self.upper = np.array([170, 255, 255], 'uint8')
         self.dots_lower = [0, 0, 0]
         self.dits_upper = [180, 255, 60]
+        self.min_cont_size = 100
+        self.max_cont_size = 1000
         self.roi_size = 300
         self.detect_dots = False
 
+        
     def preprocess(self, img):
         mask = cv2.inRange(img, self.lower, self.upper)
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
+
+
+    def filter_contours(self, frame_countours):
+        new_cont_list = []
+        for cont in frame_contours:
+            cont_len = len(cont)
+            if ( (cont_len > self.min_cont_size) and (cont_len < self.max_cont_size) ):
+                new_cont_list.append(cont)
+        filtered_contours = np.array(new_cont_list)
+        return filtered_contours
+    
 
     def get_interest_regions(self,frame):
         
