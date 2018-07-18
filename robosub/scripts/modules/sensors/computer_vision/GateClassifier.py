@@ -16,13 +16,10 @@ class GateClassifier:
         self.new_struct_path = 'modules/sensors/computer_vision/'
         
         self.model_path = self.new_struct_path + 'models/gate/'
-        self.task_model_config_name = "gate_model"
-        self.model_name = self.get_model_name(self.task_model_config_name)
-        self.lsvm = self.set_model(self.model_name)
-        
         self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg'
         self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
 
+        self.task_model_config_name = "gate_model"        
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
@@ -38,13 +35,18 @@ class GateClassifier:
             self.bins
         )
 
+        self.model_name = self.get_model_name('cv', self.task_model_config_name)
+        self.set_model(self.model_name)
+
 
     # returns the model file name as a string from henrys config file
-    def get_model_name(self, task_model):
-        return self.config.get_config(task_model)
+    def get_model_name(self, section, option):
+        return self.config.get_config(section, option)
 
         
-    def set_model(self, task_model_name=self.task_model_config_name):
+    def set_model(self, task_model_name=None):
+        if task_model_name is None:
+            task_model_name = self.task_model_config_name
         try:
             self.lsvm = joblib.load(self.model_path + task_model_name + ".pkl")
             print("\nLoading Gate model from disk...\n")
@@ -52,7 +54,7 @@ class GateClassifier:
             print("\nTraining model...")
             self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)
             self.train_lsvm()
-            joblib.dump(self.lsvm, self.model_path + task_model_name) # store model object to disk
+            joblib.dump(self.lsvm, self.model_path + task_model_name + ".pkl") # store model object to disk
             print("\nStoring model to location: " + "\"" + self.model_path + "\"\n")
             
 
@@ -106,7 +108,8 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
-        
+        if self.lsvm is None:
+            print 'error lsvm not trained'
         for box in roi:
             x, y, w, h = box
             window = frame[y:y + h, x:x + w, :]
