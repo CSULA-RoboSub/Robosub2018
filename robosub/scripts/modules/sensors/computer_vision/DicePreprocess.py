@@ -5,10 +5,10 @@ import numpy as np
 class DicePreprocessor:
 
     def __init__(self):
-        self.lower = np.array([0, 80, 80], 'uint8')
-        self.upper = np.array([170, 255, 255], 'uint8')
-        self.dots_lower = [0, 0, 0]
-        self.dots_upper = [180, 255, 60]
+        self.lower = np.array([0, 80, 80], 'uint8') # olins orig - works for dots
+        self.upper = np.array([170, 255, 255], 'uint8') # olins orig - works for dots
+        self.dots_lower = np.array([0, 0, 0], 'uint8') # any lighting
+        self.dots_upper = np.array([180, 255, 60], 'uint') # any lighting
         self.min_cont_size = 100
         self.max_cont_size = 1000
         self.roi_size = 300
