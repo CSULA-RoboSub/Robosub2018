@@ -39,19 +39,19 @@ class DiceClassifier:
         lsvm = None
 
         try:
-            lsvm = joblib.load('modules/sensors/computer_vision/models/DiceSVMstd.pkl')
+            lsvm = joblib.load('modules/sensors/computer_vision/models/dice/DiceSVMstd.pkl')
             print("\nLoading Dice model from disk...\n")
         except IOError:
             print("SVM not found \n Building SVM")
             pos_imgs = []
             neg_imgs = []
 
-            for img in glob.glob('modules/sensors/computer_vision/pos_dice/*.jpg'):
+            for img in glob.glob('modules/sensors/computer_vision/data/dice/pos_dice/*.jpg'):
                 n = cv2.imread(img)
                 resized = cv2.resize(n, self.dims)
                 pos_imgs.append(resized)
 
-            for img in glob.glob('modules/sensors/computer_vision/neg_images/*.jpg'):
+            for img in glob.glob('modules/sensors/computer_vision/data/dice/neg_images/*.jpg'):
                 n = cv2.imread(img)
                 neg_imgs.append(n)
 
