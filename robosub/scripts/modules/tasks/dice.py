@@ -80,7 +80,7 @@ class Dice(Task):
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
-        while not self.stop_task and not self.complete():
+        while not self.stop_task:
             try:
                 found, direction, shape, width_height = cvcontroller.detect(task_name)
                 if found:
@@ -102,7 +102,6 @@ class Dice(Task):
                     print 'type: navigation cv 0, or task to cancel task'
                     self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
                     
-                    self.last_time = time.time()
                     self.counter = Counter()
                     self.direction_list = []
             except:

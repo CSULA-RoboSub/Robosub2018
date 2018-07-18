@@ -51,7 +51,7 @@ class CashIn(Task):
         ################ THREAD VARIABLES ################
         self.thread_cash_in = None
         self.mutex = Lock()
-
+        
     def reset(self): 
         pass
 
@@ -61,7 +61,6 @@ class CashIn(Task):
     def stop(self):
         pass
         
-
     def detect(self, frame):
         print('detect_dice')
         if not self.detectcashin:
