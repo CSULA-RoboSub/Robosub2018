@@ -58,6 +58,7 @@ class Dice(Task):
         self.is_found = False
         self.is_detect_done = False
         self.is_navigate_done = False
+        self.is_task_running = False
         self.is_done = False
         self.is_complete = False
 
@@ -76,41 +77,39 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
-        self.is_task_running = True
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
-        while not self.stop_task:
-            # try:
-            found, direction, shape, width_height = cvcontroller.detect(task_name)
-            if found:
-                self.direction_list.append(direction)
+        while not self.stop_task and not self.complete():
+            try:
+                found, direction, shape, width_height = cvcontroller.detect(task_name)
+                if found:
+                    self.direction_list.append(direction)
 
-            if (time.time()-self.last_time > 0.05):
-                self.last_time = time.time()
-                count += 1
+                if (time.time()-self.last_time > 0.05):
+                    self.last_time = time.time()
+                    count += 1
 
-                try:
-                    most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-                except:
-                    most_occur_coords = [0, 0]
+                    try:
+                        most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                    except:
+                        most_occur_coords = [0, 0]
 
-                print 'shape: {}, widthxheight: {}'.format(shape, width_height)
-                print 'current count: {}'.format(count)
-                print 'coordinates: {}'.format(most_occur_coords)
-                print '--------------------------------------------'
-                print 'type: navigation cv 0, or task to cancel task'
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
-                
-                self.counter = Counter()
-                self.direction_list = []
-                self.last_time = time.time()
-            # except:
-            #     print 'dice detect error'
+                    print 'shape: {}, widthxheight: {}'.format(shape, width_height)
+                    print 'current count: {}'.format(count)
+                    print 'coordinates: {}'.format(most_occur_coords)
+                    print '--------------------------------------------'
+                    print 'type: navigation cv 0, or task to cancel task'
+                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+                    
+                    self.last_time = time.time()
+                    self.counter = Counter()
+                    self.direction_list = []
+            except:
+                print 'dice detect error'
 
         cvcontroller.stop()
         self.mutex.release()
-        self.is_task_running = False
     
     # stop ##################################################################################
     def stop(self):
@@ -149,9 +148,7 @@ class Dice(Task):
 
         # if found:
         if not self.dice_maneuver.is_rotated_to_center:
-            print 'is in if statement'
             if shape:
-                print 'inside shape'
                 if coordinates[0] == 0:
                     self.dice_maneuver.is_rotated_to_center = True
                 else:
@@ -159,7 +156,6 @@ class Dice(Task):
             else:
                 self.dice_maneuver.find_die(navigation, power, rotation)
         else:
-            print 'is in else statement'
             self.dice_maneuver.touch_die(navigation, coordinates, power, rotation)
         # else:
         #     pass
@@ -168,7 +164,8 @@ class Dice(Task):
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = True
+        self.is_complete = self.dice_maneuver.completed_dice()
+        return self.is_complete
 
     # bail_task ##################################################################################
     def bail_task(self):

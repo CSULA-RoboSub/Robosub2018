@@ -66,6 +66,7 @@ class Path(Task):
         self.coordinates = []
 
         self.thread_path = None
+        self.stop_task = False
 
         # self.path_maneuver.reset()
     
@@ -75,6 +76,8 @@ class Path(Task):
         self.is_task_running = True
         cvcontroller.start(task_name)
         self.mutex.acquire()
+        while not self.stop_task and not self.complete():
+            print 'moving to next task was successful'
         # TODO implement path cvcontroller and path navigate
         # while not self.stop_task:
         #     try:
@@ -139,7 +142,8 @@ class Path(Task):
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = True
+        self.is_complete = self.path_maneuver.completed_path()
+        return self.is_complete
 
     # bail_task ##################################################################################
     def bail_task(self):

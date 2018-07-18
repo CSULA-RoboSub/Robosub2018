@@ -7,7 +7,8 @@ class PathManeuver():
 
         ################ FLAG VARIABLES ################
         self.is_moving_forward = False
-
+        self.is_no_more_path = False
+        self.is_task_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
 
@@ -53,6 +54,8 @@ class PathManeuver():
     # reset ##################################################################################
     def reset(self):
         self.is_moving_forward = False
+        self.is_no_more_path = False
+        self.is_task_complete = False
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
         pass
@@ -78,3 +81,11 @@ class PathManeuver():
     def line_up_to_path(self, navigation, coordinates, power, rotation):
         navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
         navigation.r_nav(self.line_up_movement[coordinates[0]], rotation, self.rotation_power)
+
+    def completed_path(self)
+        check_path = self.is_no_more_path
+        
+        if check_path:
+            self.is_task_complete = True
+            
+        return self.is_task_complete

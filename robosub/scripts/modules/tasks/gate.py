@@ -36,7 +36,6 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
         self.stop_task = False
-        self.is_task_running = False
         self.is_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
@@ -85,7 +84,6 @@ class Gate(Task):
         self.is_detect_done = False
         self.is_navigate_done = False
         self.is_done = False
-        self.is_task_running = False
         self.is_complete = False
 
         self.not_found_timer = 0
@@ -110,13 +108,11 @@ class Gate(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
-        self.is_task_running = True
         cvcontroller.start(task_name)
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        #self.run_detect_for_task(navigation, m_power, rotation)
-        while not self.stop_task:
+        while not self.stop_task and not self.complete():
             # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
                 # if directions:
@@ -124,7 +120,6 @@ class Gate(Task):
                     self.direction_list.append(directions)
 
                 if (time.time()-self.last_time > 0.05):
-                    self.last_time = time.time()
                     count += 1
 
                     try:
@@ -139,6 +134,7 @@ class Gate(Task):
                     print 'type: navigation cv 0, or task to cancel task'
                     self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
+                    self.last_time = time.time()
                     self.counter = Counter()
                     self.direction_list = []
             # except:
@@ -146,7 +142,7 @@ class Gate(Task):
 
         cvcontroller.stop()     
         self.mutex.release()
-        self.is_task_running = False
+
     # stop ##################################################################################
     def stop(self):
         # self.navigation.stop()
@@ -194,13 +190,14 @@ class Gate(Task):
                     
         self.previous_width_height = width_height
 
-        if self.gate_maneuver.under_timer > self.under_threshold:
-            self.passed_gate = 1
-            print 'sub has gone under and past gate'
+        # if self.gate_maneuver.under_timer > self.under_threshold:
+        #     self.passed_gate = 1
+        #     print 'sub has gone under and past gate'
             
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = True
+        self.is_complete = self.gate_maneuver.completed_gate()
+        return self.is_complete
 
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, direction_list, counter):

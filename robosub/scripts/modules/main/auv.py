@@ -60,13 +60,13 @@ class AUV():
     def perform_tasks(self):
         """Has houston perform task"""
         # try:
-        self.houston.start_all_tasks()
+        self.houston.start_task('all', 0)
         # except AttributeError:
         #     print('houston not initialized')
     
     def specific_task(self, task_num):
         """Has houston do specific task"""
-        self.houston.do_one_task(task_num)
+        self.houston.start_task('one', task_num)
 
     def stop_task(self):
         """Has houston stop task"""
