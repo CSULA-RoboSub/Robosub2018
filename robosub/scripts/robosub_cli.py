@@ -92,6 +92,9 @@ class CLI(cmd.Cmd):
         elif not arg == '':
             try:
                 arg = int(arg)
+            except:
+                # print '\nINVALID NUMBER INPUT'
+                pass
 
         if arg >= 0 and arg <= 10:
             AUV.specific_task(arg)
