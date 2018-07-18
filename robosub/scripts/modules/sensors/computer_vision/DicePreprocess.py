@@ -31,10 +31,8 @@ class DicePreprocessor:
         return filtered_contours
     
 
-    def get_interest_regions(self,frame):
+    def get_interest_regions(self, frame):
         
-        height, width, ch = frame.shape
-        center = (width / 2, height / 2)
         pimage, mask = self.preprocess(frame)
         imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
         flag, binary_image = cv2.threshold(imgray, 85, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
