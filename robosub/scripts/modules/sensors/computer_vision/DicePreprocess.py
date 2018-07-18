@@ -16,7 +16,10 @@ class DicePreprocessor:
 
         
     def preprocess(self, img):
-        mask = cv2.inRange(img, self.lower, self.upper)
+        if (detect_dots):
+            mask = cv2.inRange(img, self.dots_lower, self.dots_upper)
+        else:
+            mask = cv2.inRange(img, self.lower, self.upper)
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
@@ -32,7 +35,7 @@ class DicePreprocessor:
     
 
     def get_interest_regions(self, frame):
-        
+
         pimage, mask = self.preprocess(frame)
         imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
         flag, binary_image = cv2.threshold(imgray, 85, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
