@@ -113,7 +113,11 @@ class CVController():
 
     # start ##################################################################################
     def start(self, task_name):
-        self.camera_start_dictionary[self.sub_camera_found](task_name)
+        if self.sub_camera_found == 1:
+            self.camera_start_dictionary[self.sub_camera_found](task_name)
+        #do not elif we want to check the 2nd one if first fails aswell
+        if self.sub_camera_found == 0:
+            self.camera_start_dictionary[self.sub_camera_found](task_name)
         print 'start cvcontroller'
 
     # stop ##################################################################################
@@ -135,7 +139,7 @@ class CVController():
     def processed_frame(self):
         return self.current_processed_frame
     
-    def setup_video_output(self):
+    def setup_video_output(self, task_name):
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         now = datetime.datetime.now()
         timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
@@ -151,14 +155,14 @@ class CVController():
         # self.setup_pipeline('down')
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
-        self.setup_video_output()
+        self.setup_video_output(task_name)
         print 'sub camera found'
 
     # opencv_camera_start ##################################################################################
     def opencv_camera_start(self, task_name):
         self.cap = None
         self.cap = cv2.VideoCapture(0)
-        self.setup_video_output()
+        self.setup_video_output(task_name)
         print 'laptop/default camera found'
 
     def display_output(self, camera_direction):
@@ -290,6 +294,7 @@ class CVController():
         # retrieve all available serial numbers
         serials = source.get_device_serials()
         if not serials:
+            self.sub_camera_found = 0
             print 'error: no cameras found'
             return
         # create a list to have an easy index <-> serial association
