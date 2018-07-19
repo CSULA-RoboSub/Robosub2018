@@ -4,47 +4,80 @@ from robosub.msg import Hydrophone
 import numpy as np
 import math
 
-def get_theta(h1, h2):
-    vel_of_sound = 1484.0 #m/s
-    distance_between_hydrophones = 0.018 #meters
-    # try:
-    #
-    print("h1: %.2f h2 %.2f" %(h1,h2))
-    print('inside acos:')
-    print((vel_of_sound*(float(abs(h1 - h2)))/1000000.0) / distance_between_hydrophones)
-    print('radians:')
-    print(math.acos((vel_of_sound*(float(abs(h1 - h2)))/1000000.0) / distance_between_hydrophones))
-    theta = math.acos((vel_of_sound*(float(abs(h1 - h2)))/1000000.0) / distance_between_hydrophones) * (180 / np.pi)
-    print('degrees:')
-    print(theta)
-    # except:
-    #     return 0
+vel_of_sound = 1484.0 #m/s
+distance_between_hydrophones = 0.018 #meters
 
-    return theta
+def avg_diff(t1, t2):
+    avg = 0
+    for i in range(1,4):
+        avg += t1[i] - t2[i]
+    avg /= 3
+    return avg
+
+def get_theta_acos(h1, h2):
+    try:
+        print("h1: %.2f h2 %.2f" %(h1,h2))
+        print('inside acos:')
+        print((vel_of_sound*(float(abs(avg_diff(h1 - h2))))/1000000.0) / distance_between_hydrophones)
+        print('radians:')
+        print(math.acos((vel_of_sound*(float(abs(avg_diff(h1 - h2))))/1000000.0) / distance_between_hydrophones))
+        theta = math.acos((vel_of_sound*(float(abs(avg_diff(h1 - h2))))/1000000.0) / distance_between_hydrophones) * (180 / np.pi)
+        print('degrees:')
+        print(theta)
+    except:
+        print('acos arithmetic error')
+        return False, 0
+
+    return True, theta
+
+def get_theta_asin(h1, h2):
+    try:
+        print("h1: %.2f h2 %.2f" %(h1,h2))
+        print('inside asin:')
+        print(distance_between_hydrophones / (vel_of_sound*(float(abs(avg_diff(h1 - h2))))/1000000.0))
+        print('radians:')
+        print(math.asin(distance_between_hydrophones / (vel_of_sound*(float(abs(avg_diff(h1 - h2))))/1000000.0)))
+        theta = math.asin(distance_between_hydrophones / (vel_of_sound*(float(abs(avg_diff(h1 - h2))))/1000000.0)) * (180 / np.pi)
+        print('degrees:')
+        print(theta)
+    except:
+        print('asin arithmetic error')
+        return False, 0
+
+    return True, theta
 
 def h_status_callback(data):
     # rospy.loginfo()
-    freq1 = 1.0/((abs(data.times1[0]-data.times1[1])+abs(data.times1[1]-data.times1[2])+abs(data.times1[2]-data.times1[3]))/3000000.0)
-    freq2 = 1.0/((abs(data.times2[0]-data.times2[1])+abs(data.times2[1]-data.times2[2])+abs(data.times2[2]-data.times2[3]))/3000000.0)
-    freq3 = 1.0/((abs(data.times3[0]-data.times3[1])+abs(data.times3[1]-data.times3[2])+abs(data.times3[2]-data.times3[3]))/3000000.0)
-    freq4 = 1.0/((abs(data.times4[0]-data.times4[1])+abs(data.times4[1]-data.times4[2])+abs(data.times4[2]-data.times4[3]))/3000000.0)
     times1 = data.times1
     times2 = data.times2
     times3 = data.times3
     times4 = data.times4
+    freq1 = 1.0/((abs(times1[0]-times1[1])+abs(times1[1]-times1[2])+abs(times1[2]-times1[3]))/3000000.0)
+    freq2 = 1.0/((abs(times2[0]-times2[1])+abs(times2[1]-times2[2])+abs(times2[2]-times2[3]))/3000000.0)
+    freq3 = 1.0/((abs(times3[0]-times3[1])+abs(times3[1]-times3[2])+abs(times3[2]-times3[3]))/3000000.0)
+    freq4 = 1.0/((abs(times4[0]-times4[1])+abs(times4[1]-times4[2])+abs(times4[2]-times4[3]))/3000000.0)
 
     r_states = [
             'left',  # rotate left
             'staying',
             'right',  # rotate right
         ]
-    slot = 1
-    infront_behind = times1[slot] - times2[slot]
+    # slot = 1
+    infront_behind = avg_diff(times1, times2)
     if infront_behind >= 0:
         #infront of auv, also includes directly left/right of auv
-        left_right = times1[slot] - times4[slot]
-        theta = get_theta(times1[slot],times4[slot])
-        turn_degree = 90.0 - theta
+        left_right = avg_diff(times1, times4)
+        is_good, theta = get_theta_acos(times1, times4)
+
+        if is_good:
+            turn_degree = 90.0 - abs(theta)
+        else:
+            is_good, theta = get_theta_asin(times1, times4)
+            if is_good:
+                turn_degree = abs(theta)
+            else:
+                print('both asin and acos arithmetic error infront auv')
+
         if left_right > 0:
             #left of auv
             direction = r_states[0]
@@ -56,9 +89,18 @@ def h_status_callback(data):
             direction = r_states[1]
     else:
         #behind auv
-        left_right = times2[slot] - times3[slot]
-        theta = get_theta(times2[slot],times3[slot])
-        turn_degree = theta + 90.0
+        left_right = avg_diff(times2, times3)
+        is_good, theta = get_theta_acos(times2, times3)
+
+        if is_good:
+            turn_degree = abs(theta) + 90.0
+        else:
+            is_good, theta = get_theta_asin(times2, times3)
+            if is_good:
+                turn_degree = 180 - abs(theta)
+            else:
+                print('both asin and acos arithmetic error behind auv')
+
         if left_right > 0:
             #left of auv
             direction = r_states[0]
