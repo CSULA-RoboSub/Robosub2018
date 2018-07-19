@@ -81,10 +81,11 @@ class CLI(cmd.Cmd):
 
     # task #######################################################################################################
     def do_task(self, arg):
-        print '\nto start please enter\
-               \n[task] <0-10>\
-               \nstop task by entering [task]\
-               \n'
+        '\nto start please enter\
+         \n[task] <0-10>\
+         \nstop task by entering [task]\
+         \n'
+
         AUV.display_tasks()
 
         if arg.lower() == 'stop' or arg.lower() == '':
@@ -99,6 +100,11 @@ class CLI(cmd.Cmd):
         if arg >= 0 and arg <= 10:
             AUV.specific_task(arg)
             # AUV.display_tasks()
+        else:
+            print('\nto start please enter:\
+                   \n[task] (0-10)\
+                   \nstop task by entering [task]\
+                   \n')
         
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):
@@ -108,6 +114,12 @@ class CLI(cmd.Cmd):
             return [arg for arg in args if arg.startswith(text)]
         else:
             return args
+
+    # config ###########################################################################################################
+    def do_config(self, arg):
+        '\nOpens the config file and updates the parameters'
+
+        AUV.update_config()
 
     # status logger ####################################################################################################
     def do_logging(self, arg):

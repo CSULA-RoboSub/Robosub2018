@@ -17,12 +17,7 @@ class Controller():
     def change_params(self):
         """Opens the config file and updates the parameters"""
 
-        os.system('gedit config/config.ini')
-        self.AUV.houston.cvcontroller.gatedetector.classifier.set_model()
-        self.AUV.houston.cvcontroller.dicedetector.classifier.set_model()
-        self.AUV.houston.cvcontroller.pathdetector.classifier.set_model()
-        # TODO call update methods/abstract the methods
-        # TODO create a read all models method
+        self.AUV.update_config()
 
     def start_auto_mode(self, value):
         """Checkbox to determine if AUV starts in auto mode when turned on"""
