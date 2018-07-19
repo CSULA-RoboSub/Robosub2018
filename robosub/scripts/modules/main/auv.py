@@ -1,17 +1,13 @@
 import rospy
+import os
 from std_msgs.msg import Int8
 
-# from test import test_movement
 from config.config import Config
 from modules.control.motor import Motor
 from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
 from modules.main.status_logger import StatusLogger
 
-# try:
-#     from houston import Houston
-# except ValueError:q
-#     print('Required hardware not detected.')
 from houston import Houston
 
 
@@ -26,25 +22,32 @@ class AUV():
         self.motor_state = None
         self.tasks = None
 
-        # self.test
         self.config = Config()  # initialize Config() class
-        self.read_config()
+        self.read_config()  # read parameters from the config.ini file
 
         self.motor = Motor(self.motor_state)  # initialize Motor() class
         self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
-
-        # try:
         self.houston = Houston(self.navigation, self.tasks) # initialize Houston() class
-        # except NameError:
-        #     print('Houston is not initialized.')
 
     def kill_switch_callback(self, data):
         if data.data == 1:
             self.start()
         if data.data == 0:
             self.stop()
+
+    def update_config(self):
+        """Opens the config file and updates the parameters"""
+
+        os.system('gedit config/config.ini')
+        self.read_config()
+        self.houston.cvcontroller.gatedetector.classifier.set_model()
+        # self.houston.cvcontroller.dicedetector.classifier.set_model()
+        # self.houston.cvcontroller.pathdetector.classifier.set_model()
+        # self.houston.cvcontroller.roulettedetector.classifier.set_model()
+        # self.houston.cvcontroller.cashindetector.classifier.set_model()
+        # self.houston.cvcontroller.slotdetector.classifier.set_model()
 
     def read_config(self):
         """ Reads from config/config.ini"""
@@ -59,21 +62,22 @@ class AUV():
 
     def perform_tasks(self):
         """Has houston perform task"""
-        # try:
+
         self.houston.start_task('all', 0)
-        # except AttributeError:
-        #     print('houston not initialized')
     
     def specific_task(self, task_num):
         """Has houston do specific task"""
+
         self.houston.start_task('one', task_num)
 
     def stop_task(self):
         """Has houston stop task"""
+
         self.houston.stop_task()
 
     def display_tasks(self):
         """Has houston display list of tasks"""
+
         self.houston.print_tasks()
 
     # def stop_one_task(self, task_num):
@@ -86,11 +90,7 @@ class AUV():
         self.navigation.start()
         self.keyboard.start()
         self.status_logger.start()
-        # try:
         self.houston.start()
-        # except AttributeError:
-        #     print('houston not initialized')
-        # self.cv.start(self.tasks)
 
     def stop(self):
         """Stops the modules when magnet killswitch is removed"""
@@ -99,7 +99,4 @@ class AUV():
         self.navigation.stop()
         self.keyboard.stop()
         self.status_logger.stop()
-        # try:
         self.houston.stop()
-        # except AttributeError:
-        #     print('houston not initialized')
