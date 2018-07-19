@@ -103,22 +103,22 @@ class Dice(Task):
             if (time.time()-self.last_time > 0.05):
                 self.last_time = time.time()
                 count += 1
+                
+                try:
+                    most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                except:
+                    most_occur_coords = [0, 0]
 
-            try:
-                most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-            except:
-                most_occur_coords = [0, 0]
-
-            print 'running dice task'
-            print 'widthxheight: {}'.format(width_height)
-            print 'current count: {}'.format(count)
-            print 'coordinates: {}'.format(most_occur_coords)
-            print '--------------------------------------------'
-            print 'type: navigation cv 0, or task to cancel task'
-            self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
-            
-            self.counter = Counter()
-            self.direction_list = []
+                print 'running dice task'
+                print 'widthxheight: {}'.format(width_height)
+                print 'current count: {}'.format(count)
+                print 'coordinates: {}'.format(most_occur_coords)
+                print '--------------------------------------------'
+                print 'type: navigation cv 0, or task to cancel task'
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+                
+                self.counter = Counter()
+                self.direction_list = []
             # except:
             #     print 'dice detect error'
 
@@ -157,7 +157,9 @@ class Dice(Task):
             # else:
             #     self.dice_maneuver.rotate_to_find_die(navigation, power, rotation)
         else:
-            if self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
+            if not shape:
+                self.dice_maneuver.rotate(navigation, self.r_power, 15)
+            elif self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
                 self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
             else:
                 if self.dice_maneuver.back_up_counter < self.dice_maneuver.back_up_threshold:

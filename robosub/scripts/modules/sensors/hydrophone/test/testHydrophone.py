@@ -5,21 +5,29 @@ import numpy as np
 import math
 
 def get_theta(h1, h2):
-    vel_of_sound = 1484 #m/s
+    vel_of_sound = 1484.0 #m/s
     distance_between_hydrophones = 0.018 #meters
-    try:
-        theta = math.acos((vel_of_sound*(abs(h1 - h2)))/distance_between_hydrophones) * (180 / np.pi)
-    except:
-        return 0
+    # try:
+    #
+    print("h1: %.2f h2 %.2f" %(h1,h2))
+    print('inside acos:')
+    print((vel_of_sound*(float(abs(h1 - h2)))/1000000.0) / distance_between_hydrophones)
+    print('radians:')
+    print(math.acos((vel_of_sound*(float(abs(h1 - h2)))/1000000.0) / distance_between_hydrophones))
+    theta = math.acos((vel_of_sound*(float(abs(h1 - h2)))/1000000.0) / distance_between_hydrophones) * (180 / np.pi)
+    print('degrees:')
+    print(theta)
+    # except:
+    #     return 0
 
     return theta
 
 def h_status_callback(data):
     # rospy.loginfo()
-    freq1 = 1.0/((abs(data.times1[0]-data.times1[1])+abs(data.times1[1]-data.times1[2])+abs(data.times1[2]-data.times1[3]))/3.0)
-    freq2 = 1.0/((abs(data.times2[0]-data.times2[1])+abs(data.times2[1]-data.times2[2])+abs(data.times2[2]-data.times2[3]))/3.0)
-    freq3 = 1.0/((abs(data.times3[0]-data.times3[1])+abs(data.times3[1]-data.times3[2])+abs(data.times3[2]-data.times3[3]))/3.0)
-    freq4 = 1.0/((abs(data.times4[0]-data.times4[1])+abs(data.times4[1]-data.times4[2])+abs(data.times4[2]-data.times4[3]))/3.0)
+    freq1 = 1.0/((abs(data.times1[0]-data.times1[1])+abs(data.times1[1]-data.times1[2])+abs(data.times1[2]-data.times1[3]))/3000000.0)
+    freq2 = 1.0/((abs(data.times2[0]-data.times2[1])+abs(data.times2[1]-data.times2[2])+abs(data.times2[2]-data.times2[3]))/3000000.0)
+    freq3 = 1.0/((abs(data.times3[0]-data.times3[1])+abs(data.times3[1]-data.times3[2])+abs(data.times3[2]-data.times3[3]))/3000000.0)
+    freq4 = 1.0/((abs(data.times4[0]-data.times4[1])+abs(data.times4[1]-data.times4[2])+abs(data.times4[2]-data.times4[3]))/3000000.0)
     times1 = data.times1
     times2 = data.times2
     times3 = data.times3
@@ -30,12 +38,12 @@ def h_status_callback(data):
             'staying',
             'right',  # rotate right
         ]
-
-    infront_behind = times1[0] - times2[0]
+    slot = 1
+    infront_behind = times1[slot] - times2[slot]
     if infront_behind >= 0:
         #infront of auv, also includes directly left/right of auv
-        left_right = times1[0] - times4[0]
-        theta = get_theta(times1[0],times4[0])
+        left_right = times1[slot] - times4[slot]
+        theta = get_theta(times1[slot],times4[slot])
         turn_degree = 90.0 - theta
         if left_right > 0:
             #left of auv
@@ -48,8 +56,8 @@ def h_status_callback(data):
             direction = r_states[1]
     else:
         #behind auv
-        left_right = times2[0] - times3[0]
-        theta = get_theta(times2[0],times3[0])
+        left_right = times2[slot] - times3[slot]
+        theta = get_theta(times2[slot],times3[slot])
         turn_degree = theta + 90.0
         if left_right > 0:
             #left of auv
