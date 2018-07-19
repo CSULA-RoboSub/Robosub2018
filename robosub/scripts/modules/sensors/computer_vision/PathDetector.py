@@ -14,4 +14,4 @@ class PathDetector():
         self.isTaskComplete = False
 
     def detect(self, frame):
-        pass
+        return None, None, None, None

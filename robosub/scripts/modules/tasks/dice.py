@@ -103,7 +103,7 @@ class Dice(Task):
             if (time.time()-self.last_time > 0.05):
                 self.last_time = time.time()
                 count += 1
-
+                
                 try:
                     most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
                 except:

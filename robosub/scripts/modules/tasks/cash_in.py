@@ -15,15 +15,7 @@ class CashIn(Task):
     def __init__(self, Houston):
         """ To initialize CashIn """
         super(CashIn, self).__init__()
-
-        self.coordinates = []
-        self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
-
-        self.not_found_timer = 0
-        self.found_timer = 0
+        
         ################ INSTANCES ################
         self.houston = Houston
         # self.cash_in_maneuver = CashInManeuver()
@@ -45,13 +37,14 @@ class CashIn(Task):
         self.found_timer = 0
 
         ################ DICTIONARIES ################
+        self.direction_list = []
 
         ################ AUV MOBILITY VARIABLES ################
 
         ################ THREAD VARIABLES ################
         self.thread_cash_in = None
         self.mutex = Lock()
-    
+
     # reset ##################################################################################
     def reset(self): 
         pass
@@ -63,7 +56,7 @@ class CashIn(Task):
     # stop ##################################################################################
     def stop(self):
         pass
-    
+        
     # detect ##################################################################################
     def detect(self, frame):
         print('detect_dice')
