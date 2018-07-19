@@ -127,10 +127,17 @@ class CVController():
         self.close_pipeline()
         if self.cap:
             self.cap.release()
+            self.cap = None
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
+    # camera selection functions ######################################################################
+    def change_camera_to(self, camera_direction):
+        self.stop()
+        self.camera_direction = camera_direction
+        self.start()
+        
     # raw_frame ##################################################################################
     def raw_frame(self):
         return self.current_raw_frame
@@ -276,12 +283,6 @@ class CVController():
         self.display_buffers[camera_direction].append(bytebuffer)
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers[camera_direction].pop(0))
         self.display_input[camera_direction].emit("push-buffer", new_buf)
-
-    # camera selection functions ######################################################################
-    def change_camera_to(self, camera_direction):
-        self.stop()
-        self.camera_direction = camera_direction
-        self.start()
 
     # setup_pipeline ##################################################################################
     def setup_pipeline(self, camera_direction = None):
