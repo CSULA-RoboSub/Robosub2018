@@ -107,7 +107,7 @@ class CVController():
             self.sub_camera_found = 1
             print '*******initialize Glib.MainLoop() successful*******'
         except:
-            self.cap = cv2.VideoCapture(0)
+            self.cap = None
             self.sub_camera_found = 0
             print '*******unable to initialize Glib.MainLoop()*******'
 
