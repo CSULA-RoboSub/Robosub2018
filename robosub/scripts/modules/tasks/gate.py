@@ -5,7 +5,6 @@ from collections import Counter
 from itertools import combinations
 
 from task import Task
-from modules.sensors.computer_vision import GateDetector
 from modules.sensors.imu.gather_rotation import GetRotation
 
 from gate_maneuver import GateManeuver

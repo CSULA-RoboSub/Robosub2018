@@ -31,6 +31,7 @@ class Dice(Task):
         self.stop_task = False
         self.is_task_running = False
         self.is_complete = False
+        self.is_die_number_changed = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -46,7 +47,12 @@ class Dice(Task):
             1: 6
         }
 
-        self.die_num = 0
+        self.die_phases = {
+            None: self.dice_maneuver.no_shape_found,
+            'vertical': self.dice_maneuver.centered_and_shape_found,
+            'horizontal': self.dice_maneuver.centered_and_shape_found,
+            'square': self.dice_maneuver.centered_and_shape_found
+        }
 
         ################ AUV MOBILITY VARIABLES ################
         self.r_power=100
@@ -73,8 +79,8 @@ class Dice(Task):
         self.is_task_running = False
         self.is_done = False
         self.is_complete = False
+        self.is_die_number_changed = False
 
-        self.die_num = 0
         self.not_found_timer = 0
         self.found_timer = 0
         self.last_time = 0
@@ -93,7 +99,7 @@ class Dice(Task):
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
-        while not self.stop_task:
+        while not self.stop_task and not self.complete():
             # try:
             found, direction, shape, width_height = cvcontroller.detect(task_name)
             if found:
@@ -118,6 +124,11 @@ class Dice(Task):
                 
                 self.counter = Counter()
                 self.direction_list = []
+            
+            if self.dice_maneuver.is_1st_die_touched and not self.is_die_number_changed:
+                self.is_die_number_changed = True
+                cvcontroller.change_die_num()
+                self.dice_maneuver.reset_after_1st_die()
             # except:
             #     print 'dice detect error'
 
@@ -153,30 +164,26 @@ class Dice(Task):
                 self.dice_maneuver.is_rotated_to_center = True
             else:
                 self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
-            # else:
-            #     self.dice_maneuver.rotate_to_find_die(navigation, power, rotation)
         else:
-            if not shape:
-                self.dice_maneuver.rotate(navigation, self.r_power, 15)
-            elif self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
-                self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
-            else:
-                if self.dice_maneuver.back_up_counter < self.dice_maneuver.back_up_threshold:
-                    self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
-                else:
-                    self.dice_maneuver.is_1st_die_touched = True
-                    print 'auv has touched successfully touched a die'
-                    self.dice_maneuver.touching_die_counter = 0
-                    self.dice_maneuver.back_up_from_die = 0
+            self.die_phases[shape](navigation, coordinates, power, rotation, width_height)
+            # if not shape:
+            #     self.dice_maneuver.rotate(navigation, self.r_power, 15)
+            # elif self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
+            #     self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
+            # else:
+            #     if self.dice_maneuver.back_up_counter < self.dice_maneuver.back_up_threshold:
+            #         self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
+            #     else:
+            #         self.dice_maneuver.is_1st_die_touched = True
+            #         print 'auv has touched successfully touched a die'
+            #         self.dice_maneuver.touching_die_counter = 0
+            #         self.dice_maneuver.back_up_from_die = 0
                     # TODO here we will need to reset all the dice variables but change detect 
-                    # to detect the next die. 
-                    pass
-        # else:
-        #     pass        
+                    # to detect the next die.      
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = self.dice_maneuver.completed_dice()
+        self.is_complete = self.dice_maneuver.completed_dice_check()
         return self.is_complete
 
     # bail_task ##################################################################################
