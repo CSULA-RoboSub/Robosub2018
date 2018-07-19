@@ -124,3 +124,9 @@ class DiceManeuver():
             self.is_task_complete = True
 
         return self.is_task_complete
+
+    # rotate ##################################################################################
+    def rotate(self, navigation, power, rotation):
+        # navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
+        pass
+        
