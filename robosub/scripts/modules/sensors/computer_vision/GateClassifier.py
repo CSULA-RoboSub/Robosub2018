@@ -50,7 +50,8 @@ class GateClassifier:
         try:
             self.lsvm = joblib.load(self.model_path + task_model_name + ".pkl")
             print("\nLoading Gate model from disk...\n")
-        except:
+        except IOError as e:
+            print("IOError: {0}".format(e) )
             print("\nTraining model...")
             self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)
             self.train_lsvm()
