@@ -400,8 +400,11 @@ class CVController():
                 self.display_pipeline[key] = None
         # except:
         #     print 'error in cvcontroller close_pipeline'
-        if self.loop:
+        # if self.loop:
+        try:
             self.loop.quit()
+        except:
+            print 'unable to use self.loop.quit()'
         self.thread = None
 
         print 'closed pipeline'

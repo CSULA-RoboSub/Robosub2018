@@ -5,7 +5,6 @@ from collections import Counter
 from itertools import combinations
 
 from task import Task
-from modules.sensors.computer_vision import DiceDetector
 
 from dice_maneuver import DiceManeuver
 
