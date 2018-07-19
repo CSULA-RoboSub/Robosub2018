@@ -100,6 +100,7 @@ class CVController():
             'down' : self.camera_down_callback
         }
         self.camera_direction = 'forward'
+        self.cap = None
 
         try:
             self.loop = GLib.MainLoop()
@@ -107,7 +108,6 @@ class CVController():
             self.sub_camera_found = 1
             print '*******initialize Glib.MainLoop() successful*******'
         except:
-            self.cap = None
             self.sub_camera_found = 0
             print '*******unable to initialize Glib.MainLoop()*******'
 
@@ -122,10 +122,10 @@ class CVController():
 
     # stop ##################################################################################
     def stop(self):
-        try:
-            self.close_pipeline()
-            print 'pipeline closed'
-        except:
+        self.outraw.release()
+        self.outprocessed.release()
+        self.close_pipeline()
+        if self.cap:
             self.cap.release()
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
@@ -143,8 +143,13 @@ class CVController():
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         now = datetime.datetime.now()
         timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
-        self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, (744, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+        if self.sub_camera_found == 1:
+            res = (744, 480)
+        else:
+            res = (640, 480)
+
+        self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
+        self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
 
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
@@ -152,6 +157,8 @@ class CVController():
         # for key in self.pipeline:
         #     self.setup_pipeline(key)
         self.setup_pipeline(self.camera_direction)
+        if self.sub_camera_found == 0:
+            return
         # self.setup_pipeline('down')
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
@@ -372,9 +379,6 @@ class CVController():
 
     # close_pipeline ##################################################################################
     def close_pipeline(self):
-        self.outraw.release()
-        self.outprocessed.release()
-        # self.pipeline.set_state(Gst.State.NULL)
         # try:
         for key in self.pipeline:
             if self.pipeline[key]:
@@ -395,8 +399,8 @@ class CVController():
                 self.display_pipeline[key] = None
         # except:
         #     print 'error in cvcontroller close_pipeline'
-        cv2.destroyAllWindows()
-        self.loop.quit()
+        if self.loop:
+            self.loop.quit()
         self.thread = None
 
         print 'closed pipeline'
