@@ -131,8 +131,10 @@ class CVController():
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
         print 'setup pipeline'
-        for key in self.pipeline:
-            self.setup_pipeline(key)
+        # for key in self.pipeline:
+        #     self.setup_pipeline(key)
+        self.setup_pipeline('forward')
+        # self.setup_pipeline('down')
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -156,22 +158,22 @@ class CVController():
             caps = self.sample[camera_direction].get_caps()
             width = caps[0].get_value("width")
             height = caps[0].get_value("height")
-            try:
-                res, mapinfo = buf.map(Gst.MapFlags.READ)
-                # actual image buffer and size
-                # data = mapinfo.data
-                # size = mapinfo.size
+            # try:
+            res, mapinfo = buf.map(Gst.MapFlags.READ)
+            # actual image buffer and size
+            # data = mapinfo.data
+            # size = mapinfo.size
 
-                # Create a numpy array from the data
-                img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
-                frame = img_array.reshape((height, width, 3))
-                self.show_img(camera_direction, frame)
+            # Create a numpy array from the data
+            img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+            frame = img_array.reshape((height, width, 3))
+            self.show_img(camera_direction, frame)
 
-            except KeyboardInterrupt:
-                self.state.is_detect_done = True
-                # raise
-            finally:
-                buf.unmap(mapinfo)
+            # except KeyboardInterrupt:
+            #     self.state.is_detect_done = True
+            #     # raise
+            # finally:
+            buf.unmap(mapinfo)
                 
     # sub_driver_camera_detect ##################################################################################
     def sub_driver_camera_detect(self, task, camera_direction = None):
@@ -179,11 +181,12 @@ class CVController():
             return None, None, None, None
             
         if not camera_direction:
+            # camera_direction = 'down'
             camera_direction = 'forward'
 
         self.cv_task = self.tasks[task]
-        self.display_output('down')
-
+        # self.display_output('down')
+        # self.display_output(camera_direction)
         if self.sample[camera_direction]:
             # print("have sample")
             buf = self.sample[camera_direction].get_buffer()
@@ -191,37 +194,37 @@ class CVController():
             caps = self.sample[camera_direction].get_caps()
             width = caps[0].get_value("width")
             height = caps[0].get_value("height")
-            try:
-                res, mapinfo = buf.map(Gst.MapFlags.READ)
-                # actual image buffer and size
-                # data = mapinfo.data
-                # size = mapinfo.size
+            # try:
+            res, mapinfo = buf.map(Gst.MapFlags.READ)
+            # actual image buffer and size
+            # data = mapinfo.data
+            # size = mapinfo.size
 
-                # Create a numpy array from the data
-                img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+            # Create a numpy array from the data
+            img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
 
-                # Give the array the correct dimensions of the video image
-                frame = img_array.reshape((height, width, 3))
-                # print(type(frame))
+            # Give the array the correct dimensions of the video image
+            frame = img_array.reshape((height, width, 3))
+            # print(type(frame))
 
-                # self.outraw.write(frame)
-                # self.msg.found, coordinates = self.state.detect(frame)
-                # self.outprocessed.write(frame)
+            # self.outraw.write(frame)
+            # self.msg.found, coordinates = self.state.detect(frame)
+            # self.outprocessed.write(frame)
 
-                # self.last_reading.append(coordinates)
-                self.outraw.write(frame)
-                self.current_raw_frame = copy.copy(frame)
-                found, coordinates, shape, width_height = self.cv_task.detect(frame)
-                self.outprocessed.write(frame)
-                self.current_processed_frame = copy.copy(frame)
+            # self.last_reading.append(coordinates)
+            self.outraw.write(frame)
+            self.current_raw_frame = copy.copy(frame)
+            found, coordinates, shape, width_height = self.cv_task.detect(frame)
+            self.outprocessed.write(frame)
+            self.current_processed_frame = copy.copy(frame)
 
-                self.show_img(camera_direction, frame)
+            self.show_img(camera_direction, frame)
 
-            except KeyboardInterrupt:
-                self.state.is_detect_done = True
-                # raise
-            finally:
-                buf.unmap(mapinfo)
+            # except KeyboardInterrupt:
+            #     self.state.is_detect_done = True
+            #     # raise
+            # finally:
+            buf.unmap(mapinfo)
 
             return found, coordinates, shape, width_height
         return None, None, None, None
@@ -241,7 +244,7 @@ class CVController():
     # detect ##################################################################################
     def detect(self, task):
         # try:
-            return self.camera_detect[self.sub_camera_found](task)
+        return self.camera_detect[self.sub_camera_found](task)
         # except:
         #     print 'detect for that task is not available'
         #     return False, [0,0], None, (0,0)
@@ -349,22 +352,22 @@ class CVController():
         self.outraw.release()
         self.outprocessed.release()
         # self.pipeline.set_state(Gst.State.NULL)
-        try:
-            for key in self.pipeline:
-                if self.pipeline[key]:
-                    self.pipeline[key].set_state(Gst.State.NULL)
-                    self.pipeline[key] = None
-                
-                if self.sample[key]:
-                    self.sample[key] = None
+        # try:
+        for key in self.pipeline:
+            if self.pipeline[key]:
+                self.pipeline[key].set_state(Gst.State.NULL)
+                self.pipeline[key] = None
+            
+            if self.sample[key]:
+                self.sample[key] = None
 
-                if self.display_buffers[key]:
-                    self.display_buffers[key] = None
+            if self.display_buffers[key]:
+                self.display_buffers[key] = None
 
-                if self.display_input[key]:
-                    self.display_input[key] = None
-        except:
-            print 'error in cvcontroller close_pipeline'
+            if self.display_input[key]:
+                self.display_input[key] = None
+        # except:
+        #     print 'error in cvcontroller close_pipeline'
         # self.display_buffers = []
         # self.display_input = None
         # self.pipeline = None

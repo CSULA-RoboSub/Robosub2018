@@ -94,7 +94,7 @@ class CLI(cmd.Cmd):
             try:
                 arg = int(arg)
             except:
-                # print '\nINVALID NUMBER INPUT'
+                print '\nINVALID NUMBER INPUT'
                 pass
 
         if arg >= 0 and arg <= 10:

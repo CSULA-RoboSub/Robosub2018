@@ -114,30 +114,30 @@ class Gate(Task):
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
             # try:
-                found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
-                # if directions:
-                if found:
-                    self.direction_list.append(directions)
+            found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
+            # if directions:
+            if found:
+                self.direction_list.append(directions)
 
-                if (time.time()-self.last_time > 0.05):
-                    count += 1
+            if (time.time()-self.last_time > 0.05):
+                count += 1
 
-                    try:
-                        most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-                    except:
-                        most_occur_coords = [0, 0]
+                try:
+                    most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                except:
+                    most_occur_coords = [0, 0]
 
-                    print 'running gate task'
-                    print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
-                    print 'current count: {}'.format(count)
-                    print 'coordinates: {}'.format(most_occur_coords)
-                    print '--------------------------------------------'
-                    print 'type: navigation cv 0, or task to cancel task'
-                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
-                    
-                    self.last_time = time.time()
-                    self.counter = Counter()
-                    self.direction_list = []
+                print 'running gate task'
+                print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+                print 'current count: {}'.format(count)
+                print 'coordinates: {}'.format(most_occur_coords)
+                print '--------------------------------------------'
+                print 'type: navigation cv 0, or task to cancel task'
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                
+                self.last_time = time.time()
+                self.counter = Counter()
+                self.direction_list = []
             # except:
             #     print('gate task error')
 
