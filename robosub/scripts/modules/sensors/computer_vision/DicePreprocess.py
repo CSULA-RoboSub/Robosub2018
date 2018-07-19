@@ -14,12 +14,8 @@ class DicePreprocessor:
         self.roi_size = 300
         self.detect_dots = False
 
-<<<<<<< HEAD
         self.ratio_lower = 0.85
         self.ratio_upper = 1.15
-=======
-
->>>>>>> cb38db9dbe96a9e2974b26f1f34429189acb84ed
     def preprocess(self, img):
         if (self.detect_dots):
             mask = cv2.inRange(img, self.dots_lower, self.dots_upper)
@@ -53,6 +49,7 @@ class DicePreprocessor:
         
         boxes = [cv2.boundingRect(c) for c in frame_contours]
 
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and (self.ratio_lower < (float(b[2])/float(b[3])) < self.ratio_upper)]
+        # interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and (self.ratio_lower < (float(b[2])/float(b[3])) < self.ratio_upper)]
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
         return interest_regions
