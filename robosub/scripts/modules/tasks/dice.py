@@ -109,13 +109,13 @@ class Dice(Task):
                 except:
                     most_occur_coords = [0, 0]
 
-                # print 'running dice task'
-                # print 'widthxheight: {}'.format(width_height)
-                # print 'current count: {}'.format(count)
-                # print 'coordinates: {}'.format(most_occur_coords)
-                # print '--------------------------------------------'
-                # print 'type: navigation cv 0, or task to cancel task'
-                # self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+                print 'running dice task'
+                print 'widthxheight: {}'.format(width_height)
+                print 'current count: {}'.format(count)
+                print 'coordinates: {}'.format(most_occur_coords)
+                print '--------------------------------------------'
+                print 'type: navigation cv 0, or task to cancel task'
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
                 
                 self.counter = Counter()
                 self.direction_list = []

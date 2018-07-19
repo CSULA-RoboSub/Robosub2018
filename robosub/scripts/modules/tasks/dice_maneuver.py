@@ -127,6 +127,6 @@ class DiceManeuver():
 
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
-        # navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
+        navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
         pass
         

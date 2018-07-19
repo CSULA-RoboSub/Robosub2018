@@ -133,8 +133,8 @@ class CVController():
         print 'setup pipeline'
         # for key in self.pipeline:
         #     self.setup_pipeline(key)
-        # self.setup_pipeline('forward')
-        self.setup_pipeline('down')
+        self.setup_pipeline('forward')
+        # self.setup_pipeline('down')
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -181,7 +181,8 @@ class CVController():
             return None, None, None, None
             
         if not camera_direction:
-            camera_direction = 'down'
+            # camera_direction = 'down'
+            camera_direction = 'forward'
 
         self.cv_task = self.tasks[task]
         # self.display_output('down')
