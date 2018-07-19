@@ -124,6 +124,7 @@ class Houston():
     def reset(self):
         self.is_task_running = False
         self.all_task_loop = True
+        self.orientation.reset()
 
     # print_task ##################################################################################
     def print_tasks(self):
@@ -151,6 +152,8 @@ class Houston():
             if self.state_num > 10:
                 self.all_task_loop = False
                 print 'no more tasks to complete'
+            
+            # self.run_orientation()
 
             # Added to show mark we are able to set orientation before hand
             # print 'start_orientation {}'.format(self.orientation.start_orientation)
@@ -170,6 +173,11 @@ class Houston():
                 self.state_num += 1
                 
         self.is_task_running = False
+
+    # run_orientation ##################################################################################
+    def run_orientation(self):
+        self.orientation.set_orientation(self.navigation, self.power, self.r_power)
+
 
     # do_one_task ##################################################################################
     def do_one_task(self, task_num):

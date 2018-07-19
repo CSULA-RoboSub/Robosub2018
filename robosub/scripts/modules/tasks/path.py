@@ -34,9 +34,11 @@ class Path(Task):
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
         self.found_timer = 0
+        self.last_time = 0
+        self.counter = Counter()
 
         ################ DICTIONARIES ################
-        self.coordinates = []
+        self.direction_list = []
         
         self.path_phases = {
             None: self.path_maneuver.no_shape_found,
@@ -45,10 +47,16 @@ class Path(Task):
         }
 
         ################ AUV MOBILITY VARIABLES ################
+        self.r_power=100
+        self.h_power=100
+        self.m_power=120
 
         ################ THREAD VARIABLES ################
         self.thread_path = None
         self.mutex = Lock()
+
+        ################ PATH VARIABLES ################
+
     
     # reset ##################################################################################
     def reset(self): 
@@ -62,34 +70,51 @@ class Path(Task):
 
         self.not_found_timer = 0
         self.found_timer = 0
+        self.last_time = 0
+        self.counter = Counter()
 
-        self.coordinates = []
+        self.direction_list = []
 
         self.thread_path = None
         self.stop_task = False
 
-        # self.path_maneuver.reset()
+        self.path_maneuver.reset()
     
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
-        self.is_task_running = True
         cvcontroller.start(task_name)
+        count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
-            print 'running path task'
-        # TODO implement path cvcontroller and path navigate
-        # while not self.stop_task:
-        #     try:
-        #         found, direction, shape, width_height = cvcontroller.detect(task_name)
-        #     except:
-        #         print 'path detect error'
-        
-        #     self.navigate(navigation, found, coordinates, m_power, rotation, shape, width_height)
+            # try:
+            found, direction, shape, width_height = cvcontroller.detect(task_name)
+            if found:
+                self.direction_list.append(direction)
 
+            if (time.time()-self.last_time > 0.05):
+                self.last_time = time.time()
+                count += 1
+
+            try:
+                most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+            except:
+                most_occur_coords = [0, 0]
+
+            print 'running path task'
+            print 'widthxheight: {}'.format(width_height)
+            print 'current count: {}'.format(count)
+            print 'coordinates: {}'.format(most_occur_coords)
+            print '--------------------------------------------'
+            print 'type: navigation cv 0, or task to cancel task'
+            self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+            
+            self.counter = Counter()
+            self.direction_list = []
+            # except:
+            #     print 'path detect error'
         cvcontroller.stop()
         self.mutex.release()
-        self.is_task_running = False
     
     # stop ##################################################################################
     def stop(self):

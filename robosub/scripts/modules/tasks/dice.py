@@ -95,32 +95,32 @@ class Dice(Task):
         count = 0
         self.mutex.acquire()
         while not self.stop_task:
+            # try:
+            found, direction, shape, width_height = cvcontroller.detect(task_name)
+            if found:
+                self.direction_list.append(direction)
+
+            if (time.time()-self.last_time > 0.05):
+                self.last_time = time.time()
+                count += 1
+
             try:
-                found, direction, shape, width_height = cvcontroller.detect(task_name)
-                if found:
-                    self.direction_list.append(direction)
-
-                if (time.time()-self.last_time > 0.05):
-                    self.last_time = time.time()
-                    count += 1
-
-                    try:
-                        most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-                    except:
-                        most_occur_coords = [0, 0]
-
-                    print 'running dice task'
-                    print 'widthxheight: {}'.format(width_height)
-                    print 'current count: {}'.format(count)
-                    print 'coordinates: {}'.format(most_occur_coords)
-                    print '--------------------------------------------'
-                    print 'type: navigation cv 0, or task to cancel task'
-                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
-                    
-                    self.counter = Counter()
-                    self.direction_list = []
+                most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
             except:
-                print 'dice detect error'
+                most_occur_coords = [0, 0]
+
+            print 'running dice task'
+            print 'widthxheight: {}'.format(width_height)
+            print 'current count: {}'.format(count)
+            print 'coordinates: {}'.format(most_occur_coords)
+            print '--------------------------------------------'
+            print 'type: navigation cv 0, or task to cancel task'
+            self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+            
+            self.counter = Counter()
+            self.direction_list = []
+            # except:
+            #     print 'dice detect error'
 
         cvcontroller.stop()
         self.mutex.release()

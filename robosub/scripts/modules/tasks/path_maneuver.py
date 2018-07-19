@@ -58,8 +58,8 @@ class PathManeuver():
         self.is_task_complete = False
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
-        pass
-
+        print 'no shape found for path'
+        
     def vertical(self, navigation, coordinates, power, rotation, width_height):
         self.follow_path(navigation, coordinates ,power)
     
