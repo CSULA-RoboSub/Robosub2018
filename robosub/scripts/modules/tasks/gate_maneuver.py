@@ -126,9 +126,12 @@ class GateManeuver():
         self.forward_movement_timer += 1
         if not self.is_moving_forward:
             self.is_moving_forward = True
+
             navigation.cancel_r_nav()
             navigation.cancel_and_m_nav('power', self.move_forward, power)
             navigation.cancel_and_h_nav('down', self.depth_change, self.h_power)
+
+            #swap camera to bottom facing
 
         if self.forward_movement_timer >= self.forward_movement_threshold:
             self.is_passed_gate = True

@@ -133,10 +133,10 @@ class CVController():
         print 'stop cvcontroller'
 
     # camera selection functions ######################################################################
-    def change_camera_to(self, camera_direction):
+    def change_camera_to(self, camera_direction, task_name):
         self.stop()
         self.camera_direction = camera_direction
-        self.start()
+        self.start(task_name)
         
     # raw_frame ##################################################################################
     def raw_frame(self):
