@@ -7,6 +7,7 @@ import gi
 import threading
 import copy
 import numpy as np
+import datetime
 
 from threading import Thread
 
@@ -78,6 +79,10 @@ class CVController():
             'forward' : None,
             'down' : None
         }
+        self.display_pipeline = {
+            'forward' : None,
+            'down' : None
+        }
         self.display_input = {
             'forward' : None,
             'down' : None
@@ -94,6 +99,8 @@ class CVController():
             'forward' : self.camera_forward_callback,
             'down' : self.camera_down_callback
         }
+        self.camera_direction = 'forward'
+
         try:
             self.loop = GLib.MainLoop()
             self.thread = None
@@ -128,27 +135,30 @@ class CVController():
     def processed_frame(self):
         return self.current_processed_frame
     
+    def setup_video_output(self):
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        now = datetime.datetime.now()
+        timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
+        self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+        self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
         print 'setup pipeline'
         # for key in self.pipeline:
         #     self.setup_pipeline(key)
-        self.setup_pipeline('forward')
+        self.setup_pipeline(self.camera_direction)
         # self.setup_pipeline('down')
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+        self.setup_video_output()
         print 'sub camera found'
 
     # opencv_camera_start ##################################################################################
     def opencv_camera_start(self, task_name):
         self.cap = None
         self.cap = cv2.VideoCapture(0)
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
+        self.setup_video_output()
         print 'laptop/default camera found'
 
     def display_output(self, camera_direction):
@@ -182,7 +192,7 @@ class CVController():
             
         if not camera_direction:
             # camera_direction = 'down'
-            camera_direction = 'forward'
+            camera_direction = self.camera_direction
 
         self.cv_task = self.tasks[task]
         # self.display_output('down')
@@ -256,6 +266,12 @@ class CVController():
         new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers[camera_direction].pop(0))
         self.display_input[camera_direction].emit("push-buffer", new_buf)
 
+    # camera selection functions ######################################################################
+    def change_camera_to(self, camera_direction):
+        self.stop()
+        self.camera_direction = camera_direction
+        self.start()
+
     # setup_pipeline ##################################################################################
     def setup_pipeline(self, camera_direction = None):
         if camera_direction == None:
@@ -266,14 +282,16 @@ class CVController():
             return
 
         Gst.init(sys.argv)  # init gstreamer
-        print Gst
+        # print Gst
 
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")
 
         # retrieve all available serial numbers
         serials = source.get_device_serials()
-
+        if not serials:
+            print 'error: no cameras found'
+            return
         # create a list to have an easy index <-> serial association
         # device_list = []
 
@@ -282,7 +300,7 @@ class CVController():
         
         # serial = serials[0]
         serial = self.camera_serials[camera_direction]
-        print serial
+        # print serial
         if serial is not None:
             source.set_property("serial", serial)
 
@@ -336,13 +354,13 @@ class CVController():
         # tends to hang in threaded environments. So we create a small display
         # pipeline which we could use to display the opencv buffers.
         src_name = "cam_" + camera_direction
-        display_pipeline = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
-        self.display_input[camera_direction] = display_pipeline.get_by_name(src_name)
+        self.display_pipeline[camera_direction] = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
+        self.display_input[camera_direction] = self.display_pipeline.get_by_name(src_name)
         self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.connect("new-sample", self.camera_callbacks[camera_direction])
 
         self.display_buffers[camera_direction] = []
-        display_pipeline.set_state(Gst.State.PLAYING)  
+        self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING)  
 
         self.pipeline[camera_direction].set_state(Gst.State.PLAYING)
         print 'done setting up pipeline'
@@ -366,16 +384,15 @@ class CVController():
 
             if self.display_input[key]:
                 self.display_input[key] = None
+
+            if self.display_pipeline[key]:
+                self.display_pipeline[key].set_state(Gst.State.NULL)
+                self.display_pipeline[key] = None
         # except:
         #     print 'error in cvcontroller close_pipeline'
-        # self.display_buffers = []
-        # self.display_input = None
-        # self.pipeline = None
-        # self.sample = None
-        # self.last_reading = []
         cv2.destroyAllWindows()
-        # 
         self.loop.quit()
+        self.thread = None
 
         print 'closed pipeline'
 
