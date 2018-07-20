@@ -36,6 +36,7 @@ class Gate(Task):
         self.is_done = False
         self.stop_task = False
         self.is_complete = False
+        self.is_camera_changed = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
@@ -70,6 +71,7 @@ class Gate(Task):
         self.h_power=100
         self.m_power=120   
         self.rotated_to_center = False
+        self.found = False
         
         ################ THREAD VARIABLES ################    
         self.thread_gate = None
@@ -84,6 +86,7 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
         self.is_complete = False
+        self.is_camera_changed = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -96,6 +99,7 @@ class Gate(Task):
 
         self.is_heading_correct = False
         self.rotated_to_center = False
+        self.found = False
         self.previous_width_height = (0,0)
         self.direction_list = []
 
@@ -113,8 +117,9 @@ class Gate(Task):
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
             # try:
-            found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
-            # if directions:
+            found, directions, gate_shape, width_height = cvcontroller.detect(task_name)                
+            self.found = found
+            
             if found:
                 self.direction_list.append(directions)
 
@@ -137,6 +142,10 @@ class Gate(Task):
                 self.last_time = time.time()
                 self.counter = Counter()
                 self.direction_list = []
+
+                if self.gate_maneuver.is_passed_gate:
+                    self.is_camera_changed = True
+                    cvcontroller.change_camera_to('bottom')
             # except:
             #     print('gate task error')
 
@@ -196,7 +205,8 @@ class Gate(Task):
             
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = self.gate_maneuver.completed_gate()
+        if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
+            self.is_complete = True
         return self.is_complete
 
     # get_most_occur_coordinates ##################################################################################
