@@ -5,7 +5,6 @@ from collections import Counter
 from itertools import combinations
 
 from task import Task
-# from modules.sensors.computer_vision import RouletteDetector
 
 # from roulette_maneuver import RouletteManeuver
 class Roulette(Task):

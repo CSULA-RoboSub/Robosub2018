@@ -5,7 +5,6 @@ from collections import Counter
 from itertools import combinations
 
 from task import Task
-from modules.sensors.computer_vision import GateDetector
 from modules.sensors.imu.gather_rotation import GetRotation
 
 from gate_maneuver import GateManeuver
@@ -38,6 +37,7 @@ class Gate(Task):
         self.stop_task = False
         self.is_complete = False
         self.is_moving_forward_camera_changed = False
+        
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
         self.found_timer = 0
@@ -71,6 +71,7 @@ class Gate(Task):
         self.h_power=100
         self.m_power=120   
         self.rotated_to_center = False
+        self.found = False
         
         ################ THREAD VARIABLES ################    
         self.thread_gate = None
@@ -98,6 +99,7 @@ class Gate(Task):
 
         self.is_heading_correct = False
         self.rotated_to_center = False
+        self.found = False
         self.previous_width_height = (0,0)
         self.direction_list = []
 
@@ -156,7 +158,6 @@ class Gate(Task):
             else:
                 print 'logic error in gate.py start'
 
-
         cvcontroller.stop()     
         self.mutex.release()
 
@@ -213,7 +214,8 @@ class Gate(Task):
             
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = self.gate_maneuver.completed_gate()
+        if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
+            self.is_complete = True
         return self.is_complete
 
     # get_most_occur_coordinates ##################################################################################

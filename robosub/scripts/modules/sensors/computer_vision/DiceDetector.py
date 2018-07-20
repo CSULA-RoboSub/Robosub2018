@@ -22,12 +22,15 @@ class DiceDetector:
 
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
-        self.die_1 = 1
+        
+        # using die 5 and 6 for the time being since those are the only
+        # dies available
+        self.die_1 = 5
         self.die_2 = 6
         self.frame_size = (744, 480)
 
         self.dies = {
-            0: 1,
+            0: 5,
             1: 6
         }
         self.die_num = 0
@@ -76,6 +79,10 @@ class DiceDetector:
         #found, direction, shape, width, heightk
         # return (self.found, self.directions, None, (0, 0)) 
         return (self.found, self.directions, dice_shape, (w, h))
+
+    def change_dice(self):
+        print 'changing die number from die1 to die2 here'
+        # TODO need to implement way for changing number here
 
     def search_die(self, frame, value):
         found = False

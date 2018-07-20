@@ -49,7 +49,9 @@ class DiceManeuver():
         self.move_backward = 'backward'
         self.rotation_power = 70
         self.depth_change = 2
-        self.h_power = 100
+        self.r_power=100
+        self.h_power=100
+        self.m_power=120
         # TODO remove soon
         self.rotation_direction = 'right'
 
@@ -73,7 +75,6 @@ class DiceManeuver():
     def reset_after_1st_die(self):
         self.is_moving_forward = False
         self.is_rotated_to_center = False
-        self.is_task_complete = False
 
         self.touching_die_counter = 0
         self.nothing_found_counter = 0
@@ -87,6 +88,7 @@ class DiceManeuver():
         
         if self.frame == width_height:
             self.touching_die_counter += 1
+            print 'touching die counter {}'.format(self.touching_die_counter)
             print 'sub is touching, or close to touching die'
 
     # back_up_from_die ##################################################################################
@@ -113,10 +115,8 @@ class DiceManeuver():
         else:
             navigation.cancel_r_nav()
 
-        self.nothing_found_counter = 0
-
     # completed_dice ##################################################################################
-    def completed_dice(self):
+    def completed_dice_check(self):
         check_1st = self.is_1st_die_touched
         check_2nd = self.is_2nd_die_touched
 
@@ -126,7 +126,25 @@ class DiceManeuver():
         return self.is_task_complete
 
     # rotate ##################################################################################
-    def rotate(self, navigation, power, rotation):
-        navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
-        pass
+    def rotate(self, navigation, r_power, rotation):
+        navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.r_power)
         
+    # no_shape_found ##################################################################################
+    def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
+        if self.nothing_found_counter >= self.nothing_found_threshold:
+            self.rotate(navigation, power, rotation)
+        self.nothing_found_counter += 1
+
+    # centered_and_shape_found ##################################################################################
+    def centered_and_shape_found(self, navigation, coordinates, power, rotation, width_height):
+        self.nothing_found_counter = 0
+        if self.touching_die_counter < self.touching_die_threshold:
+            self.touch_die(navigation, coordinates, power, rotation, width_height)
+        else:
+            self.back_up_from_die(navigation, coordinates, power, rotation)
+
+        if self.back_up_counter > self.back_up_threshold:
+            if not self.is_1st_die_touched:
+                self.is_1st_die_touched = True
+            else:
+                self.is_2nd_die_touched = True

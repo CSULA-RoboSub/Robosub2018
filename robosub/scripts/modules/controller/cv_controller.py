@@ -279,6 +279,10 @@ class CVController():
         #     print 'detect for that task is not available'
         #     return False, [0,0], None, (0,0)
 
+    # change_die_num ##################################################################################
+    def change_die_num(self):
+        self.dicedetector.change_dice()
+
     # show_img ##################################################################################
     def show_img(self, camera_direction, img):
         bytebuffer = img.tobytes()

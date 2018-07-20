@@ -102,12 +102,6 @@ class GateManeuver():
 
         self.nothing_found_counter = 0
         self.heading_verify_count = 0
-
-    # move_forward_method ##################################################################################
-    # def move_forward_method(self, navigation, coordinates, power, rotation):
-    #     navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
-    #     navigation.cancel_and_r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, power)
-    #     navigation.cancel_and_m_nav('power', self.move_forward, power)
     
     # move_to_gate ##################################################################################
     def move_to_gate(self, navigation, coordinates, power):
@@ -266,6 +260,8 @@ class GateManeuver():
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)
+            # TODO need to add movement after gate here to search for path
+            # using if statement with self.is_passed_gate
         # print 'performing no shape'
         
     # rotate_to_center ##################################################################################
@@ -276,3 +272,7 @@ class GateManeuver():
             navigation.cancel_r_nav()
 
         self.nothing_found_counter = 0
+
+    # movement_after_gate ##################################################################################
+    def movement_after_gate(self):
+        pass
