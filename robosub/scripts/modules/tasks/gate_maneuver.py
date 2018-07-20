@@ -190,7 +190,7 @@ class GateManeuver():
         navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
         
     # completed_gate ##################################################################################
-    def completed_gate(self):
+    def completed_gate_check(self):
         #if heading is not None
         #if self.passed_gate = 1
         #return True

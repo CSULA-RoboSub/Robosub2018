@@ -14,7 +14,7 @@ from itertools import combinations
 from robosub.msg import CVIn
 from robosub.msg import CVOut
 
-from config.config import Config
+import modules.main.config as config
 
 from modules.tasks.gate import Gate
 from modules.tasks.path import Path
@@ -56,7 +56,6 @@ class Houston():
         #self.buoy = Buoy(self)
         self.navigation = navigation
         self.cvcontroller = CVController()
-        self.config = Config()
         self.counts = Counter()
         
         self.orientation = Orientation()
@@ -239,7 +238,7 @@ class Houston():
     # TODO currently unused. will remove eventually
     # get_task ##################################################################################
     def get_task(self):
-        self.tasks = self.config.get_config('auv', 'tasks')
+        self.tasks = config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
 

@@ -25,11 +25,7 @@ class Dice(Task):
 
         ################ FLAG VARIABLES ################
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.stop_task = False
-        self.is_task_running = False
         self.is_complete = False
         self.is_die_number_changed = False
 
@@ -74,9 +70,6 @@ class Dice(Task):
     # reset ################################################################################## 
     def reset(self):
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_task_running = False
         self.is_done = False
         self.is_complete = False
         self.is_die_number_changed = False
@@ -114,7 +107,7 @@ class Dice(Task):
                 except:
                     most_occur_coords = [0, 0]
 
-                print 'running dice task'
+                print 'running {} task'.format(task_name)
                 print 'widthxheight: {}'.format(width_height)
                 print 'current count: {}'.format(count)
                 print 'coordinates: {}'.format(most_occur_coords)

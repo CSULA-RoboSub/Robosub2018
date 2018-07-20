@@ -23,12 +23,9 @@ class Path(Task):
 
         ################ FLAG VARIABLES ################
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.stop_task = False
-        self.is_task_running = False
         self.is_complete = False
+        self.is_camera_changed = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -42,7 +39,8 @@ class Path(Task):
         self.path_phases = {
             None: self.path_maneuver.no_shape_found,
             'vertical': self.path_maneuver.vertical,
-            'horizontal': self.path_maneuver.horizontal
+            'horizontal': self.path_maneuver.horizontal,
+            'square': self.path_maneuver.horizontal
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -62,10 +60,8 @@ class Path(Task):
         self.detectpath = None
 
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.is_complete = False
+        self.is_camera_changed = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -87,7 +83,13 @@ class Path(Task):
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
             # try:
-            found, direction, shape, width_height = cvcontroller.detect(task_name)
+            # found, direction, shape, width_height = cvcontroller.detect(task_name)
+            found = None
+            direction = None
+            shape = None
+            width_height = None
+            # TODO may be removed. only added to ensure methods are working
+
             if found:
                 self.direction_list.append(direction)
 
@@ -100,13 +102,17 @@ class Path(Task):
             except:
                 most_occur_coords = [0, 0]
 
-            print 'running path task'
+            print 'running {} task'.format(task_name)
             print 'widthxheight: {}'.format(width_height)
             print 'current count: {}'.format(count)
             print 'coordinates: {}'.format(most_occur_coords)
             print '--------------------------------------------'
             print 'type: navigation cv 0, or task to cancel task'
             self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+
+            if self.path_maneuver.is_no_more_path:
+                self.is_camera_changed = True
+                cvcontroller.change_camera_to('forward', 'dice')
             
             self.counter = Counter()
             self.direction_list = []
@@ -166,7 +172,7 @@ class Path(Task):
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = self.path_maneuver.completed_path()
+        self.is_complete = self.path_maneuver.completed_path_check()
         return self.is_complete
 
     # bail_task ##################################################################################

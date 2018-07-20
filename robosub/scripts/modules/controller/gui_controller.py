@@ -1,5 +1,5 @@
 from modules.main.auv import AUV  # Import auv
-import os
+
 
 class Controller():
     """Controller for GUI"""

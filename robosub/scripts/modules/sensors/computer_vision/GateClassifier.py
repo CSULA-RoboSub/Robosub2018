@@ -7,12 +7,11 @@ from sklearn.model_selection import train_test_split
 import Classifier
 import sys
 from sklearn.externals import joblib
-from config.config import Config
+import modules.main.config as config
 
 class GateClassifier:
 
     def __init__(self):
-        self.config = Config()
         self.new_struct_path = 'modules/sensors/computer_vision/'
         
         self.model_path = self.new_struct_path + 'models/gate/'
@@ -41,7 +40,7 @@ class GateClassifier:
 
     # returns the model file name as a string from henrys config file
     def get_model_name(self, section, option):
-        return self.config.get_config(section, option)
+        return config.get_config(section, option)
 
         
     def set_model(self, task_model_name=None):
