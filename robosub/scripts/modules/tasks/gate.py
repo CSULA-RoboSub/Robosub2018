@@ -31,9 +31,6 @@ class Gate(Task):
         
         ################ FLAG VARIABLES ################
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.stop_task = False
         self.is_complete = False
         self.is_camera_changed = False
@@ -83,9 +80,6 @@ class Gate(Task):
         self.detectgate = None
 
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
@@ -166,7 +160,7 @@ class Gate(Task):
                     except:
                         most_occur_coords = [0, 0]
 
-                    print 'running gate task'
+                    print 'running {} task'.format(task_name)
                     print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                     print 'current count: {}'.format(count)
                     print 'coordinates: {}'.format(most_occur_coords)
@@ -251,7 +245,7 @@ class Gate(Task):
     def complete(self):
         # if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
         #     self.is_complete = True
-        self.is_complete = self.gate_maneuver.completed_gate()
+        self.is_complete = self.gate_maneuver.completed_gate_check()
         return self.is_complete
 
     # get_most_occur_coordinates ##################################################################################

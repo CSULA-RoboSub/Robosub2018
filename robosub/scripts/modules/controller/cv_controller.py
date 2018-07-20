@@ -15,6 +15,7 @@ from modules.sensors.computer_vision import GateDetector
 # from modules.sensors.computer_vision import BuoyDetector
 from modules.sensors.computer_vision import DiceDetector
 from modules.sensors.computer_vision import PathDetector
+from modules.sensors.computer_vision import RouletteDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -34,7 +35,7 @@ class CVController():
         self.pathdetector = PathDetector.PathDetector()
         self.dicedetector = DiceDetector.DiceDetector()
         # self.chipdetector = ChipDetector.ChipDetector()
-        # self.roulettedetector = RouletteDetector.RouletteDetector()
+        self.roulettedetector = RouletteDetector.RouletteDetector()
         # self.slotsdetector = SlotsDetector.SlotsDetector()
         # self.pingerdetector = PingerDetector.PingerDetector()
         # self.cashindetector = CashInDetector.CashInDetector()
@@ -50,10 +51,10 @@ class CVController():
         self.tasks = {
             'gate': self.gatedetector,
             'path': self.pathdetector,
-            'dice': self.dicedetector
+            'dice': self.dicedetector,
+            'roulette': self.roulettedetector
         }
             # 'chip': self.chipdetector,
-            # 'roulette': self.roulettedetector,
             # 'slots': self.slotsdetector,
             # 'pinger_b': self.pingerdetector,
             # 'pinger_a': self.pingerdetector,
@@ -101,6 +102,7 @@ class CVController():
             'forward' : self.camera_forward_callback,
             'down' : self.camera_down_callback
         }
+        
         self.camera_direction = 'forward'
         self.cap = None
 

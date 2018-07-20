@@ -23,11 +23,7 @@ class Path(Task):
 
         ################ FLAG VARIABLES ################
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.stop_task = False
-        self.is_task_running = False
         self.is_complete = False
 
         ################ TIMER VARIABLES ################
@@ -63,9 +59,6 @@ class Path(Task):
         self.detectpath = None
 
         self.is_found = False
-        self.is_detect_done = False
-        self.is_navigate_done = False
-        self.is_done = False
         self.is_complete = False
 
         self.not_found_timer = 0
@@ -107,7 +100,7 @@ class Path(Task):
             except:
                 most_occur_coords = [0, 0]
 
-            print 'running path task'
+            print 'running {} task'.format(task_name)
             print 'widthxheight: {}'.format(width_height)
             print 'current count: {}'.format(count)
             print 'coordinates: {}'.format(most_occur_coords)
@@ -173,7 +166,7 @@ class Path(Task):
     
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = self.path_maneuver.completed_path()
+        self.is_complete = self.path_maneuver.completed_path_check()
         return self.is_complete
 
     # bail_task ##################################################################################
