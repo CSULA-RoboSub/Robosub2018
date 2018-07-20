@@ -71,6 +71,12 @@ class CVController():
         
         ################ VIDEOCAMERA INSTANCES ################
         ################ SUB CAMERA DRIVER AND OPENCV ################
+        ##### DO NOT CHANGE ######### 
+        self.camera_serials = {
+            'forward' : '07714031',
+            'down' : '35710219'
+        }
+        #############################
         self.sample = {
             'forward' : None,
             'down' : None
@@ -90,10 +96,6 @@ class CVController():
         self.display_buffers = {
             'forward' : None,
             'down' : None
-        }
-        self.camera_serials = {
-            'forward' : '07714031',
-            'down' : '35710219'
         }
         self.camera_callbacks = {
             'forward' : self.camera_forward_callback,

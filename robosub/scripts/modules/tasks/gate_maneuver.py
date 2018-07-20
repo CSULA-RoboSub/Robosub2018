@@ -10,7 +10,7 @@ class GateManeuver():
 
         ################ FLAG VARIABLES ################
         self.is_heading_correct = False
-        self.is_passed_gate = False
+        self.is_past_gate = False
         self.is_moving_forward = False
         self.is_task_complete = False
 
@@ -97,7 +97,7 @@ class GateManeuver():
 
         self.is_moving_forward = False
         self.is_heading_correct = False
-        self.is_passed_gate = False
+        self.is_past_gate = False
         self.is_task_complete = False
 
         self.nothing_found_counter = 0
@@ -134,7 +134,7 @@ class GateManeuver():
             #swap camera to bottom facing
 
         if self.forward_movement_timer >= self.forward_movement_threshold:
-            self.is_passed_gate = True
+            self.is_past_gate = True
             
     # sweep ##################################################################################
     def sweep(self, navigation, power, rotation):
@@ -202,7 +202,7 @@ class GateManeuver():
         #return True
         check_head = self.is_heading_correct
         check_forward = self.is_moving_forward
-        check_gate = self.is_passed_gate
+        check_gate = self.is_past_gate
 
         if check_head and check_forward and check_gate:
             self.is_task_complete = True

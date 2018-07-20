@@ -182,6 +182,11 @@ class Navigation():
     def cancel_r_nav(self, power = 90):
         self.r_nav('staying', 0, power)
 
+    def cancel_all_nav(self, power = None):
+        self.cancel_m_nav(power)
+        self.cancel_r_nav(power)
+        self.cancel_h_nav(power)
+
     def cancel_and_h_nav(self, hState=None, depth=None, hPower=None):
         self.cancel_h_nav(hPower)
         self.h_nav(hState, depth, hPower)
