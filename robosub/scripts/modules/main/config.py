@@ -9,18 +9,40 @@ CONFIG_FILE_PATH = 'config/config.ini'
 config = ConfigParser.RawConfigParser()
 
 
-def read_file():
+def init_config_file():
+    """ Create the config.ini file from template_config.ini file if config.ini does not exist"""
+
+    print('setting up config.ini file.')
+    copyfile(CONFIG_TEMPLATE_PATH, CONFIG_FILE_PATH)
+    config.readfp(open(CONFIG_FILE_PATH))
+
+
+def check_version():
     """
-    Opens the config.ini file
-    Creates config.ini file from template_config.ini file if config.ini does not exist
+    Version comparison between template_config and config file.
+    Update the config file if latest version
     """
 
-    try:
-        config.readfp(open(CONFIG_FILE_PATH))
-    except IOError:
-        print('setting up config.ini file.')
-        copyfile(CONFIG_TEMPLATE_PATH, CONFIG_FILE_PATH)
-        config.readfp(open(CONFIG_FILE_PATH))
+    template_version = get_config('config', 'version', True)
+    version = get_config('config', 'version')
+
+    if template_version != version:
+        init_config_file()
+
+
+def read_file(from_template=False):
+    """ Opens the config.ini file"""
+
+    if from_template:
+        try:
+            config.readfp(open(CONFIG_TEMPLATE_PATH))
+        except IOError:
+            print('tempalte_config.ini not found')
+    else:
+        try:
+            config.readfp(open(CONFIG_FILE_PATH))
+        except IOError:
+            init_config_file()
 
 
 def string_parser(string):
@@ -55,14 +77,15 @@ def string_parser(string):
     return string
 
 
-def get_config(section, option):
+def get_config(section, option, from_template=False):
     """
     Reads variables from config/config.ini file
     section -- (auv, cv)
     option -- variable name
+    from_template -- boolean True if read from template. default = False
     """
 
-    read_file()
+    read_file(from_template)
 
     if config.has_option(section, option):
         return string_parser(config.get(section, option))
@@ -115,3 +138,6 @@ def list_options(section):
         options.append(option[0])
 
     return options
+
+
+check_version()
