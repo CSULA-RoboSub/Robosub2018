@@ -37,11 +37,16 @@ class Gate(Task):
         self.stop_task = False
         self.is_complete = False
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.is_camera_changed = False
 
 =======
         self.is_moving_forward_camera_changed = False
 >>>>>>> dev-jon
+=======
+        self.is_moving_forward_camera_changed = False
+        
+>>>>>>> 4868d3374f16d2c499f8e428f52c359225090d1c
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
         self.found_timer = 0
@@ -91,10 +96,14 @@ class Gate(Task):
         self.is_done = False
         self.is_complete = False
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.is_camera_changed = False
 =======
         self.is_moving_forward_camera_changed = False
 >>>>>>> dev-jon
+=======
+        self.is_moving_forward_camera_changed = False
+>>>>>>> 4868d3374f16d2c499f8e428f52c359225090d1c
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -157,7 +166,6 @@ class Gate(Task):
             # # except:
             # #     print('gate task error')
 
-            
             if not self.gate_maneuver.is_moving_forward:
                 # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
@@ -199,7 +207,6 @@ class Gate(Task):
 
             else:
                 print 'logic error in gate.py start'
-
 
         cvcontroller.stop()     
         self.mutex.release()
