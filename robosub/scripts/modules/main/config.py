@@ -26,7 +26,8 @@ def check_version():
     template_version = get_config('config', 'version', True)
     version = get_config('config', 'version')
 
-    if template_version != version:
+    if template_version > version:
+        print('updating config.ini')
         init_config_file()
 
 
@@ -37,7 +38,7 @@ def read_file(from_template=False):
         try:
             config.readfp(open(CONFIG_TEMPLATE_PATH))
         except IOError:
-            print('tempalte_config.ini not found')
+            print('template_config.ini not found')
     else:
         try:
             config.readfp(open(CONFIG_FILE_PATH))

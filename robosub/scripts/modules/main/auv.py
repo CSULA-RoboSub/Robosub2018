@@ -2,7 +2,7 @@ import rospy
 import os
 from std_msgs.msg import Int8
 
-from config.config import Config
+import modules.main.config as config
 from modules.control.motor import Motor
 from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
@@ -22,7 +22,7 @@ class AUV():
         self.motor_state = None
         self.tasks = None
 
-        self.config = Config()  # initialize Config() class
+        # self.config = Config()  # initialize Config() class
         self.read_config()  # read parameters from the config.ini file
 
         self.motor = Motor(self.motor_state)  # initialize Motor() class
@@ -52,8 +52,8 @@ class AUV():
     def read_config(self):
         """ Reads from config/config.ini"""
 
-        self.motor_state = self.config.get_config('auv', 'motor_state')  # read motor state from config
-        self.tasks = self.config.get_config('auv', 'tasks')  # read tasks from config
+        self.motor_state = config.get_config('auv', 'motor_state')  # read motor state from config
+        self.tasks = config.get_config('auv', 'tasks')  # read tasks from config
 
     def keyboard_nav(self):
         """Navigate the robosub using keyboard controls"""
