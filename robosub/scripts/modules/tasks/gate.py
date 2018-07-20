@@ -36,17 +36,9 @@ class Gate(Task):
         self.is_done = False
         self.stop_task = False
         self.is_complete = False
-<<<<<<< HEAD
-<<<<<<< HEAD
         self.is_camera_changed = False
+        self.is_moving_forward_camera_changed = False
 
-=======
-        self.is_moving_forward_camera_changed = False
->>>>>>> dev-jon
-=======
-        self.is_moving_forward_camera_changed = False
-        
->>>>>>> 4868d3374f16d2c499f8e428f52c359225090d1c
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
         self.found_timer = 0
@@ -95,15 +87,8 @@ class Gate(Task):
         self.is_navigate_done = False
         self.is_done = False
         self.is_complete = False
-<<<<<<< HEAD
-<<<<<<< HEAD
         self.is_camera_changed = False
-=======
         self.is_moving_forward_camera_changed = False
->>>>>>> dev-jon
-=======
-        self.is_moving_forward_camera_changed = False
->>>>>>> 4868d3374f16d2c499f8e428f52c359225090d1c
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -264,8 +249,9 @@ class Gate(Task):
             
     # complete ##################################################################################
     def complete(self):
-        if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
-            self.is_complete = True
+        # if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
+        #     self.is_complete = True
+        self.is_complete = self.gate_maneuver.completed_gate()
         return self.is_complete
 
     # get_most_occur_coordinates ##################################################################################
