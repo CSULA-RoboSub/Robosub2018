@@ -25,6 +25,7 @@ class Path(Task):
         self.is_found = False
         self.stop_task = False
         self.is_complete = False
+        self.is_camera_changed = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -60,6 +61,7 @@ class Path(Task):
 
         self.is_found = False
         self.is_complete = False
+        self.is_camera_changed = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -107,6 +109,10 @@ class Path(Task):
             print '--------------------------------------------'
             print 'type: navigation cv 0, or task to cancel task'
             self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+
+            if self.path_maneuver.is_no_more_path:
+                self.is_camera_changed = True
+                cvcontroller.change_camera_to('forward', 'dice')
             
             self.counter = Counter()
             self.direction_list = []

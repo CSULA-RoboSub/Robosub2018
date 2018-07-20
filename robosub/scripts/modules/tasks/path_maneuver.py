@@ -3,15 +3,16 @@ class PathManeuver():
     def __init__(self):
         
         ################ THRESHOLD VARIABLES ################
-
+        self.follow_path_threshold = 200
 
         ################ FLAG VARIABLES ################
         self.is_moving_forward = False
         self.is_no_more_path = False
         self.is_task_complete = False
+        self.is_following_path = False
 
         ################ TIMER/COUNTER VARIABLES ################
-
+        self.follow_path_counter = 0
 
         ################ DICTIONARIES ################
         self.horizontal_move = {
@@ -61,11 +62,15 @@ class PathManeuver():
         self.is_moving_forward = False
         self.is_no_more_path = False
         self.is_task_complete = False
+        self.is_following_path = False
+
+        self.follow_path_counter = 0
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
         print 'no shape found for path'
-        # if auv passes gate correctly at a perpendicular angle, then the auv
-        # should be able to detect the path
+        if self.is_following_path and self.follow_path_counter >= self.follow_path_threshold:
+            self.is_no_more_path = True
+
         navigation.m_nav('power', self.move_forward, self.no_shape_m_power)
         
     def vertical(self, navigation, coordinates, power, rotation, width_height):
@@ -75,8 +80,11 @@ class PathManeuver():
         self.line_up_to_path(navigation, coordinates, power, rotation)
 
     def follow_path(self, navigation, coordinates, power):
+        if not self.is_following_path:
+            self.is_following_path = True
         navigation.m_nav('power', self.move_forward, power)
         navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
+        self.follow_path_counter += 1
 
     # TODO will be used when path is far away
     def move_to_path(self):
