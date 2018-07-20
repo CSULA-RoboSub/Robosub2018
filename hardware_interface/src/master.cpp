@@ -221,7 +221,7 @@ const double keepPositionForwardThreshold = 1.0; //meters
 const double keepPositionRightThreshold = 0.5; //meters
 const double keepPositionMaxPowerForwardBackward = 200;
 const double keepPositionMaxPowerRightLeft = 200;
-const double keepCourseRightMult = 0.04;
+const double keepCourseRightMult = 0.03;
 const double keepCourseForwardMult = 0.1;
 
 //----------------------------------------------------------------------------
