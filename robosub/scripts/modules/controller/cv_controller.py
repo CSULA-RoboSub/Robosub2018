@@ -148,6 +148,7 @@ class CVController():
     def processed_frame(self):
         return self.current_processed_frame
     
+    # setup_video_output ##################################################################################
     def setup_video_output(self, task_name):
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         now = datetime.datetime.now()

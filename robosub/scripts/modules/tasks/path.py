@@ -42,7 +42,8 @@ class Path(Task):
         self.path_phases = {
             None: self.path_maneuver.no_shape_found,
             'vertical': self.path_maneuver.vertical,
-            'horizontal': self.path_maneuver.horizontal
+            'horizontal': self.path_maneuver.horizontal,
+            'square': self.path_maneuver.horizontal
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -87,7 +88,13 @@ class Path(Task):
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
             # try:
-            found, direction, shape, width_height = cvcontroller.detect(task_name)
+            # found, direction, shape, width_height = cvcontroller.detect(task_name)
+            found = None
+            direction = None
+            shape = None
+            width_height = None
+            # TODO may be removed. only added to ensure methods are working
+
             if found:
                 self.direction_list.append(direction)
 

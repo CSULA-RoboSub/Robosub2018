@@ -50,6 +50,11 @@ class PathManeuver():
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_power = 50
+        self.rotation_angle = 15
+        self.r_power=100
+        self.h_power=100
+        self.m_power=120
+        self.no_shape_m_power = 60
         
     # reset ##################################################################################
     def reset(self):
@@ -59,15 +64,19 @@ class PathManeuver():
 
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
         print 'no shape found for path'
+        # if auv passes gate correctly at a perpendicular angle, then the auv
+        # should be able to detect the path
+        navigation.m_nav('power', self.move_forward, self.no_shape_m_power)
         
     def vertical(self, navigation, coordinates, power, rotation, width_height):
         self.follow_path(navigation, coordinates ,power)
     
     def horizontal(self, navigation, coordinates, power, rotation, width_height):
-        self.line_up_to_path(navigation, coordinates, power)
+        self.line_up_to_path(navigation, coordinates, power, rotation)
 
     def follow_path(self, navigation, coordinates, power):
-        navigation.m_nav('power', self.move_forward, power, rotation)
+        navigation.m_nav('power', self.move_forward, power)
+        navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
 
     # TODO will be used when path is far away
     def move_to_path(self):
