@@ -1361,7 +1361,8 @@ int main(int argc, char **argv){
   dvlSubscriber = nh.subscribe("dvl_status", 1, dvlCallback);
   // dvlHeadingSubscriber = nh.subscribe("dvl_heading", 1, dvlHeadingCallback);
 
-  ros::AsyncSpinner spinner(3);
+  //set number of threads to run callbacks
+  ros::AsyncSpinner spinner(1);
   spinner.start();
   setup();
   while(ros::ok()){
