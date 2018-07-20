@@ -144,7 +144,7 @@ class Gate(Task):
                 #     print('gate task error')
 
             elif not self.is_moving_forward_camera_changed:
-                self.is_moving_forward_camera_changed = False
+                self.is_moving_forward_camera_changed = True
                 cvcontroller.change_camera_to('down', 'path')
 
             elif self.is_moving_forward_camera_changed:
