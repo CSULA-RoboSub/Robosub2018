@@ -213,6 +213,7 @@ class Ui_MainWindow(object):
         self.rotation_layout.addWidget(self.rotation)
         self.gridLayout.addLayout(self.rotation_layout, 1, 3, 1, 1)
         self.tabWidget.addTab(self.controls, "")
+
         self.computer_vision = QtWidgets.QWidget()
         self.computer_vision.setObjectName("computer_vision")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.computer_vision)
@@ -318,6 +319,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addLayout(self.right_layout)
         MainWindow.setCentralWidget(self.central_widget)
 
+        # self.cv_min_rgb = QtWidgets.QPushButton('min RGB', self)
+        # self.cv_min_rgb.clicked.connect(self.on_click)
+        # self.central_widget.show()
+
         self.retranslateUi(MainWindow)
 
         # Controller connections
@@ -366,6 +371,16 @@ class Ui_MainWindow(object):
         if self.tabWidget.currentIndex() == 1:
             self.Controller.manual_mode()
 
+    # @QtCore.pyqtSlot()
+    # def on_click(self):
+    #     self.openColorDialog(self)
+
+    # def openColorDialog(self):
+    #     color = QtGui.QColorDialog.getColor()
+
+    #     if color.isValid():
+    #         print(color.name())
+
         # self.tabWidget.setCurrentIndex(2)
         # self.camera0.clicked.connect(self.display0.update)
         # self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
@@ -413,6 +428,7 @@ class Ui_MainWindow(object):
         self.label_5.setText(_translate("MainWindow", "1 right"))
         self.label_6.setText(_translate("MainWindow", "2 right"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.computer_vision), _translate("MainWindow", "Computer Vision"))
+
 
 def start_roscore():
     """Check if roscore is running. If not starts roscore"""
