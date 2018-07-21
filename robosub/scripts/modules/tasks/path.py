@@ -59,6 +59,11 @@ class Path(Task):
         self.frame_width = 744
         self.frame_area = self.frame_width*self.frame_height
 
+        ################ ROI VARIABLES ################
+        self.roi_height = 0
+        self.roi_width = 0
+        self.roi_area = 0
+
     # reset ##################################################################################
     def reset(self): 
         self.detectpath = None
@@ -76,6 +81,10 @@ class Path(Task):
 
         self.thread_path = None
         self.stop_task = False
+
+        self.roi_height = 0
+        self.roi_width = 0
+        self.roi_area = 0
 
         self.path_maneuver.reset()
     
