@@ -1,18 +1,21 @@
 import sys
+import subprocess
+import time
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QColorDialog
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QColor
 
-# from modules.controller.gui_controller import Controller
+from modules.controller.gui_controller import Controller
 
 
 class App(QWidget):
 
     def __init__(self):
         super(App, self).__init__()
-        # self.Controller = Controller()  # Initialize gui controller
+        self.Controller = Controller()  # Initialize gui controller
         self.title = 'Robosub GUI'
         self.left = 10
         self.top = 10
@@ -32,101 +35,237 @@ class App(QWidget):
 
     def left_section(self):
 
-        # Layouts
-        left_layout = QtWidgets.QVBoxLayout()
-        display_layout = QtWidgets.QHBoxLayout()
-        camera_layout = QtWidgets.QHBoxLayout()
+        # Layouts ##########
+        self.left_layout = QtWidgets.QVBoxLayout()
+        self.display_layout = QtWidgets.QHBoxLayout()
+        self.camera_layout = QtWidgets.QHBoxLayout()
 
-        # Widgets
-        display0 = QtWidgets.QGraphicsView(self)  # display0
-        display_layout.addWidget(display0)
-        display1 = QtWidgets.QGraphicsView(self)  # display1
-        display_layout.addWidget(display1)
+        # Widgets ##########
 
-        left_layout.addLayout(display_layout)  # end of display_layout
+        # display_layout
+        self.display0 = QtWidgets.QGraphicsView(self)  # display0
+        self.display_layout.addWidget(self.display0)
+        self.display1 = QtWidgets.QGraphicsView(self)  # display1
+        self.display_layout.addWidget(self.display1)
 
-        btn_camera0 = QtWidgets.QPushButton('Camera 0', self)  # btn_camera0
-        camera_layout.addWidget(btn_camera0)
-        btn_camera1 = QtWidgets.QPushButton('Camera 1', self)  # btn_camera1
-        camera_layout.addWidget(btn_camera1)
-        btn_camera2 = QtWidgets.QPushButton('Camera 2', self)  # btn_camera2
-        camera_layout.addWidget(btn_camera2)
+        self.left_layout.addLayout(self.display_layout)
 
-        left_layout.addLayout(camera_layout)  # end of camera_layout
+        # camera_layout
+        self.btn_camera0 = QtWidgets.QPushButton('Camera 0', self)  # btn_camera0
+        self.camera_layout.addWidget(self.btn_camera0)
+        self.btn_camera1 = QtWidgets.QPushButton('Camera 1', self)  # btn_camera1
+        self.camera_layout.addWidget(self.btn_camera1)
+        self.btn_camera2 = QtWidgets.QPushButton('Camera 2', self)  # btn_camera2
+        self.camera_layout.addWidget(self.btn_camera2)
 
-        sensor_data = QtWidgets.QTableView(self)  # sensor_data
-        sensor_data.setShowGrid(True)
+        self.left_layout.addLayout(self.camera_layout)
+
+        # sensor_data
+        self.sensor_data = QtWidgets.QTableView(self)  # sensor_data
+        self.sensor_data.setShowGrid(True)
         # sensor_data.setRowCount(4)
         # sensor_data.setColumnCount(7)
-        sensor_data.horizontalHeader().setVisible(False)
-        sensor_data.horizontalHeader().setHighlightSections(False)
-        sensor_data.verticalHeader().setVisible(False)
-        sensor_data.verticalHeader().setHighlightSections(False)
-        left_layout.addWidget(sensor_data)
-        messages = QtWidgets.QTextBrowser(self)  # messages
-        left_layout.addWidget(messages)
+        self.sensor_data.horizontalHeader().setVisible(False)
+        self.sensor_data.horizontalHeader().setHighlightSections(False)
+        self.sensor_data.verticalHeader().setVisible(False)
+        self.sensor_data.verticalHeader().setHighlightSections(False)
+        self.left_layout.addWidget(self.sensor_data)
+        self.messages = QtWidgets.QTextBrowser(self)  # messages
+        self.left_layout.addWidget(self.messages)
 
-        self.main_layout.addLayout(left_layout)  # end of left_layout
+        self.main_layout.addLayout(self.left_layout)
+
+        # Controller Connections ##########
 
     def right_section(self):
 
-        # Layouts
-        right_layout = QtWidgets.QVBoxLayout()
-        mode_layout = QtWidgets.QHBoxLayout()
+        # Layouts ##########
+        self.right_layout = QtWidgets.QVBoxLayout()
+        self.mode_layout = QtWidgets.QHBoxLayout()
 
-            # Auto Mode Tab
-        task_selection = QtWidgets.QWidget()  # task_selection
-        task_layout = QtWidgets.QVBoxLayout(task_selection)
+        # Auto Mode Tab
+        self.task_selection = QtWidgets.QWidget()  # task_selection
+        self.task_layout = QtWidgets.QVBoxLayout(self.task_selection)
 
-            # Manual Mode Tab
-        manual_controls = QtWidgets.QWidget()  # manual_controls
-        controls_layout = QtWidgets.QGridLayout(manual_controls)
-        controls_layout.setContentsMargins(0, 0, 0, 0)
-        controls_layout.setHorizontalSpacing(4)
-        controls_layout.setVerticalSpacing(3)
-        # power_layout = QtWidgets.QVBoxLayout()
-        # rotation_layout = QtWidgets.QVBoxLayout()
-        # depth_layout = QtWidgets.QVBoxLayout()
+        # Manual Mode Tab
+        self.manual_controls = QtWidgets.QWidget()  # manual_controls
+        self.controls_layout = QtWidgets.QGridLayout(self.manual_controls)
+        self.controls_layout.setContentsMargins(0, 0, 0, 0)
+        self.controls_layout.setHorizontalSpacing(4)
+        self.controls_layout.setVerticalSpacing(3)
+        self.power_layout = QtWidgets.QVBoxLayout()
+        self.rotation_layout = QtWidgets.QVBoxLayout()
+        self.depth_layout = QtWidgets.QVBoxLayout()
 
-            # Computer Vision Tab
-            # TODO
+        # Computer Vision Tab
+        self.computer_vision = QtWidgets.QWidget()  # computer_vision
+        self.cv_layout = QtWidgets.QGridLayout(self.computer_vision)
+        self.cv_layout.setContentsMargins(0, 0, 0, 0)
+        self.cv_layout.setHorizontalSpacing(2)
+        self.cv_layout.setVerticalSpacing(3)
+        # TODO inner layout of cv tab
 
-        # Widgets
-        btn_load_default = QtWidgets.QPushButton('Load Default Params', self)  # btn_load_default
-        mode_layout.addWidget(btn_load_default)
-        btn_change_params = QtWidgets.QPushButton('Change Params', self)  # btn_change_params
-        mode_layout.addWidget(btn_change_params)
-        chk_autostart = QtWidgets.QCheckBox('Start in Auto Mode', self)  # chk_autostart
-        mode_layout.addWidget(chk_autostart)
+        # Widgets ##########
 
-        right_layout.addLayout(mode_layout)  # end of mode layout
+        # mode_layout
+        self.btn_load_default = QtWidgets.QPushButton('Load Default Params', self)  # btn_load_default
+        self.mode_layout.addWidget(self.btn_load_default)
+        self.btn_change_params = QtWidgets.QPushButton('Change Params', self)  # btn_change_params
+        self.mode_layout.addWidget(self.btn_change_params)
+        self.chk_autostart = QtWidgets.QCheckBox('Start in Auto Mode', self)  # chk_autostart
+        self.chk_autostart.setChecked(self.Controller.get_auto_mode_state())
+        self.mode_layout.addWidget(self.chk_autostart)
 
-        tab_widget = QtWidgets.QTabWidget(self)  # tab_widget
-        tab_widget.addTab(task_selection, 'Auto Mode')
-        tab_widget.addTab(manual_controls, 'Manual Mode')
-        right_layout.addWidget(tab_widget)
+        self.right_layout.addLayout(self.mode_layout)
 
-            # Auto Mode Tab
-        # task_selection = QtWidgets.QWidget()  # task_selection
-        btn_start_tasks = QtWidgets.QPushButton('start tasks', task_selection)  # btn_start_tasks
-        task_layout.addWidget(btn_start_tasks)
-        btn_stop_tasks = QtWidgets.QPushButton('stop tasks', task_selection)  # btn_stop_tasks
-        task_layout.addWidget(btn_stop_tasks)
+        # tab_widget
+        self.tab_widget = QtWidgets.QTabWidget(self)  # tab_widget
+        self.tab_widget.addTab(self.task_selection, 'Auto Mode')
+        self.tab_widget.addTab(self.manual_controls, 'Manual Mode')
+        self.tab_widget.addTab(self.computer_vision, 'Computer Vision')
+        self.right_layout.addWidget(self.tab_widget)
+
+        # Auto Mode Tab
+        self.task_selection = QtWidgets.QWidget()  # task_selection
+        self.btn_start_tasks = QtWidgets.QPushButton('start tasks', self.task_selection)  # btn_start_tasks
+        self.task_layout.addWidget(self.btn_start_tasks)
+        self.btn_stop_tasks = QtWidgets.QPushButton('stop tasks', self.task_selection)  # btn_stop_tasks
+        self.task_layout.addWidget(self.btn_stop_tasks)
         # TODO dynamically add buttons
 
-            # Manual Mode Tab
-        btn_forward = QtWidgets.QPushButton('forward', manual_controls)  # btn_forward
-        btn_forward.setMaximumSize(QtCore.QSize(100, 100))
-        controls_layout.addWidget(btn_forward, 3, 2, 1, 1)
-        # TODO buttons
+        # Manual Mode Tab
+        self.btn_brake = QtWidgets.QPushButton('Brake', self.manual_controls)  # btn_brake
+        self.btn_brake.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_brake, 1, 0, 1, 1)
+        self.power_label = QtWidgets.QLabel('Power', self.manual_controls)  # spn_power
+        self.power_label.setMaximumSize(QtCore.QSize(100, 20))
+        self.power_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_power = QtWidgets.QSpinBox(self.manual_controls)
+        self.spn_power.setMaximumSize(QtCore.QSize(100, 80))
+        self.spn_power.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_power.setMaximum(200)
+        self.spn_power.setSingleStep(20)
+        self.spn_power.setProperty('value', 120)
 
-            # Computer Vision Tab
-            # TODO
+        self.power_layout.addWidget(self.power_label)
+        self.power_layout.addWidget(self.spn_power)
+        self.controls_layout.addLayout(self.power_layout, 1, 2, 1, 1)
+        self.rotation_label = QtWidgets.QLabel('Rotation', self.manual_controls)  # spn_rotation
+        self.rotation_label.setMaximumSize(QtCore.QSize(100, 20))
+        self.rotation_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_rotation = QtWidgets.QSpinBox(self.manual_controls)
+        self.spn_rotation.setMaximumSize(QtCore.QSize(100, 80))
+        self.spn_rotation.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_rotation.setMaximum(180)
+        self.spn_rotation.setSingleStep(10)
+        self.spn_rotation.setProperty('value', 20)
 
-        self.main_layout.addLayout(right_layout)  # end of right_layout
+        self.rotation_layout.addWidget(self.rotation_label)
+        self.rotation_layout.addWidget(self.spn_rotation)
+        self.controls_layout.addLayout(self.rotation_layout, 1, 3, 1, 1)
+        self.depth_label = QtWidgets.QLabel('Depth', self.manual_controls)  # spn_depth
+        self.depth_label.setMaximumSize(QtCore.QSize(100, 20))
+        self.depth_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_depth = QtWidgets.QSpinBox(self.manual_controls)
+        self.spn_depth.setMaximumSize(QtCore.QSize(100, 80))
+        self.spn_depth.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_depth.setMinimum(-500)
+        self.spn_depth.setMaximum(500)
+        self.spn_depth.setSingleStep(20)
+
+        self.depth_layout.addWidget(self.depth_label)
+        self.depth_layout.addWidget(self.spn_depth)
+        self.controls_layout.addLayout(self.depth_layout, 1, 4, 1, 1)
+        self.btn_strafe_l = QtWidgets.QPushButton('Strafe L', self.manual_controls)  # btn_strafe_l
+        self.btn_strafe_l.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_strafe_l, 3, 0, 1, 1)
+        self.btn_forward = QtWidgets.QPushButton('Forward', self.manual_controls)  # btn_forward
+        self.btn_forward.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_forward, 3, 2, 1, 1)
+        self.btn_strafe_r = QtWidgets.QPushButton('Strafe R', self.manual_controls)  # btn_strafe_r
+        self.btn_strafe_r.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_strafe_r, 3, 3, 1, 1)
+        self.btn_up = QtWidgets.QPushButton('Up', self.manual_controls)  # btn_up
+        self.btn_up.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_up, 3, 4, 1, 1)
+        self.btn_rotate_l = QtWidgets.QPushButton('Rotate L', self.manual_controls)  # btn_rotate_l
+        self.btn_rotate_l.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_rotate_l, 4, 0, 1, 1)
+        self.btn_backward = QtWidgets.QPushButton('Backward', self.manual_controls)  # btn_backward
+        self.btn_backward.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_backward, 4, 2, 1, 1)
+        self.btn_rotate_r = QtWidgets.QPushButton('Rotate R', self.manual_controls)  # btn_rotate_r
+        self.btn_rotate_r.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_rotate_r, 4, 3, 1, 1)
+        self.btn_down = QtWidgets.QPushButton('Down', self.manual_controls)  # btn_down
+        self.btn_down.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_down, 4, 4, 1, 1)
+
+        # Computer Vision Tab
+        # TODO add rgb hsv sliders
+
+        self.main_layout.addLayout(self.right_layout)
+
+        # Controller Connections ##########
+
+        # Mode Selection
+        self.btn_load_default.clicked.connect(self.Controller.load_default_params)
+        self.btn_change_params.clicked.connect(self.Controller.change_params)
+        self.chk_autostart.stateChanged.connect(self.checkbox_state_changed)
+        self.tab_state_changed()
+        self.tab_widget.currentChanged.connect(self.tab_state_changed)
+
+        # Manual Mode Buttons
+        self.btn_forward.clicked.connect(lambda: self.Controller.manual_move('forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_backward.clicked.connect(lambda: self.Controller.manual_move('backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_l.clicked.connect(lambda: self.Controller.manual_move('strafe_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_r.clicked.connect(lambda: self.Controller.manual_move('strafe_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_l.clicked.connect(lambda: self.Controller.manual_move('rotate_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_r.clicked.connect(lambda: self.Controller.manual_move('rotate_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_up.clicked.connect(lambda: self.Controller.manual_move('up', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_down.clicked.connect(lambda: self.Controller.manual_move('down', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+
+    def checkbox_state_changed(self):
+        if self.chk_autostart.isChecked():
+            self.Controller.set_auto_mode_state(1)
+        else:
+            self.Controller.set_auto_mode_state(0)
+
+    def tab_state_changed(self):
+        if self.tab_widget.currentIndex() == 1:
+            self.Controller.manual_mode()
+
+
+def start_roscore():
+    """Check if roscore is running. If not starts roscore"""
+
+    name = 'roscore'
+    ps = os.popen('ps -Af').read()
+
+    if name not in ps:
+        # open roscore in subprocess
+        print('Setting up roscore.')
+        os.system('killall -9 roscore')
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')
+
+        roscore = subprocess.Popen('roscore')
+        time.sleep(1)
+        return roscore
+
+    return False
 
 
 if __name__ == '__main__':
+    roscore = start_roscore()
+
     app = QApplication(sys.argv)
     ui = App()
+
+    if(roscore):
+        subprocess.Popen.kill(roscore)
+        os.system('killall -9 rosmaster')
+        os.system('killall -9 rosout')
+
     sys.exit(app.exec_())
