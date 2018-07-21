@@ -10,6 +10,7 @@ class PathManeuver():
         self.is_no_more_path = False
         self.is_task_complete = False
         self.is_following_path = False
+        self.is_centered = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.follow_path_counter = 0
@@ -63,6 +64,7 @@ class PathManeuver():
         self.is_no_more_path = False
         self.is_task_complete = False
         self.is_following_path = False
+        self.is_centered = False
 
         self.follow_path_counter = 0
 

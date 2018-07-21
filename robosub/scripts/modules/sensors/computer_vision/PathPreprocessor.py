@@ -6,7 +6,7 @@ class PathPreprocessor():
 
     def __init__(self):
         self.lower_thresh = np.array([0, 150, 0], 'uint8')
-        self.upper_thresh = np.array([10, 255, 255], 'uint8')
+        self.upper_thresh = np.array([20, 255, 255], 'uint8')
         self.roi_size = 700
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
@@ -30,9 +30,9 @@ class PathPreprocessor():
         img_color_filt, mask = self.preprocess(img_hsv)
         im, contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         
-        filtered_contours = self.filter_contours(contours)
-        
-        boxes = [cv2.boundingRect(c) for c in filtered_contours]
+        # filtered_contours = self.filter_contours(contours)
+        # boxes = [cv2.boundingRect(c) for c in filtered_contours]
+        boxes = [cv2.boundingRect(c) for c in contours]
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
         return interest_regions

@@ -43,8 +43,7 @@ class PathDetector():
 
         # path = self.classifier.classify(frame, regions_of_interest)
         if regions_of_interest:
-            path = max(regions_of_interest, key=lambda x: x[2]*x[3])
-            
+            path = regions_of_interest[0]
         else:
             path = None
             

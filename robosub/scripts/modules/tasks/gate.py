@@ -32,7 +32,7 @@ class Gate(Task):
         ################ FLAG VARIABLES ################
         self.is_found = False
         self.stop_task = False
-        self.is_complete = False
+        # self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
 
@@ -60,6 +60,9 @@ class Gate(Task):
             'square': self.gate_maneuver.square
         }
 
+        ################ CONSTANTS ###########################  
+        self.path_task_name = 'path'
+        self.path_camera_direction = 'down'
         ################ AUV MOBILITY VARIABLES ################
         self.depth_change = 1
         self.rotation_angle = 40
@@ -80,7 +83,7 @@ class Gate(Task):
         self.detectgate = None
 
         self.is_found = False
-        self.is_complete = False
+        # self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
 
@@ -112,7 +115,7 @@ class Gate(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        while not self.stop_task and not self.complete():
+        while not self.stop_task and not self.is_complete():
             # # try:
             # found, directions, gate_shape, width_height = cvcontroller.detect(task_name)                
             # self.found = found
@@ -179,10 +182,10 @@ class Gate(Task):
                 self.is_moving_forward_camera_changed = True
                 # self.is_moving_forward_camera_changed_counter = 0
                 count = 0
-                cvcontroller.change_camera_to('down', 'path')
+                cvcontroller.change_camera_to(self.path_camera_direction, self.path_task_name)
 
             elif self.is_moving_forward_camera_changed and count < self.is_moving_forward_camera_changed_threshold:
-                found, directions, gate_shape, width_height = cvcontroller.detect('path')
+                found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
                     count += 1
                     self.last_time = time.time()
@@ -190,7 +193,7 @@ class Gate(Task):
                     # self.is_moving_forward_camera_changed_counter += 1
 
             elif self.is_moving_forward_camera_changed and count >= self.is_moving_forward_camera_changed_threshold:
-                found, directions, gate_shape, width_height = cvcontroller.detect('path')
+                found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
                     count += 1
                     self.last_time = time.time()
@@ -246,7 +249,7 @@ class Gate(Task):
             else:
                 self.gate_maneuver.rotate_to_center(navigation, coordinates)
         else:
-            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, self.is_heading_correct)
+            self.gate_phases[gate_shape](navigation, coordinates, power, rotation, width_height, found)
 
                     
         self.previous_width_height = width_height
@@ -256,11 +259,10 @@ class Gate(Task):
         #     print 'sub has gone under and past gate'
             
     # complete ##################################################################################
-    def complete(self):
+    def is_complete(self):
         # if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
         #     self.is_complete = True
-        self.is_complete = self.gate_maneuver.completed_gate_check()
-        return self.is_complete
+        return self.gate_maneuver.completed_gate_check()
 
     # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self, direction_list, counter):
