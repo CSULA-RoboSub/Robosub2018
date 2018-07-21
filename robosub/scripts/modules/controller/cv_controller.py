@@ -103,6 +103,7 @@ class CVController():
             'down' : self.camera_down_callback
         }
         
+        self.time_delay = 1.0
         self.camera_direction = 'forward'
         self.cap = None
 
@@ -122,6 +123,7 @@ class CVController():
         #do not elif we want to check the 2nd one if first fails aswell
         if self.sub_camera_found == 0:
             self.camera_start_dictionary[self.sub_camera_found](task_name)
+        # time.sleep(self.time_delay)
         print 'start cvcontroller'
 
     # stop ##################################################################################
@@ -377,7 +379,7 @@ class CVController():
         # pipeline which we could use to display the opencv buffers.
         src_name = "cam_" + camera_direction
         self.display_pipeline[camera_direction] = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
-        self.display_input[camera_direction] = self.display_pipeline.get_by_name(src_name)
+        self.display_input[camera_direction] = self.display_pipeline[camera_direction].get_by_name(src_name)
         self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.connect("new-sample", self.camera_callbacks[camera_direction])
 

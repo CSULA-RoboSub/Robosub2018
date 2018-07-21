@@ -26,7 +26,7 @@ class Gate(Task):
 
         ################ THRESHOLD VARIABLES ################
         self.phase_threshold = 100
-        self.heading_verify_threshold = 200
+        # self.heading_verify_threshold = 100
         self.under_threshold = 100
         
         ################ FLAG VARIABLES ################
@@ -45,8 +45,9 @@ class Gate(Task):
         self.heading_verify_count = 0
         self.last_time = 0
         self.counter = Counter()
+        self.is_moving_forward_camera_changed_threshold = 100
 
-        ################ DICTIONARIES ################        
+        ################ DICTIONARIES ###########################        
         self.movement_to_square = {
             'vertical': 'right',
             'horizontal': 'backward'
@@ -68,7 +69,6 @@ class Gate(Task):
         self.r_power=70
         self.h_power=100
         self.m_power=120   
-        self.rotated_to_center = False
         self.found = False
         
         ################ THREAD VARIABLES ################    
@@ -92,9 +92,9 @@ class Gate(Task):
         self.heading_verify_count = 0
         self.last_time = 0
         self.counter = Counter()
+        # self.is_moving_forward_camera_changed_counter = 0
 
         self.is_heading_correct = False
-        self.rotated_to_center = False
         self.found = False
         self.previous_width_height = (0,0)
         self.direction_list = []
@@ -107,6 +107,7 @@ class Gate(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
+        cvcontroller.camera_direction = 'forward'  
         cvcontroller.start(task_name)
         self.mutex.acquire()
         count = 0
@@ -176,13 +177,26 @@ class Gate(Task):
 
             elif not self.is_moving_forward_camera_changed:
                 self.is_moving_forward_camera_changed = True
+                # self.is_moving_forward_camera_changed_counter = 0
+                count = 0
                 cvcontroller.change_camera_to('down', 'path')
 
-            elif self.is_moving_forward_camera_changed:
-                found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
-                if found and gate_shape:
-                    navigation.cancel_all_nav()
-                    self.gate_maneuver.is_past_gate = True
+            elif self.is_moving_forward_camera_changed and count < self.is_moving_forward_camera_changed_threshold:
+                found, directions, gate_shape, width_height = cvcontroller.detect('path')
+                if (time.time()-self.last_time > 0.05):
+                    count += 1
+                    self.last_time = time.time()
+
+                    # self.is_moving_forward_camera_changed_counter += 1
+
+            elif self.is_moving_forward_camera_changed and count >= self.is_moving_forward_camera_changed_threshold:
+                found, directions, gate_shape, width_height = cvcontroller.detect('path')
+                if (time.time()-self.last_time > 0.05):
+                    count += 1
+                    self.last_time = time.time()
+                    if found and gate_shape:
+                        navigation.cancel_all_nav()
+                        self.gate_maneuver.is_past_gate = True
 
             else:
                 print 'logic error in gate.py start'
@@ -226,9 +240,9 @@ class Gate(Task):
         #     navigation.cancel_m_nav()
         #     navigation.cancel_h_nav()
  
-        if not self.rotated_to_center and gate_shape:
+        if not self.gate_maneuver.rotated_to_center and gate_shape:
             if coordinates[0] == 0:
-                self.rotated_to_center = True
+                self.gate_maneuver.rotated_to_center = True
             else:
                 self.gate_maneuver.rotate_to_center(navigation, coordinates)
         else:

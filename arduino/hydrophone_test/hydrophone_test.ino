@@ -67,14 +67,14 @@ void loop() {
       times1[2] = mySerial.read();
       times1[3] = mySerial.read();
       readStatus[0] = true;
-      nh.loginfo("type a");
+      // nh.loginfo("type a");
     } else if (type == 'b') {
       times2[0] = mySerial.read();
       times2[1] = mySerial.read();
       times2[2] = mySerial.read();
       times2[3] = mySerial.read();
       readStatus[1] = true;
-      nh.loginfo("type b");
+      // nh.loginfo("type b");
     }
     else if (type == 'c') {
       times3[0] = mySerial.read();
@@ -82,7 +82,7 @@ void loop() {
       times3[2] = mySerial.read();
       times3[3] = mySerial.read();
       readStatus[2] = true;
-      nh.loginfo("type c");
+      // nh.loginfo("type c");
     }
     else if (type == 'd') {
       times4[0] = mySerial.read();
@@ -90,7 +90,7 @@ void loop() {
       times4[2] = mySerial.read();
       times4[3] = mySerial.read();
       readStatus[3] = true;
-      nh.loginfo("type d");
+      // nh.loginfo("type d");
     }
   }
 

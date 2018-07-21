@@ -5,7 +5,7 @@ class GateManeuver():
         ################ THRESHOLD VARIABLES ################
         self.sweep_timer = 60
         self.nothing_found_threashold = 100
-        self.heading_verify_threshold = 200
+        self.heading_verify_threshold = 100
         self.forward_movement_threshold = 400
 
         ################ FLAG VARIABLES ################
@@ -13,6 +13,7 @@ class GateManeuver():
         self.is_past_gate = False
         self.is_moving_forward = False
         self.is_task_complete = False
+        self.rotated_to_center = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.sweep_forward_counter = 0
@@ -99,6 +100,7 @@ class GateManeuver():
         self.is_heading_correct = False
         self.is_past_gate = False
         self.is_task_complete = False
+        self.rotated_to_center = False
 
         self.nothing_found_counter = 0
         self.heading_verify_count = 0
@@ -160,9 +162,9 @@ class GateManeuver():
         if self.previous_width > width:
             self.strafe_direction = 1 - self.strafe_direction
 
-        # TODO need to find test current rotation number to ensure circlar movement is not too large
+        # TODO need to find test current rotation number to ensure circlar movement is not too large---------------
         navigation.cancel_and_m_nav('power', self.previous_direction[self.strafe_direction], power)
-        navigation.cancel_and_r_nav(self.strafe_rotate[self.strafe_direction], rotation, 50)
+        # navigation.cancel_and_r_nav(self.strafe_rotate[self.strafe_direction], rotation, 2)   
         self.previous_width = width
     
     # backup_to_square ##################################################################################
@@ -187,6 +189,7 @@ class GateManeuver():
 
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
+        self.rotated_to_center = False
         navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
         
     # completed_gate ##################################################################################
