@@ -38,12 +38,12 @@ class PathDetector():
         center = (width / 2, height / 2)
         regions_of_interest = self.preprocess.get_interest_regions(frame)
         
-        for x, y, w, h in regions_of_interest:
-            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+        for roi in regions_of_interest:
+            utils.draw_red_box(frame, roi)
 
         # path = self.classifier.classify(frame, regions_of_interest)
         if regions_of_interest:
-            path = max(regions_of_interest, key=lambda x: x[2]*x[3])
+            path = utils.get_max_area(regions_of_interest)
             
         else:
             path = None
@@ -56,7 +56,7 @@ class PathDetector():
             w, h = 0, 0
         else:
             x, y, w, h = path
-            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
+            utils.draw_blue_box(frame, path)
             self.directions = utils.get_directions(center, x, y, w, h)
             self.found = True
         return (self.found, self.directions, path_shape, (w, h))

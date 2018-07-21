@@ -15,6 +15,7 @@ from modules.sensors.computer_vision import GateDetector
 # from modules.sensors.computer_vision import BuoyDetector
 from modules.sensors.computer_vision import DiceDetector
 from modules.sensors.computer_vision import PathDetector
+from modules.sensors.computer_vision import PathFollowDetector
 from modules.sensors.computer_vision import RouletteDetector
 
 try:
@@ -33,6 +34,7 @@ class CVController():
         # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
         self.pathdetector = PathDetector.PathDetector()
+        self.pathfollowdetector = PathFollowDetector.PathFollowDetector()
         self.dicedetector = DiceDetector.DiceDetector()
         # self.chipdetector = ChipDetector.ChipDetector()
         self.roulettedetector = RouletteDetector.RouletteDetector()
@@ -51,6 +53,7 @@ class CVController():
         self.tasks = {
             'gate': self.gatedetector,
             'path': self.pathdetector,
+            'path_follow': self.pathfollowdetector,
             'dice': self.dicedetector,
             'roulette': self.roulettedetector
         }

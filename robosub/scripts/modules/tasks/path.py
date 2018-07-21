@@ -44,9 +44,9 @@ class Path(Task):
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power=100
+        self.r_power=50
         self.h_power=100
-        self.m_power=120
+        self.m_power=60
 
         ################ THREAD VARIABLES ################
         self.thread_path = None
@@ -54,7 +54,11 @@ class Path(Task):
 
         ################ PATH VARIABLES ################
 
-    
+        ################ PATH CONSTANTS ################
+        self.frame_height = 480
+        self.frame_width = 744
+        self.frame_area = self.frame_width*self.frame_height
+
     # reset ##################################################################################
     def reset(self): 
         self.detectpath = None
@@ -79,6 +83,7 @@ class Path(Task):
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
         cvcontroller.camera_direction = 'down'
+        task_name = 'path_follow' 
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
@@ -92,37 +97,34 @@ class Path(Task):
             # TODO may be removed. only added to ensure methods are working
 
             found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
-            if not self.path_maneuver.is_centered:
-                if found:
-                    self.direction_list.append(directions)
+            if found:
+                self.direction_list.append(directions)
 
-                if (time.time()-self.last_time > 0.05):
-                    self.last_time = time.time()
-                    count += 1
+            if (time.time()-self.last_time > 0.05):
+                self.last_time = time.time()
+                count += 1
 
-                    try:
-                        most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-                    except:
-                        most_occur_coords = [0, 0]
+                try:
+                    most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                except:
+                    most_occur_coords = [0, 0, 0]
 
-                    # print 'running {} task'.format(task_name)
-                    # print 'widthxheight: {}'.format(width_height)
-                    # print 'current count: {}'.format(count)
-                    # print 'coordinates: {}'.format(most_occur_coords)
-                    # print '--------------------------------------------'
-                    # print 'type: navigation cv 0, or task to cancel task'
-                    # self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+                print 'running {} task'.format(task_name)
+                print 'widthxheight: {}'.format(width_height)
+                print 'current count: {}'.format(count)
+                print 'coordinates: {}'.format(most_occur_coords)
+                print '--------------------------------------------'
+                print 'type: navigation cv 0, or task to cancel task'
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
 
-                    # if self.path_maneuver.is_no_more_path:
-                    #     self.is_camera_changed = True
-                    #     cvcontroller.change_camera_to('forward', 'dice')
-                    
-                    self.counter = Counter()
-                    self.direction_list = []
-                    # except:
-                    #     print 'path detect error'
-            elif self.path_maneuver.is_centered:
-                pass
+                # if self.path_maneuver.is_no_more_path:
+                #     self.is_camera_changed = True
+                #     cvcontroller.change_camera_to('forward', 'dice')
+                
+                self.counter = Counter()
+                self.direction_list = []
+                # except:
+                #     print 'path detect error'
         cvcontroller.stop()
         self.mutex.release()
     
@@ -165,6 +167,11 @@ class Path(Task):
         return False, [0,0]
 
     # navigate ##################################################################################
+    # rotate always going
+    # first dive til area large enough while aiming for bottom of roi
+    # move forward if strafe centered
+    # if not centered strafe to center
+
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
         print 'navigate path'
 

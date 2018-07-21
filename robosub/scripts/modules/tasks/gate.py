@@ -115,7 +115,7 @@ class Gate(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        while not self.stop_task and not self.is_complete():
+        while not self.stop_task and not self.complete():
             # # try:
             # found, directions, gate_shape, width_height = cvcontroller.detect(task_name)                
             # self.found = found
@@ -259,7 +259,7 @@ class Gate(Task):
         #     print 'sub has gone under and past gate'
             
     # complete ##################################################################################
-    def is_complete(self):
+    def complete(self):
         # if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
         #     self.is_complete = True
         return self.gate_maneuver.completed_gate_check()
