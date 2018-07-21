@@ -120,7 +120,7 @@ class GateManeuver():
 
         # navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, power)
         # navigation.m_nav('power', self.horizontal_move[coordinates[0]], power)
-        
+        self.nothing_found_counter = 0
         self.forward_movement_timer += 1
         if not self.is_moving_forward:
             self.is_moving_forward = True
@@ -161,6 +161,7 @@ class GateManeuver():
     # strafe_to_square ##################################################################################
     def strafe_to_square(self, navigation, power, rotation, width):
         # to change direction of strafe if previous width is larger than current
+        self.nothing_found_counter = 0
         if self.previous_width > width:
             self.strafe_direction = 1 - self.strafe_direction
 
@@ -291,3 +292,7 @@ class GateManeuver():
     # movement_after_gate ##################################################################################
     def movement_after_gate(self):
         pass
+
+    # plan_b_movement ##################################################################################
+    def plan_b_movement(self, navigation, coordinates, power, rotation, width_height, found):
+        navigation.cancel_and_m_nav('power', self.move_forward, power)
