@@ -55,9 +55,9 @@ class Path(Task):
         ################ PATH VARIABLES ################
 
         ################ PATH CONSTANTS ################
-        self.frame_height = 480
-        self.frame_width = 744
-        self.frame_area = self.frame_width*self.frame_height
+        self.frame_height_max = 480
+        self.frame_width_max = 744
+        self.frame_area = self.frame_width_max * self.frame_height_max
 
     # reset ##################################################################################
     def reset(self): 
@@ -117,9 +117,9 @@ class Path(Task):
                 print 'type: navigation cv 0, or task to cancel task'
                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
 
-                # if self.path_maneuver.is_no_more_path:
-                #     self.is_camera_changed = True
-                #     cvcontroller.change_camera_to('forward', 'dice')
+                if self.path_maneuver.is_no_more_path:
+                    self.is_camera_changed = True
+                    cvcontroller.change_camera_to('forward', 'dice')
                 
                 self.counter = Counter()
                 self.direction_list = []
@@ -167,21 +167,28 @@ class Path(Task):
         return False, [0,0]
 
     # navigate ##################################################################################
-    # rotate always going
+    # rotate always on
     # first dive til area large enough while aiming for bottom of roi
     # move forward if strafe centered
     # if not centered strafe to center
 
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
-        print 'navigate path'
-
-        if not self.path_maneuver.is_moving_forward:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
-
-        self.path_phases[shape](navigation, coordinates, power, rotation, width_height)
+        # print 'navigate path'
+        # self.path_phases[shape](navigation, coordinates, power, rotation, width_height)
     
+        if found and coordinates[0] != 0 and not self.path_maneuver.is_close_enough:
+            #center sub on path right axis
+
+        elif found and coordinates[1] != 0 and not self.path_maneuver.is_close_enough:
+            #center sub on path forward axis
+
+        elif found and coordinates[0] == 0 and coordinates[1] == 0 and not self.path_maneuver.is_close_enough:
+            #dive toward bottom of path roi
+
+        elif self.path_maneuver.is_close_enough and width_height[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
+        #rotation now turns on at this point
+        elif self.path_maneuver.is_close_enough:
+            #rotate and center right axis/move forward
     # complete ##################################################################################
     def complete(self):
         self.is_complete = self.path_maneuver.completed_path_check()

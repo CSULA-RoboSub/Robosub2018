@@ -48,7 +48,7 @@ if __name__=="__main__":
     rospy.init_node("serial_node_uno")
     rospy.loginfo("ROS Serial Python Node - uno")
 
-    port_name = rospy.get_param('~port','/dev/serial/by-id/usb-Arduino__www.arduino.cc__Arduino_Uno_85635303233351D03041-if00')
+    port_name = rospy.get_param('~port','/dev/serial/by-id/usb-Arduino_Srl_Arduino_Uno_9553034373435171C1F0-if00')
     # baud = int(rospy.get_param('~baud','57600'))
     baud = int(rospy.get_param('~baud','115200'))
 

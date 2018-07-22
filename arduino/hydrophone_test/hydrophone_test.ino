@@ -49,7 +49,7 @@ void setup() {
 void loop() {
   timer = millis();
   if (init_timer){
-    if(timer-init_timer > 300){
+    if(timer-init_timer > 20){
       resetStatus();
     }
   }

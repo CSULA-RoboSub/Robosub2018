@@ -11,6 +11,8 @@ class PathManeuver():
         self.is_task_complete = False
         self.is_following_path = False
         self.is_centered = False
+        self.is_close_enough = False
+        self.is_frame_height_max = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.follow_path_counter = 0
@@ -54,9 +56,9 @@ class PathManeuver():
         self.rotation_power = 50
         self.rotation_angle = 15
         self.r_power=50
-        self.h_power=100
-        self.m_power=60
-        self.m_power_strafe=100
+        self.h_power=90
+        self.m_power=80
+        self.m_power_strafe=120
         self.no_shape_m_power = 60
         self.depth_change = 0.2
         
@@ -67,6 +69,8 @@ class PathManeuver():
         self.is_task_complete = False
         self.is_following_path = False
         self.is_centered = False
+        self.is_close_enough = False
+        self.is_frame_height_max = False
 
         self.follow_path_counter = 0
 
@@ -110,3 +114,5 @@ class PathManeuver():
             self.is_task_complete = True
 
         return self.is_task_complete
+
+    def center_x(self, navigation, found, horizontal_move, )

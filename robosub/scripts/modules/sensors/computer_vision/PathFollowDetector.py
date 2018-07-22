@@ -88,14 +88,18 @@ class PathFollowDetector():
         
         if (s1_xl-self.rotation_buffer < s2_xl < s1_xl+self.rotation_buffer) and (s1_xr-self.rotation_buffer < s2_xr < s1_xr+self.rotation_buffer):
             #both within buffer go straight
+            # print 'go straight'
             return 0
         #ruled out straight case 
         elif s2_xl <= s1_xl and s2_xr <= s1_xr:
             #path slanted right blow sub, rotate right
+            # print 'rotate right'
             return 1
         elif s2_xl >= s1_xl and s2_xr >= s1_xr:
             #path slanted left rotate left
+            # print 'rotate left'
             return -1
         else:
             # print('Error in PathFollowDetector get_rotation_direction()')
+            # print 'go straight'
             return 0
