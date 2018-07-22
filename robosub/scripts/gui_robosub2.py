@@ -2,6 +2,7 @@ import sys
 import subprocess
 import time
 import os
+from functools import partial
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QColorDialog
 from PyQt5.QtGui import QIcon
@@ -135,8 +136,7 @@ class App(QWidget):
         for task in self.controller.get_task_list():
             self.btn_task = QtWidgets.QPushButton(task, self.task_selection)
             self.task_layout.addWidget(self.btn_task)
-
-        # TODO dynamically add buttons
+            self.btn_task.clicked.connect(partial(self.controller.read_task_button, self.btn_task.text()))
 
         # Manual Mode Tab
         self.btn_brake = QtWidgets.QPushButton('Brake', self.manual_controls)  # btn_brake

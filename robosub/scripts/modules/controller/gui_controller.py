@@ -39,6 +39,7 @@ class Controller():
         """ Read task string from button press"""
 
         print(text)
+        # TODO call task in cv
 
     def manual_mode(self):
         """ Manual mode selected (Keyboard)"""
