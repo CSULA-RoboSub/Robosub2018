@@ -15,7 +15,7 @@ class App(QWidget):
 
     def __init__(self):
         super(App, self).__init__()
-        self.Controller = Controller()  # Initialize gui controller
+        self.controller = Controller()  # Initialize gui controller
         self.title = 'Robosub GUI'
         self.left = 10
         self.top = 10
@@ -113,7 +113,7 @@ class App(QWidget):
         self.btn_change_params = QtWidgets.QPushButton('Change Params', self)  # btn_change_params
         self.mode_layout.addWidget(self.btn_change_params)
         self.chk_autostart = QtWidgets.QCheckBox('Start in Auto Mode', self)  # chk_autostart
-        self.chk_autostart.setChecked(self.Controller.get_auto_mode_state())
+        self.chk_autostart.setChecked(self.controller.get_auto_mode_state())
         self.mode_layout.addWidget(self.chk_autostart)
 
         self.right_layout.addLayout(self.mode_layout)
@@ -131,6 +131,11 @@ class App(QWidget):
         self.task_layout.addWidget(self.btn_start_tasks)
         self.btn_stop_tasks = QtWidgets.QPushButton('stop tasks', self.task_selection)  # btn_stop_tasks
         self.task_layout.addWidget(self.btn_stop_tasks)
+
+        for task in self.controller.get_task_list():
+            self.btn_task = QtWidgets.QPushButton(task, self.task_selection)
+            self.task_layout.addWidget(self.btn_task)
+
         # TODO dynamically add buttons
 
         # Manual Mode Tab
@@ -209,32 +214,32 @@ class App(QWidget):
         # Controller Connections ##########
 
         # Mode Selection
-        self.btn_load_default.clicked.connect(self.Controller.load_default_params)
-        self.btn_change_params.clicked.connect(self.Controller.change_params)
+        self.btn_load_default.clicked.connect(self.controller.load_default_params)
+        self.btn_change_params.clicked.connect(self.controller.change_params)
         self.chk_autostart.stateChanged.connect(self.checkbox_state_changed)
         self.tab_state_changed()
         self.tab_widget.currentChanged.connect(self.tab_state_changed)
 
         # Manual Mode Buttons
-        self.btn_forward.clicked.connect(lambda: self.Controller.manual_move('forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_backward.clicked.connect(lambda: self.Controller.manual_move('backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_strafe_l.clicked.connect(lambda: self.Controller.manual_move('strafe_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_strafe_r.clicked.connect(lambda: self.Controller.manual_move('strafe_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_rotate_l.clicked.connect(lambda: self.Controller.manual_move('rotate_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_rotate_r.clicked.connect(lambda: self.Controller.manual_move('rotate_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_up.clicked.connect(lambda: self.Controller.manual_move('up', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_down.clicked.connect(lambda: self.Controller.manual_move('down', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_forward.clicked.connect(lambda: self.controller.manual_move('forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_backward.clicked.connect(lambda: self.controller.manual_move('backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_l.clicked.connect(lambda: self.controller.manual_move('strafe_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_r.clicked.connect(lambda: self.controller.manual_move('strafe_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_l.clicked.connect(lambda: self.controller.manual_move('rotate_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_r.clicked.connect(lambda: self.controller.manual_move('rotate_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_up.clicked.connect(lambda: self.controller.manual_move('up', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_down.clicked.connect(lambda: self.controller.manual_move('down', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_brake.clicked.connect(lambda: self.controller.manual_move('brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
 
     def checkbox_state_changed(self):
         if self.chk_autostart.isChecked():
-            self.Controller.set_auto_mode_state(1)
+            self.controller.set_auto_mode_state(1)
         else:
-            self.Controller.set_auto_mode_state(0)
+            self.controller.set_auto_mode_state(0)
 
     def tab_state_changed(self):
         if self.tab_widget.currentIndex() == 1:
-            self.Controller.manual_mode()
+            self.controller.manual_mode()
 
 
 def start_roscore():

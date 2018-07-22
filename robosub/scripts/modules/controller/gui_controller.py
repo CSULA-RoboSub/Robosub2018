@@ -30,6 +30,16 @@ class Controller():
 
         config.set_config('auv', 'start_auto_mode', value)
 
+    def get_task_list(self):
+        """ Get the list of tasks from config.ini"""
+
+        return config.get_config('auv', 'tasks')
+
+    def read_task_button(self, text):
+        """ Read task string from button press"""
+
+        print(text)
+
     def manual_mode(self):
         """ Manual mode selected (Keyboard)"""
 
