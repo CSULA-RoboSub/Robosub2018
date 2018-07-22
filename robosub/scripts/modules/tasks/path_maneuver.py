@@ -10,6 +10,7 @@ class PathManeuver():
         self.is_no_more_path = False
         self.is_task_complete = False
         self.is_following_path = False
+        self.is_centered = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.follow_path_counter = 0
@@ -52,10 +53,12 @@ class PathManeuver():
         self.move_backward = 'backward'
         self.rotation_power = 50
         self.rotation_angle = 15
-        self.r_power=100
+        self.r_power=50
         self.h_power=100
-        self.m_power=120
+        self.m_power=60
+        self.m_power_strafe=100
         self.no_shape_m_power = 60
+        self.depth_change = 0.2
         
     # reset ##################################################################################
     def reset(self):
@@ -63,6 +66,7 @@ class PathManeuver():
         self.is_no_more_path = False
         self.is_task_complete = False
         self.is_following_path = False
+        self.is_centered = False
 
         self.follow_path_counter = 0
 

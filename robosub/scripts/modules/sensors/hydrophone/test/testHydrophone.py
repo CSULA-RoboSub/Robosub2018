@@ -77,6 +77,7 @@ def h_status_callback(data):
                 turn_degree = abs(theta)
             else:
                 print('both asin and acos arithmetic error infront auv')
+                turn_degree = 0
 
         if left_right > 0:
             #left of auv
@@ -100,6 +101,7 @@ def h_status_callback(data):
                 turn_degree = 180 - abs(theta)
             else:
                 print('both asin and acos arithmetic error behind auv')
+                turn_degree = 0
 
         if left_right > 0:
             #left of auv

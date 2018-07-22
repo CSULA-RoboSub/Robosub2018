@@ -378,13 +378,13 @@ double degreeToTurn(){
 //helper function to set power for rotation
 //rotatePower must be negative to rotate left
 void setRotationPower(double rotatePower){
-  if(rotatePower > rControlPower && rControlPower > 40) rotatePower = rControlPower;
-  if(rotatePower < -rControlPower && -rControlPower < -40) rotatePower = -rControlPower;
+  if(rotatePower > rControlPower && rControlPower > 0) rotatePower = rControlPower;
+  if(rotatePower < -rControlPower && -rControlPower < 0) rotatePower = -rControlPower;
   
   rotatePower = motorPowerCap(rotatePower);
   
   if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust - rotatePower/2, -1, base_thrust - rotatePower/2);
+    setMHorizontal(-1, base_thrust - rotatePower*0.6, -1, base_thrust - rotatePower*0.6);
   }
   else{
     setMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);

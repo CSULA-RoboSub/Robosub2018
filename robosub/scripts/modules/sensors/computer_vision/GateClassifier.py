@@ -17,7 +17,7 @@ class GateClassifier:
         self.model_path = self.new_struct_path + 'models/gate/'
         self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg'
         self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
-
+        #134sadfasdafdadfasdfadsfasdfasdfasdf
         self.task_model_config_name = "gate_model"        
         self.min_dim = 80
         self.block_size = (16, 16)
@@ -25,7 +25,7 @@ class GateClassifier:
         self.cell_size = (8, 8)
         self.bins = 9
         self.dims = (80, 80)
-        self.min_prob = .7
+        self.min_prob = .1    
         self.hog = cv2.HOGDescriptor(
             self.dims,
             self.block_size,
