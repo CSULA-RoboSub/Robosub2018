@@ -31,6 +31,17 @@ class DiceClassifier:
     '''note that the height and widths must be multiples of 8 in order to use a HOOG'''
     def get_hog(self):
         return cv2.HOGDescriptor(self.dims, self.blockSize, self.blockStride, self.cellSize, self.nbins, self.derivAperture, self.winSigma, self.histogramNormType, self.L2HysThreshold, self.gammaCorrection, self.nlevels)
+
+
+    def get_features_with_label(self, img_data, label):
+        data = []
+        for img in img_data:
+            img = cv2.resize(img, self.dims)
+            feat = self.hog.compute(img[:, :, :3])
+            data.append((feat, label))
+        return data
+    
+    
     '''
         Checks if there is a pickle svm already if not it'll create it.
     '''
@@ -48,24 +59,15 @@ class DiceClassifier:
 
             for img in glob.glob('modules/sensors/computer_vision/data/dice/pos_dice/*.jpg'):
                 n = cv2.imread(img)
-                resized = cv2.resize(n, self.dims)
+                resized = cv2.resize(n, self.dims) # why resizing?
                 pos_imgs.append(resized)
 
             for img in glob.glob('modules/sensors/computer_vision/data/dice/neg_images/*.jpg'):
                 n = cv2.imread(img)
                 neg_imgs.append(n)
 
-            def getFeaturesWithLabel(imgData, hog, dims, label):
-                data = []
-                for img in imgData:
-                    img = cv2.resize(img, dims)
-                    #for images with transparency layer, reduce to 3 layers
-                    feat = hog.compute(img[:,:,:3])
-                    data.append((feat, label))
-                return data
-
-            pdata = getFeaturesWithLabel(pos_imgs, self.hog, self.dims, 1)
-            ndata = getFeaturesWithLabel(neg_imgs, self.hog, self.dims, 0)
+            pdata = get_features_with_label(pos_imgs, self.hog, self.dims, 1)
+            ndata = get_features_with_label(neg_imgs, self.hog, self.dims, 0)
 
             data = pdata + ndata
             shuffle(data)
@@ -86,9 +88,6 @@ class DiceClassifier:
 
             joblib.dump(lsvm,'modules/sensors/computer_vision/models/dice/DiceSVMstd.pkl')
             result = lsvm.predict(test_feat)
-
-            #print "test accuracy ", lsvm.score(test_feat, test_label)
-            #print lsvm.score(train_feat, train_label)
 
         return lsvm
 
