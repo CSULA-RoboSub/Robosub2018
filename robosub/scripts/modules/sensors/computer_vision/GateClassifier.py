@@ -3,29 +3,27 @@ import glob
 import numpy as np
 import pandas as pd
 from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
-import Classifier
-import sys
 from sklearn.externals import joblib
-import modules.main.config as config
+from sklearn.model_selection import train_test_split
+import modules.main.config as config # located in our project folder
 
 class GateClassifier:
 
     def __init__(self):
-        self.new_struct_path = 'modules/sensors/computer_vision/'
-        
+        self.new_struct_path = 'modules/sensors/computer_vision/' # project folder struct
         self.model_path = self.new_struct_path + 'models/gate/'
         self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg'
         self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
-        #134sadfasdafdadfasdfadsfasdfasdfasdf
-        self.task_model_config_name = "gate_model"        
+        #134sadfasdafdadfasdfadsfasdfasdfasdf  <- WHAT IS THIS? jaklsdjfafvaej
+        self.task_model_config_name = "gate_model" # should be able to rename soon
+        self.model_name = self.get_model_name('cv', self.task_model_config_name) # helper for config
+        self.lsvm = self.set_model(self.model_name)
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
         self.cell_size = (8, 8)
         self.bins = 9
         self.dims = (80, 80)
-        self.min_prob = .1    
         self.hog = cv2.HOGDescriptor(
             self.dims,
             self.block_size,
@@ -34,17 +32,16 @@ class GateClassifier:
             self.bins
         )
 
-        self.model_name = self.get_model_name('cv', self.task_model_config_name)
-        self.set_model(self.model_name)
+        self.min_prob = .1 # set probability for MODELdown here for convenience
+        
 
-
-    # returns the model file name as a string from henrys config file
+    # returns the model file name as a string from henrys config file - conig file has prenamed
     def get_model_name(self, section, option):
         return config.get_config(section, option)
 
         
     def set_model(self, task_model_name=None):
-        if task_model_name is None:
+        if task_model_name is None: # so later on we can rename? or something have to ask henry
             task_model_name = self.task_model_config_name
         try:
             self.lsvm = joblib.load(self.model_path + task_model_name + ".pkl")
