@@ -81,18 +81,24 @@ class Houston():
         'roulette', 'pinger_a', 'cash_in'
         """
         self.state_num = 0
+        # self.states = [
+        #     self.gate, 
+        #     self.path_1, 
+        #     self.dice, 
+        #     self.chip_1, 
+        #     self.path_2,
+        #     self.slots, 
+        #     self.chip_2, 
+        #     self.pinger_a, 
+        #     self.roulette, 
+        #     self.pinger_b, 
+        #     self.cash_in
+        # ]
+
         self.states = [
             self.gate, 
             self.path_1, 
-            self.dice, 
-            self.chip_1, 
-            self.path_2,
-            self.slots, 
-            self.chip_2, 
-            self.pinger_a, 
-            self.roulette, 
-            self.pinger_b, 
-            self.cash_in
+            self.dice
         ]
 
         self.one_or_all_tasks = {
@@ -147,8 +153,9 @@ class Houston():
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
         self.all_task_loop = True
+        self.state_num = 0
         while self.all_task_loop:
-            if self.state_num > 10:
+            if self.state_num > len(self.states)-1:
                 self.all_task_loop = False
                 print 'no more tasks to complete'
             
@@ -161,15 +168,15 @@ class Houston():
             # self.navigation.ros_sleep(3)
             # self.navigation.m_nav('power', 'forward', self.power)
             # self.navigation.ros_sleep(3)
+            else:
+                self.state = self.states[self.state_num]
 
-            self.state = self.states[self.state_num]
+                self.state.reset()
+                print 'doing task: {}'.format(self.tasks[self.state_num])
+                self.state.start(self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
 
-            self.state.reset()
-            print 'doing task: {}'.format(self.tasks[self.state_num])
-            self.state.start(self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
-
-            if self.state.complete():
-                self.state_num += 1
+                if self.state.complete():
+                    self.state_num += 1
                 
         self.is_task_running = False
 

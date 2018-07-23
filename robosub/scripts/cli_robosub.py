@@ -90,6 +90,8 @@ class CLI(cmd.Cmd):
 
         if arg.lower() == 'stop' or arg.lower() == '':
             AUV.stop_task()
+        elif arg.lower() == 'all':
+            AUV.perform_tasks()
         elif not arg == '':
             try:
                 arg = int(arg)

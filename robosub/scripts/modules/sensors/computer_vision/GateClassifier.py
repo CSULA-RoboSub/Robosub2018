@@ -17,7 +17,7 @@ class GateClassifier:
         #134sadfasdafdadfasdfadsfasdfasdfasdf  <- WHAT IS THIS? jaklsdjfafvaej
         self.task_model_config_name = "gate_model" # should be able to rename soon
         self.model_name = self.get_model_name('cv', self.task_model_config_name) # helper for config
-        self.lsvm = self.set_model(self.model_name)
+        self.set_model(self.model_name)
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
