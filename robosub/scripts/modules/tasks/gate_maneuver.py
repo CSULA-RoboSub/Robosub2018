@@ -129,8 +129,6 @@ class GateManeuver():
             navigation.cancel_and_m_nav('power', self.move_forward, power)
             navigation.cancel_and_h_nav('down', self.depth_change, self.h_power)
 
-            #swap camera to bottom facing
-
         if self.forward_movement_timer >= self.forward_movement_threshold:
             self.is_past_gate = True
             
@@ -198,9 +196,6 @@ class GateManeuver():
         
     # completed_gate ##################################################################################
     def completed_gate_check(self):
-        #if heading is not None
-        #if self.passed_gate = 1
-        #return True
         check_head = self.is_heading_correct
         check_forward = self.is_moving_forward
         check_gate = self.is_past_gate
@@ -217,15 +212,9 @@ class GateManeuver():
             self.strafe_to_square(navigation, 100, 50, width_height[0])
         else:
             self.move_to_gate(navigation, coordinates, power)
-        # print 'performing vertical'
     
     # horizontal ##################################################################################
     def horizontal(self, navigation, coordinates, power, rotation, width_height, found):
-        # if not is_heading_correct:
-        #     self.backup_to_square(navigation, power)
-        # else:
-        #     self.move_to_gate(navigation, coordinates, power)
-        #     self.forward_movement_timer += 1
         if self.is_strafed_to_square:
             self.rotated_to_center = False
             self.is_strafed_to_square = False
@@ -241,13 +230,9 @@ class GateManeuver():
 
         else:
             self.move_to_gate(navigation, coordinates, power)
-        # print 'performing horizontal'
 
     # square ##################################################################################    
     def square(self, navigation, coordinates, power, rotation, width_height, found):
-        #self.heading_verify_count += 1
-
-        #if self.heading is None and self.heading_verify_count >= self.heading_verify_threshold:
         if self.is_strafed_to_square:
             self.rotated_to_center = False
             self.is_strafed_to_square = False
@@ -263,8 +248,6 @@ class GateManeuver():
 
         else:
             self.move_to_gate(navigation, coordinates, power)
-
-        # print 'performing square'
 
     # no_shape_found ##################################################################################
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, found):
@@ -272,13 +255,11 @@ class GateManeuver():
             if self.nothing_found_counter >= self.nothing_found_threashold:
                 self.rotate(navigation, self.rotation_power, rotation)
                 #self.sweep(navigation, self.sweep_power, rotation)
-                # pass
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)
             # TODO need to add movement after gate here to search for path
             # using if statement with self.is_passed_gate
-        # print 'performing no shape'
         
     # rotate_to_center ##################################################################################
     def rotate_to_center(self, navigation, coordinates):
@@ -289,10 +270,7 @@ class GateManeuver():
 
         self.nothing_found_counter = 0
 
-    # movement_after_gate ##################################################################################
-    def movement_after_gate(self):
-        pass
-
     # plan_b_movement ##################################################################################
     def plan_b_movement(self, navigation, coordinates, power, rotation, width_height, found):
+        # TODO implement gate.orientation_heading to set heading and go forward
         navigation.cancel_and_m_nav('power', self.move_forward, power)

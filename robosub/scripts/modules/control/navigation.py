@@ -96,7 +96,7 @@ class Navigation():
         self.w_power_m = 140
         self.r_power = 90
         self.h_power = 100
-        self. m_power = 140
+        self.m_power = 140
         self.waypoint_state = 0
 
         #vars dealing with movement break time
