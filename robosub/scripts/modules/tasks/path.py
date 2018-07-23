@@ -169,12 +169,12 @@ class Path(Task):
             self.is_gate_found = True
             self.task_num += 1'''
         print 'detect path'
-        self.navigate()
-        self.complete()
-        self.bail_task()
-        self.restart_task()
+        # self.navigate()
+        # self.complete()
+        # self.bail_task()
+        # self.restart_task()
 
-        return False, [0,0]
+        # return False, [0,0]
 
     # navigate ##################################################################################
     # rotate always on
