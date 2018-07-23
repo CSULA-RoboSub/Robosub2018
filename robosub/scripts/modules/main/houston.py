@@ -149,9 +149,9 @@ class Houston():
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
         self.is_task_running = True
-        self.navigation.cancel_h_nav()
-        self.navigation.cancel_m_nav()
-        self.navigation.cancel_r_nav()
+        # self.navigation.cancel_h_nav()
+        # self.navigation.cancel_m_nav()
+        # self.navigation.cancel_r_nav()
         self.all_task_loop = True
         self.state_num = 0
         while self.all_task_loop:

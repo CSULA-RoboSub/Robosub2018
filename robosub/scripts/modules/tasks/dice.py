@@ -89,6 +89,7 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
+        cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()

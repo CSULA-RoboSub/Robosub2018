@@ -16,7 +16,7 @@ class DiceClassifier:
         self.negative_image_path = self.new_struct_path + 'data/dice/negative/*.jpg'
         self.task_model_config_name = "DiceSVMstd"
         self.model_name = self.get_model_name('cv', self.task_model_config_name)
-        self.lsvm = self.set_model(self.model_name)
+        self.set_model(self.model_name)
         # will convert hog to same way gate is 
         self.minDim = 80
         self.blockSize = (16, 16)
