@@ -92,7 +92,7 @@ class DiceManeuver():
             print 'sub is touching, or close to touching die'
 
     # back_up_from_die ##################################################################################
-    def back_up_from_die(self, navigation, coordinates, power, rotation):
+    def back_up_from_die(self, navigation, power):
         # TODO perhaps can add a way point when all dice are in view to navigate back to
         # when first die is touched
         navigation.m_nav('power', self.move_backward, power)
@@ -141,7 +141,7 @@ class DiceManeuver():
         if self.touching_die_counter < self.touching_die_threshold:
             self.touch_die(navigation, coordinates, power, rotation, width_height)
         else:
-            self.back_up_from_die(navigation, coordinates, power, rotation)
+            self.back_up_from_die(navigation, power)
 
         if self.back_up_counter > self.back_up_threshold:
             if not self.is_1st_die_touched:

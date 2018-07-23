@@ -2,7 +2,6 @@ import rospy
 import cv2
 import sys
 import time
-# import gi
 import threading
 
 import numpy as np
