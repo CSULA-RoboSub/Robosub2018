@@ -26,7 +26,7 @@ class DicePreprocessor:
         return output, mask
 
 
-    def filter_contours(self, frame_countours):
+    def filter_contours(self, frame_contours):
         new_cont_list = []
         for cont in frame_contours:
             cont_len = len(cont)
@@ -45,6 +45,8 @@ class DicePreprocessor:
 
         thresh_frame = cv2.adaptiveThreshold(grayscale_frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 3)
         frame_c, frame_contours, frame_hierarchy = cv2.findContours(thresh_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        frame_filtered_contours = self.filter_contours(frame_contours)
         
         boxes = [cv2.boundingRect(c) for c in frame_contours]
 
