@@ -27,7 +27,6 @@ class DiceClassifier:
         self.hog = self.get_hog()
         self.lsvm = self.get_lsvm()
         
-        self.confidence_threshold = .1
 
     '''note that the height and widths must be multiples of 8 in order to use a HOOG'''
     def get_hog(self):
@@ -92,9 +91,7 @@ class DiceClassifier:
             #print lsvm.score(train_feat, train_label)
 
         return lsvm
-    
-    def set_confidence_thresh(self, num):
-        self.confidence_threshold = num
+
    
     def classify(self, frame, roi): #roi = regions of interest
         die = None
