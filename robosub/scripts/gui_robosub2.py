@@ -132,11 +132,11 @@ class App(QWidget):
         self.task_layout.addWidget(self.btn_start_tasks)
         self.btn_stop_tasks = QtWidgets.QPushButton('stop tasks', self.task_selection)  # btn_stop_tasks
         self.task_layout.addWidget(self.btn_stop_tasks)
+        self.btn_refresh = QtWidgets.QPushButton('refresh', self.task_selection)  # btn_refresh
+        self.task_layout.addWidget(self.btn_refresh)
 
-        for task in self.controller.get_task_list():
-            self.btn_task = QtWidgets.QPushButton(task, self.task_selection)
-            self.task_layout.addWidget(self.btn_task)
-            self.btn_task.clicked.connect(partial(self.controller.read_task_button, self.btn_task.text()))
+        self.task_button_list = []
+        self.generate_task_buttons()  # Dynamically generate task buttons from config.ini
 
         # Manual Mode Tab
         self.btn_brake = QtWidgets.QPushButton('Brake', self.manual_controls)  # btn_brake
@@ -220,6 +220,10 @@ class App(QWidget):
         self.tab_state_changed()
         self.tab_widget.currentChanged.connect(self.tab_state_changed)
 
+        # Auto Mode Buttons
+        # TODO start and stop tasks button connection
+        self.btn_refresh.clicked.connect(self.refresh)
+
         # Manual Mode Buttons
         self.btn_forward.clicked.connect(lambda: self.controller.manual_move('forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
         self.btn_backward.clicked.connect(lambda: self.controller.manual_move('backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
@@ -232,14 +236,37 @@ class App(QWidget):
         self.btn_brake.clicked.connect(lambda: self.controller.manual_move('brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
 
     def checkbox_state_changed(self):
+        """ Triggers when checkbox is toggled"""
+
         if self.chk_autostart.isChecked():
             self.controller.set_auto_mode_state(1)
         else:
             self.controller.set_auto_mode_state(0)
 
     def tab_state_changed(self):
+        """ Triggers when different tab is clicked"""
+
         if self.tab_widget.currentIndex() == 1:
             self.controller.manual_mode()
+
+    def generate_task_buttons(self):
+        """ Dynamically create task buttons based off of config.ini"""
+
+        for task in self.controller.get_task_list():
+            self.btn_task = QtWidgets.QPushButton(task, self.task_selection)
+            self.task_layout.addWidget(self.btn_task)
+            self.btn_task.clicked.connect(partial(self.controller.read_task_button, self.btn_task.text()))
+            self.task_button_list.append(self.btn_task)
+
+    def refresh(self):
+        """ Trigger when refresh button is pressed"""
+
+        for button in self.task_button_list:
+            self.task_layout.removeWidget(button)
+            button.deleteLater()
+            button = None
+        self.task_button_list = []
+        self.generate_task_buttons()
 
 
 def start_roscore():
