@@ -76,7 +76,7 @@ class App(QWidget):
 
         self.main_layout.addLayout(self.left_layout)
 
-        # Controller Connections ##########
+        self.left_connections()  # Controller connctions
 
     def right_section(self):
 
@@ -211,7 +211,16 @@ class App(QWidget):
 
         self.main_layout.addLayout(self.right_layout)
 
-        # Controller Connections ##########
+        self.right_connections()  # Controller connctions
+
+    def left_connections(self):
+        """ Controller Connections for left section"""
+
+        # TODO
+        pass
+
+    def right_connections(self):
+        """ Controller Connections for right section"""
 
         # Mode Selection
         self.btn_load_default.clicked.connect(self.controller.load_default_params)
