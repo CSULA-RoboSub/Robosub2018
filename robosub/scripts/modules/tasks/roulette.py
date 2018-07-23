@@ -20,6 +20,7 @@ class Roulette(Task):
         ################ THRESHOLD VARIABLES ################
         self.not_found_threshold = 200
         self.found_threshold = 200
+        self.cant_find_threshold = 2000
 
         ################ FLAG VARIABLES ################
         self.is_found = False
@@ -33,6 +34,7 @@ class Roulette(Task):
         self.found_timer = 0
         self.last_time = 0
         self.counter = Counter()
+        self.cant_find_counter = 0
 
         ################ DICTIONARIES ################
         self.direction_list = []
@@ -158,8 +160,6 @@ class Roulette(Task):
                 navigation.h_nav('down', self.depth_change, self.h_power)
             #TODO must ensure there will be no more height adjustment when it is auv is close enough
             self.roulette_maneuver.go_over_black(navigation, found, most_occur_coords, m_power, rotation, shape)
-
-        
     
     # complete ##################################################################################
     def complete(self):

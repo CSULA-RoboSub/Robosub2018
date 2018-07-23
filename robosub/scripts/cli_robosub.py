@@ -151,6 +151,7 @@ class CLI(cmd.Cmd):
     def do_exit(self, arg):
         '\nExits auv'
 
+        AUV.stop_task()
         AUV.stop()
         print('Closing Robosub')
 
