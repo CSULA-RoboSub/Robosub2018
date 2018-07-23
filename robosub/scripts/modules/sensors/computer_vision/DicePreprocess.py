@@ -44,7 +44,7 @@ class DicePreprocessor:
         grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
 
         thresh_frame = cv2.adaptiveThreshold(grayscale_frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 3)
-        frame_c, frame_contours, frame_hierarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        frame_c, frame_contours, frame_hierarchy = cv2.findContours(thresh_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         
         boxes = [cv2.boundingRect(c) for c in frame_contours]
 
