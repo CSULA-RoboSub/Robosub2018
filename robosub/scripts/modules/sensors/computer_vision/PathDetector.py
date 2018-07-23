@@ -51,7 +51,7 @@ class PathDetector():
         path_shape = self.get_shape(path, self.shape_buffer)
         
         if (path == None):
-            self.directions = [0, 0, 0]
+            self.directions = [0, 0]
             self.found = False
             w, h = 0, 0
         else:

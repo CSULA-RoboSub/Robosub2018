@@ -9,9 +9,9 @@ class PathFollowDetector():
 
     def __init__(self):
         self.classifier = pc.PathClassifier()
-        self.found = False
         self.preprocess = pp.PathPreprocessor()
-        self.directions = [0,0]
+        self.found = False
+        self.directions = [0,0,0]
         self.isTaskComplete = False
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
