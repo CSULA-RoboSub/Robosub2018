@@ -51,12 +51,13 @@ class PathDetector():
         path_shape = self.get_shape(path, self.shape_buffer)
         
         if (path == None):
-            self.directions = [0, 0]
+            self.directions = [0, 0, 0]
             self.found = False
             w, h = 0, 0
         else:
             x, y, w, h = path
             utils.draw_blue_box(frame, path)
             self.directions = utils.get_directions(center, x, y, w, h)
+            self.directions.append(0)
             self.found = True
         return (self.found, self.directions, path_shape, (w, h))

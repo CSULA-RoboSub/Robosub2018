@@ -36,12 +36,12 @@ class Path(Task):
         ################ DICTIONARIES ################
         self.direction_list = []
         
-        self.path_phases = {
-            None: self.path_maneuver.no_shape_found,
-            'vertical': self.path_maneuver.vertical,
-            'horizontal': self.path_maneuver.horizontal,
-            'square': self.path_maneuver.horizontal
-        }
+        # self.path_phases = {
+        #     None: self.path_maneuver.no_shape_found,
+        #     'vertical': self.path_maneuver.vertical,
+        #     'horizontal': self.path_maneuver.horizontal,
+        #     'square': self.path_maneuver.horizontal
+        # }
 
         ################ AUV MOBILITY VARIABLES ################
         self.r_power=50
@@ -58,6 +58,7 @@ class Path(Task):
         self.frame_height_max = 480
         self.frame_width_max = 744
         self.frame_area = self.frame_width_max * self.frame_height_max
+        self.close_enough_area = 53500
 
     # reset ##################################################################################
     def reset(self): 
@@ -96,7 +97,7 @@ class Path(Task):
             # width_height = None
             # TODO may be removed. only added to ensure methods are working
 
-            found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
+            found, directions, shape, width_height = cvcontroller.detect(task_name)
             if found:
                 self.direction_list.append(directions)
 
@@ -175,20 +176,38 @@ class Path(Task):
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
         # print 'navigate path'
         # self.path_phases[shape](navigation, coordinates, power, rotation, width_height)
-    
-        if found and coordinates[0] != 0 and not self.path_maneuver.is_close_enough:
-            #center sub on path right axis
+        if found:
+            if not self.path_maneuver.is_close_enough:
+                if width_height[0] * width_height[1] >= self.close_enough_area:
+                    self.path_maneuver.is_close_enough = True
+            elif self.path_maneuver.is_close_enough and width_height[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
+                self.path_maneuver.is_frame_height_max = True
+            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and width_height[1] < self.frame_height_max/2:
+                self.path_maneuver.is_no_longer_frame_height_max = True
 
-        elif found and coordinates[1] != 0 and not self.path_maneuver.is_close_enough:
-            #center sub on path forward axis
-
-        elif found and coordinates[0] == 0 and coordinates[1] == 0 and not self.path_maneuver.is_close_enough:
+        ########################################################################################
+        if found and coordinates[0] == 0 and coordinates[1] == 0 and not self.path_maneuver.is_close_enough:
             #dive toward bottom of path roi
+            navigation.cancel_m_nav(self.path_maneuver.m_power_strafe)
+            self.path_maneuver.dive_to_path(navigation)
 
-        elif self.path_maneuver.is_close_enough and width_height[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
+        elif found and not self.path_maneuver.is_close_enough:
+            #center sub on path right axis
+            if coordinates[0] != 0:
+                self.path_maneuver.center_x_or_move_forward(navigation, coordinates[0])
+            #center sub on path forward axis
+            elif coordinates[1] != 0:
+                self.path_maneuver.center_y(navigation, coordinates[1])
+
         #rotation now turns on at this point
-        elif self.path_maneuver.is_close_enough:
+        elif found and self.path_maneuver.is_close_enough and not self.path_maneuver.is_no_longer_frame_height_max:
             #rotate and center right axis/move forward
+            self.path_maneuver.follow_path(navigation, coordinates[0], coordinates[2])
+
+        #finished/not found/error state
+        else:
+            navigation.cancel_all_nav()
+
     # complete ##################################################################################
     def complete(self):
         self.is_complete = self.path_maneuver.completed_path_check()
@@ -207,5 +226,9 @@ class Path(Task):
         pass
 
     # get_most_occur_coordinates ##################################################################################
-    def get_most_occur_coordinates(self): 
-        pass 
+    def get_most_occur_coordinates(self, direction_list, counter):
+        for sublist in direction_list:
+            counter.update(combinations(sublist, 3))
+        for key, count in counter.most_common(1):
+            most_occur = key
+        return most_occur

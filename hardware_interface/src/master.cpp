@@ -60,7 +60,7 @@ const double rotationLowerBound = -180;
 const double rotationMultiplier = 4.5;
 const double rotationMinOffset = 35;
 const double topDepth = 0.5;
-const double bottomDepth = 12;
+const double bottomDepth = 20;
 const double motorMax = 1700;
 const double motorMin = 1300;
 const double motorRange = 200;
@@ -384,7 +384,7 @@ void setRotationPower(double rotatePower){
   rotatePower = motorPowerCap(rotatePower);
   
   if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust - rotatePower*0.6, -1, base_thrust - rotatePower*0.6);
+    setMHorizontal(-1, base_thrust - (rotatePower*0.5), -1, base_thrust - (rotatePower*0.5));
   }
   else{
     setMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
@@ -486,7 +486,7 @@ void hControlCallback(const robosub::HControl& hControl) {
       // ROS_INFO(depthChar);
       // ROS_INFO("ft...(-1 means infinite)\n");
     }else
-      ROS_INFO("Sub is still running. Command abort.");
+      ROS_INFO("Sub is still running.");
 
     if(depth == -1 || depth + assignedDepth >= bottomDepth)
       assignedDepth = bottomDepth;
@@ -508,7 +508,7 @@ void hControlCallback(const robosub::HControl& hControl) {
       // ROS_INFO(depthChar);
       // ROS_INFO("ft...(-1 means infinite)\n");
     }else
-      ROS_INFO("Sub is still running. Command abort.");
+      ROS_INFO("Sub is still running.");
       
     if(depth == -1 || depth >= assignedDepth - topDepth)
       assignedDepth = topDepth;

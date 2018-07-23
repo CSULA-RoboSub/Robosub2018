@@ -41,7 +41,7 @@ class Navigation():
 
         self.depth = None  # depth (nonstop moving: -1, moving distance: x)
 
-        self.hPower = None  # power
+        self.hPower = 100  # power
 
         # used for RControl (int state, float rotation, int power) ####################################
         self.rStates = {
@@ -55,7 +55,7 @@ class Navigation():
 
         self.rotation = None  # rotation (nonstop rotating: -1, rotate degree: x)
 
-        self.rPower = None  # power
+        self.rPower = 90  # power
 
         # used for MControl (int state, int mDirection, float power, float distance) #######
         self.mStates = {
