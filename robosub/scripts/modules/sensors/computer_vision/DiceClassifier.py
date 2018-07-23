@@ -23,6 +23,7 @@ class DiceClassifier:
         self.gammaCorrection = 0
         self.nlevels = 64
         self.dims = (144,144)
+        self.min_prob = .1 # adjust probability here
         self.hog = self.get_hog()
         self.lsvm = self.get_lsvm()
         
@@ -95,17 +96,20 @@ class DiceClassifier:
     def set_confidence_thresh(self, num):
         self.confidence_threshold = num
    
-    def classify(self,frame,roi): #roi = regions of interest
+    def classify(self, frame, roi): #roi = regions of interest
         die = None
-        max = 0
-        true_dice = []
+        max_val = 0
+        if self.lsvm is None:
+            print 'ERROR: lsvm not trained'
         for box in roi:
             x, y, w, h = box
-            window = frame[y:y+h, x:x+w, :]
-            window = cv2.resize(window, self.dims)
-            feat = self.hog.compute(window)
-            prob = self.lsvm.predict_proba(feat.reshape(1, -1))[0]
-            if prob[1] > .1 :
+            window = frame[y:y + h, x:x + w, :]
+            window_resized = cv2.resize(window, self.dims)
+            feat = self.hog.compute(window_resized)
+            feat_reshape = feat.reshape(1, -1)
+            prob = self.lsvm.predict_proba(feat_reshape)[0]
+            prediction = self.lsvm.predict(feat_reshape)
+            dice_class = prob[1]
+            if (prediction > 0 and gate_class >= self.min_prob and gate_class > max_val):
                 die = box
-                true_dice.append(box)
-        return true_dice
+        return die
