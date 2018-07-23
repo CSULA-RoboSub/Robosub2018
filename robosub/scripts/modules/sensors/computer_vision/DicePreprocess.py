@@ -15,6 +15,7 @@ class DicePreprocessor:
         self.roi_size = 300
         self.ratio_lower = 0.85
         self.ratio_upper = 1.15
+        self.kernel = np.ones((5, 5), np.uint8)
 
         
     def preprocess(self, img):
@@ -40,7 +41,11 @@ class DicePreprocessor:
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         color_filter_frame, mask = self.preprocess(hsv_frame)
 
-        hsv2bgr_frame = cv2.cvtColor(color_filter_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+        close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, kernel)
+        erode_frame = cv2.erode(close_frame, kernel, iterations=1)
+        dilate_frame = cv2.dilate(erode_frame, kernel, iterations=3)
+
+        hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
         grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
 
         thresh_frame = cv2.adaptiveThreshold(grayscale_frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 3)
