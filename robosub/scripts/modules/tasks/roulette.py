@@ -42,12 +42,25 @@ class Roulette(Task):
             2: 'green'
         }
 
+        self.roulette_vertical_m_nav = {
+            -1: 'backward',
+             0: 'staying',
+             1: 'forward'
+        }
+
+        self.roulette_horizontal_m_nav = {
+            -1: 'left',
+             0: 'staying',
+             1: 'right'
+        }
+
         # self.drop_numbers?
 
         ################ AUV MOBILITY VARIABLES ################
         self.r_power=100
         self.h_power=100
         self.m_power=120
+        self.depth_change = -1
 
         ################ THREAD VARIABLES ################
         self.mutex = Lock()
@@ -56,6 +69,16 @@ class Roulette(Task):
         self.drop_color = 'black'
         # self.drop_color = 'red'
         # self.drop_color = 'green'
+
+        ################ FRAME CONSTANTS ################
+        self.frame_height = 480
+        self.frame_width = 744
+        self.frame_area = self.frame_width*self.frame_height
+
+        ################ ROI VARIABLES ################
+        self.roi_height = 0
+        self.roi_width = 0
+        self.roi_area = 0
 
     # reset ##################################################################################
     def reset(self):
@@ -70,6 +93,10 @@ class Roulette(Task):
         self.last_time = 0
         self.counter = Counter()
 
+        self.roi_height = 0
+        self.roi_width = 0
+        self.roi_area = 0
+
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
@@ -79,6 +106,8 @@ class Roulette(Task):
         while not self.stop_task and not self.complete():
             # try:
             found, direction, shape, width_height = cvcontroller.detect(task_name)
+            self.roi_area = width_height[0]*width_height[1]
+
             if found:
                 self.direction_list.append(direction)
 
@@ -92,12 +121,12 @@ class Roulette(Task):
                     most_occur_coords = [0, 0]
 
                 print 'running {} task'.format(task_name)
-                print 'widthxheight: {}'.format(width_height)
+                print 'roi area: {}'.format(self.roi_area)
                 print 'current count: {}'.format(count)
                 print 'coordinates: {}'.format(most_occur_coords)
                 print '--------------------------------------------'
                 print 'type: navigation cv 0, or task to cancel task'
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, self.roi_area)
                 
                 self.counter = Counter()
                 self.direction_list = []
@@ -116,8 +145,21 @@ class Roulette(Task):
         pass
     
     # navigate ##################################################################################
-    def navigate(self, navigation, found, most_occur_coords, m_power, rotation, shape, width_height):
-        self.roulette_maneuver.go_over_black()
+    def navigate(self, navigation, found, most_occur_coords, m_power, rotation, shape, roi_area):
+        if not self.roulette_maneuver.is_moving_forward:
+            navigation.cancel_r_nav()
+            navigation.cancel_m_nav()
+            navigation.cancel_h_nav()
+        
+        if found:
+            if roi_area > (self.frame_area/2):
+                navigation.cancel_h_nav()
+            else:
+                navigation.h_nav('down', self.depth_change, self.h_power)
+            #TODO must ensure there will be no more height adjustment when it is auv is close enough
+            self.roulette_maneuver.go_over_black(navigation, found, most_occur_coords, m_power, rotation, shape)
+
+        
     
     # complete ##################################################################################
     def complete(self):

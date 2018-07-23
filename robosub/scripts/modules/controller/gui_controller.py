@@ -1,37 +1,54 @@
 from modules.main.auv import AUV  # Import auv
+import modules.main.config as config  # Import config
 
 
 class Controller():
-    """Controller for GUI"""
+    """ Controller for GUI"""
 
     def __init__(self):
         self.AUV = AUV()
         self.AUV.start()  # Magnet killswitch = 1
 
     def load_default_params(self):
-        """Change current parameters back to default parameters"""
+        """ Change current parameters back to default parameters"""
 
-        self.AUV.config.reset_option('auv', 'tasks')
-        self.AUV.config.reset_option('auv', 'motor')
+        config.reset_option('auv', 'tasks')
+        config.reset_option('auv', 'motor')
 
     def change_params(self):
-        """Opens the config file and updates the parameters"""
+        """ Opens the config file and updates the parameters"""
 
         self.AUV.update_config()
 
-    def start_auto_mode(self, value):
-        """Checkbox to determine if AUV starts in auto mode when turned on"""
+    def get_auto_mode_state(self):
+        """ Get the start_auto_mode from config.ini"""
 
-        self.AUV.config.set_config('auv', 'start_auto_mode', value)
+        return config.get_config('auv', 'start_auto_mode') == 1
+
+    def set_auto_mode_state(self, value):
+        """ Checkbox to determine if AUV starts in auto mode when turned on"""
+
+        config.set_config('auv', 'start_auto_mode', value)
+
+    def get_task_list(self):
+        """ Get the list of tasks from config.ini"""
+
+        return config.get_config('auv', 'tasks')
+
+    def read_task_button(self, text):
+        """ Read task string from button press"""
+
+        print(text)
+        # TODO call task in cv
 
     def manual_mode(self):
-        """Manual mode selected (Keyboard)"""
+        """ Manual mode selected (Keyboard)"""
 
         # task.cv_controller.stop()
         pass
 
     def manual_move(self, direction, power, rotation, depth):
-        """Manual movement of the sub based on button press"""
+        """ Manual movement of the sub based on button press"""
 
         directions = {
             'brake': '`',

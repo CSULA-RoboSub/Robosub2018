@@ -59,4 +59,4 @@ class RouletteDetector():
         #     self.directions = utils.get_directions(center, x, y, w, h)
         #     self.found = True
         # return (self.found, self.directions, path_shape, (w, h))
-        return None, None, None, None
+        return None, [0,0], None, (0,0)
