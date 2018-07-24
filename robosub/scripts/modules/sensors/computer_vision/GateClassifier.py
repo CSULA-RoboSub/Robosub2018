@@ -2,28 +2,28 @@ import cv2
 import glob
 import numpy as np
 import pandas as pd
-#import utils as ut # not used
 from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
-import Classifier
-import sys
 from sklearn.externals import joblib
+from sklearn.model_selection import train_test_split
+import modules.main.config as config # located in our project folder
 
 class GateClassifier:
 
     def __init__(self):
-        self.new_struct_path = 'modules/sensors/computer_vision/'
+        self.new_struct_path = 'modules/sensors/computer_vision/' # project folder struct
         self.model_path = self.new_struct_path + 'models/gate/'
-        self.model_file_name = 'svm.pkl'
-        self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg' # maybe add different file formats??
+        self.positive_image_path = self.new_struct_path + 'data/gate/positive/*.jpg'
         self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
+        #134sadfasdafdadfasdfadsfasdfasdfasdf  <- WHAT IS THIS? jaklsdjfafvaej
+        self.task_model_config_name = "gate_model" # should be able to rename soon
+        self.model_name = self.get_model_name('cv', self.task_model_config_name) # helper for config
+        
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
         self.cell_size = (8, 8)
         self.bins = 9
         self.dims = (80, 80)
-        self.min_prob = .7
         self.hog = cv2.HOGDescriptor(
             self.dims,
             self.block_size,
@@ -31,19 +31,29 @@ class GateClassifier:
             self.cell_size,
             self.bins
         )
-        self.vers_label = "py2" # for appending python version to file name
-        if (sys.version_info >= (3, 0) ): # since joblib is picky with versions
-            self.vers_label = "py3" # just for my mac
 
-        try: # load/store trained model
-            self.lsvm = joblib.load(self.model_path + self.vers_label + "_" + self.model_file_name) # load model from disk
+        self.min_prob = .1 # set probability for MODELdown here for convenience
+        self.set_model(self.model_name)
+
+    # returns the model file name as a string from henrys config file - conig file has prenamed
+    def get_model_name(self, section, option):
+        return config.get_config(section, option)
+
+        
+    def set_model(self, task_model_name=None):
+        if task_model_name is None: # so later on we can rename? or something have to ask henry
+            task_model_name = self.task_model_config_name
+        try:
+            self.lsvm = joblib.load(self.model_path + task_model_name + ".pkl")
             print("\nLoading Gate model from disk...\n")
-        except:
+        except IOError as e:
+            print("IOError: {0}".format(e) )
             print("\nTraining model...")
-            self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)
+            self.lsvm = SVC(kernel="linear", C = 0.1, probability=True, random_state=2)
             self.train_lsvm()
-            joblib.dump(self.lsvm, self.model_path + self.vers_label + "_" + self.model_file_name) # store model object to disk
+            joblib.dump(self.lsvm, self.model_path + task_model_name + ".pkl") # store model object to disk
             print("\nStoring model to location: " + "\"" + self.model_path + "\"\n")
+            
 
     def get_features_with_label(self, img_data, label):
         data = []
@@ -88,7 +98,6 @@ class GateClassifier:
         self.lsvm.fit(feat_train, label_train)
         
 
-
     '''
     this returns the max value for the GATE, (x,y) as topleft corner
     then w,h and width and height respectively.
@@ -96,7 +105,8 @@ class GateClassifier:
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
         max_val = 0
-        
+        if self.lsvm is None:
+            print 'error lsvm not trained'
         for box in roi:
             x, y, w, h = box
             window = frame[y:y + h, x:x + w, :]

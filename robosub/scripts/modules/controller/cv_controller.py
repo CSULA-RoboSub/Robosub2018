@@ -3,10 +3,11 @@ import math
 import cv2
 import sys
 import time
-import gi
+import gi 
 import threading
 import copy
 import numpy as np
+import datetime
 
 from threading import Thread
 
@@ -14,6 +15,8 @@ from modules.sensors.computer_vision import GateDetector
 # from modules.sensors.computer_vision import BuoyDetector
 from modules.sensors.computer_vision import DiceDetector
 from modules.sensors.computer_vision import PathDetector
+from modules.sensors.computer_vision import PathFollowDetector
+from modules.sensors.computer_vision import RouletteDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -21,7 +24,7 @@ try:
 
     from gi.repository import Tcam, Gst, GLib
 except:
-    print('*******unable to import sub camera drivers*******')
+    print '*******unable to import sub camera drivers*******'
 
 
 class CVController():
@@ -31,15 +34,16 @@ class CVController():
         # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
         self.pathdetector = PathDetector.PathDetector()
+        self.pathfollowdetector = PathFollowDetector.PathFollowDetector()
         self.dicedetector = DiceDetector.DiceDetector()
         # self.chipdetector = ChipDetector.ChipDetector()
-        # self.roulettedetector = RouletteDetector.RouletteDetector()
+        self.roulettedetector = RouletteDetector.RouletteDetector()
         # self.slotsdetector = SlotsDetector.SlotsDetector()
         # self.pingerdetector = PingerDetector.PingerDetector()
         # self.cashindetector = CashInDetector.CashInDetector()
 
         ################ FPS COUNTER ################
-        self.fps_output = 20
+        self.fps_output = 15
 
         ################ CAMERA FRAME ################
         self.current_raw_frame = None
@@ -49,10 +53,11 @@ class CVController():
         self.tasks = {
             'gate': self.gatedetector,
             'path': self.pathdetector,
-            'dice': self.dicedetector
+            'path_follow': self.pathfollowdetector,
+            'dice': self.dicedetector,
+            'roulette': self.roulettedetector
         }
             # 'chip': self.chipdetector,
-            # 'roulette': self.roulettedetector,
             # 'slots': self.slotsdetector,
             # 'pinger_b': self.pingerdetector,
             # 'pinger_a': self.pingerdetector,
@@ -70,34 +75,78 @@ class CVController():
         
         ################ VIDEOCAMERA INSTANCES ################
         ################ SUB CAMERA DRIVER AND OPENCV ################
+        ##### DO NOT CHANGE ######### 
+        self.camera_serials = {
+            'forward' : '07714031',
+            'down' : '35710219'
+        }
+        #############################
+        self.sample = {
+            'forward' : None,
+            'down' : None
+        }
+        self.pipeline = {
+            'forward' : None,
+            'down' : None
+        }
+        self.display_pipeline = {
+            'forward' : None,
+            'down' : None
+        }
+        self.display_input = {
+            'forward' : None,
+            'down' : None
+        }
+        self.display_buffers = {
+            'forward' : None,
+            'down' : None
+        }
+        self.camera_callbacks = {
+            'forward' : self.camera_forward_callback,
+            'down' : self.camera_down_callback
+        }
+        
+        self.time_delay = 1.0
+        self.camera_direction = 'forward'
+        self.cap = None
+
         try:
             self.loop = GLib.MainLoop()
-            self.sample = None
-            self.pipeline = None
             self.thread = None
             self.sub_camera_found = 1
-            print('*******initialize Glib.MainLoop() successful*******')
+            print '*******initialize Glib.MainLoop() successful*******'
         except:
-            self.cap = cv2.VideoCapture(0)
             self.sub_camera_found = 0
-            print('*******unable to initialize Glib.MainLoop()*******')
+            print '*******unable to initialize Glib.MainLoop()*******'
 
     # start ##################################################################################
     def start(self, task_name):
-        self.camera_start_dictionary[self.sub_camera_found](task_name)
+        if self.sub_camera_found == 1:
+            self.camera_start_dictionary[self.sub_camera_found](task_name)
+        #do not elif we want to check the 2nd one if first fails aswell
+        if self.sub_camera_found == 0:
+            self.camera_start_dictionary[self.sub_camera_found](task_name)
+        # time.sleep(self.time_delay)
         print 'start cvcontroller'
 
     # stop ##################################################################################
     def stop(self):
-        try:
-            self.closePipline()
-            print 'pipline closed'
-        except:
+        self.outraw.release()
+        self.outprocessed.release()
+        self.close_pipeline()
+        if self.cap:
             self.cap.release()
+            self.cap = None
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
+    # camera selection functions ######################################################################
+    def change_camera_to(self, camera_direction, task_name):
+        self.stop()
+        self.camera_direction = camera_direction
+        self.start(task_name)
+        
     # raw_frame ##################################################################################
     def raw_frame(self):
         return self.current_raw_frame
@@ -106,70 +155,114 @@ class CVController():
     def processed_frame(self):
         return self.current_processed_frame
     
+    # setup_video_output ##################################################################################
+    def setup_video_output(self, task_name):
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        now = datetime.datetime.now()
+        timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
+        if self.sub_camera_found == 1:
+            res = (744, 480)
+        else:
+            res = (640, 480)
+
+        self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
+        self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
+
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
-        print("setup pipeline")
-        self.setupPipline()
+        print 'setup pipeline'
+        # for key in self.pipeline:
+        #     self.setup_pipeline(key)
+        self.setup_pipeline(self.camera_direction)
+        if self.sub_camera_found == 0:
+            return
+        # self.setup_pipeline('down')
         self.thread=Thread(target=self.start_loop)
         self.thread.start()
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name     + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (744, 480))
+        self.setup_video_output(task_name)
         print 'sub camera found'
 
     # opencv_camera_start ##################################################################################
     def opencv_camera_start(self, task_name):
         self.cap = None
         self.cap = cv2.VideoCapture(0)
-        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        self.outraw = cv2.VideoWriter('video_output/raw' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
-        self.outprocessed = cv2.VideoWriter('video_output/processed' + task_name + '-' + str(time.time()) + '_output.avi', self.fourcc, self.fps_output, (640, 480))
+        self.setup_video_output(task_name)
         print 'laptop/default camera found'
 
+    def display_output(self, camera_direction):
+        if self.sample[camera_direction]:
+            buf = self.sample[camera_direction].get_buffer()
+
+            caps = self.sample[camera_direction].get_caps()
+            width = caps[0].get_value("width")
+            height = caps[0].get_value("height")
+            # try:
+            res, mapinfo = buf.map(Gst.MapFlags.READ)
+            # actual image buffer and size
+            # data = mapinfo.data
+            # size = mapinfo.size
+
+            # Create a numpy array from the data
+            img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+            frame = img_array.reshape((height, width, 3))
+            self.show_img(camera_direction, frame)
+
+            # except KeyboardInterrupt:
+            #     self.state.is_detect_done = True
+            #     # raise
+            # finally:
+            buf.unmap(mapinfo)
+                
     # sub_driver_camera_detect ##################################################################################
-    def sub_driver_camera_detect(self, task):
+    def sub_driver_camera_detect(self, task, camera_direction = None):
         if not task:
             return None, None, None, None
             
-        self.cv_task = self.tasks[task]
-        if self.sample:
-            # print("have sample")
-            buf = self.sample.get_buffer()
+        if not camera_direction:
+            # camera_direction = 'down'
+            camera_direction = self.camera_direction
 
-            caps = self.sample.get_caps()
+        self.cv_task = self.tasks[task]
+        # self.display_output('down')
+        # self.display_output(camera_direction)
+        if self.sample[camera_direction]:
+            # print("have sample")
+            buf = self.sample[camera_direction].get_buffer()
+
+            caps = self.sample[camera_direction].get_caps()
             width = caps[0].get_value("width")
             height = caps[0].get_value("height")
-            try:
-                res, mapinfo = buf.map(Gst.MapFlags.READ)
-                # actual image buffer and size
-                # data = mapinfo.data
-                # size = mapinfo.size
+            # try:
+            res, mapinfo = buf.map(Gst.MapFlags.READ)
+            # actual image buffer and size
+            # data = mapinfo.data
+            # size = mapinfo.size
 
-                # Create a numpy array from the data
-                img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+            # Create a numpy array from the data
+            img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
 
-                # Give the array the correct dimensions of the video image
-                frame = img_array.reshape((height, width, 3))
-                # print(type(frame))
+            # Give the array the correct dimensions of the video image
+            frame = img_array.reshape((height, width, 3))
+            # print(type(frame))
 
-                # self.outraw.write(frame)
-                # self.msg.found, coordinates = self.state.detect(frame)
-                # self.outprocessed.write(frame)
+            # self.outraw.write(frame)
+            # self.msg.found, coordinates = self.state.detect(frame)
+            # self.outprocessed.write(frame)
 
-                # self.last_reading.append(coordinates)
-                self.outraw.write(frame)
-                self.current_raw_frame = copy.copy(frame)
-                found, coordinates, shape, width_height = self.cv_task.detect(frame)
-                self.outprocessed.write(frame)
-                self.current_processed_frame = copy.copy(frame)
+            # self.last_reading.append(coordinates)
+            self.outraw.write(frame)
+            self.current_raw_frame = copy.copy(frame)
+            found, coordinates, shape, width_height = self.cv_task.detect(frame)
+            self.outprocessed.write(frame)
+            self.current_processed_frame = copy.copy(frame)
 
-                self.show_img(frame)
+            self.show_img(camera_direction, frame)
 
-            except KeyboardInterrupt:
-                self.state.is_detect_done = True
-                # raise
-            finally:
-                buf.unmap(mapinfo)
+            # except KeyboardInterrupt:
+            #     self.state.is_detect_done = True
+            #     # raise
+            # finally:
+            buf.unmap(mapinfo)
 
             return found, coordinates, shape, width_height
         return None, None, None, None
@@ -188,34 +281,53 @@ class CVController():
     
     # detect ##################################################################################
     def detect(self, task):
+        # try:
         return self.camera_detect[self.sub_camera_found](task)
+        # except:
+        #     print 'detect for that task is not available'
+        #     return False, [0,0], None, (0,0)
+
+    # change_die_num ##################################################################################
+    def change_die_num(self):
+        self.dicedetector.change_dice()
 
     # show_img ##################################################################################
-    def show_img(self, img):
+    def show_img(self, camera_direction, img):
         bytebuffer = img.tobytes()
-        self.display_buffers.append(bytebuffer)
-        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers.pop(0))
-        self.display_input.emit("push-buffer", new_buf)
+        self.display_buffers[camera_direction].append(bytebuffer)
+        new_buf = Gst.Buffer.new_wrapped_full(Gst.MemoryFlags.READONLY, bytebuffer, len(bytebuffer), 0, None, lambda x: self.display_buffers[camera_direction].pop(0))
+        self.display_input[camera_direction].emit("push-buffer", new_buf)
 
-    # setupPipline ##################################################################################
-    def setupPipline(self):
+    # setup_pipeline ##################################################################################
+    def setup_pipeline(self, camera_direction = None):
+        if camera_direction == None:
+            print 'need camera_direction to setup pipeline'
+            return
+        elif camera_direction not in self.pipeline:
+            print 'invalid camera'
+            return
+
         Gst.init(sys.argv)  # init gstreamer
-        print Gst
+        # print Gst
 
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")
 
         # retrieve all available serial numbers
         serials = source.get_device_serials()
-
+        if not serials:
+            self.sub_camera_found = 0
+            print 'error: no cameras found'
+            return
         # create a list to have an easy index <-> serial association
         # device_list = []
 
         # for s in serials:
         #     device_list.append(s)
         
-        serial = serials[0]
-        print(serial)
+        # serial = serials[0]
+        serial = self.camera_serials[camera_direction]
+        # print serial
         if serial is not None:
             source.set_property("serial", serial)
 
@@ -248,15 +360,15 @@ class CVController():
         output = Gst.ElementFactory.make("appsink")
         output.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.set_property("emit-signals", True)
-        self.pipeline = Gst.Pipeline.new()
+        self.pipeline[camera_direction] = Gst.Pipeline.new()
 
         # Add all elements
-        self.pipeline.add(source)
-        self.pipeline.add(capsfilter)
-        self.pipeline.add(queue)
-        self.pipeline.add(convert)
-        self.pipeline.add(scale)
-        self.pipeline.add(output)
+        self.pipeline[camera_direction].add(source)
+        self.pipeline[camera_direction].add(capsfilter)
+        self.pipeline[camera_direction].add(queue)
+        self.pipeline[camera_direction].add(convert)
+        self.pipeline[camera_direction].add(scale)
+        self.pipeline[camera_direction].add(output)
 
         # Link the elements
         source.link(capsfilter)
@@ -268,37 +380,59 @@ class CVController():
         # Usually one would use cv2.imgshow(...) to display an image but this is
         # tends to hang in threaded environments. So we create a small display
         # pipeline which we could use to display the opencv buffers.
-        display_pipeline = Gst.parse_launch("appsrc name=src ! videoconvert ! ximagesink")
-        self.display_input = display_pipeline.get_by_name("src")
-        self.display_input.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
-        output.connect("new-sample", self.callback)
+        src_name = "cam_" + camera_direction
+        self.display_pipeline[camera_direction] = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
+        self.display_input[camera_direction] = self.display_pipeline[camera_direction].get_by_name(src_name)
+        self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
+        output.connect("new-sample", self.camera_callbacks[camera_direction])
 
-        self.display_buffers = []
-        display_pipeline.set_state(Gst.State.PLAYING)  
+        self.display_buffers[camera_direction] = []
+        self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING)  
 
-        self.pipeline.set_state(Gst.State.PLAYING)
-        print("done setting up pipeline")
+        self.pipeline[camera_direction].set_state(Gst.State.PLAYING)
+        print 'done setting up pipeline'
 
-    # closePipline ##################################################################################
-    def closePipline(self):
-        self.outraw.release()
-        self.outprocessed.release()
-        self.pipeline.set_state(Gst.State.NULL)
-        self.display_buffers = []
-        self.last_reading = []
-        self.display_input = None
-        self.pipeline = None
-        self.sample = None
-        cv2.destroyAllWindows()
-        # 
-        self.loop.quit()
+    # close_pipeline ##################################################################################
+    def close_pipeline(self):
+        # try:
+        for key in self.pipeline:
+            if self.pipeline[key]:
+                self.pipeline[key].set_state(Gst.State.NULL)
+                self.pipeline[key] = None
+            
+            if self.sample[key]:
+                self.sample[key] = None
 
-        print("closed pipeline")
+            if self.display_buffers[key]:
+                self.display_buffers[key] = None
+
+            if self.display_input[key]:
+                self.display_input[key] = None
+
+            if self.display_pipeline[key]:
+                self.display_pipeline[key].set_state(Gst.State.NULL)
+                self.display_pipeline[key] = None
+        # except:
+        #     print 'error in cvcontroller close_pipeline'
+        # if self.loop:
+        try:
+            self.loop.quit()
+        except:
+            print 'unable to use self.loop.quit()'
+        self.thread = None
+
+        print 'closed pipeline'
 
     # callback ##################################################################################
-    def callback(self, sink):
-        # print("in callback")
-        self.sample = sink.emit("pull-sample")
+    def camera_forward_callback(self, sink):
+        # print("in forward callback")
+        self.sample['forward'] = sink.emit("pull-sample")
+        
+        return Gst.FlowReturn.OK
+
+    def camera_down_callback(self, sink):
+        # print("in down callback")
+        self.sample['down'] = sink.emit("pull-sample")
         
         return Gst.FlowReturn.OK
 

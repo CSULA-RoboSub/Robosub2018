@@ -19,6 +19,11 @@ class Waypoint():
         rospy.Subscriber('current_rotation', Rotation, self.rotation_callback, queue_size=1)
         # rospy.Subscriber('dvl_heading', Float32, self.rotation_callback, queue_size=1)
 
+        self.directions = {
+            0 : 'left',
+            1 : 'staying',
+            2 : 'right'
+        }
     def dvl_callback(self, dvl_msg):
         #x is east axis y is north axis, dvl uses compass north east as axis
         #currently in meters
@@ -167,20 +172,20 @@ class Waypoint():
             if yaw_diff > 180:
                 #if yaw_diff is greater than 180 then rotation is left and 360-yaw_diff degrees
                 degree = 360 - yaw_diff
-                direction = 'left'
+                direction = self.directions[0]
             else:
                 degree = yaw_diff
-                direction = 'right'
+                direction = self.directions[2]
         elif yaw_diff < 0:
             if yaw_diff < -180:
                 degree = 360 + yaw_diff
-                direction = 'right'
+                direction = self.directions[2]
             else:
                 degree = -yaw_diff
-                direction = 'left'
+                direction = self.directions[0]
         else:
             degree = 0
-            direction = 'staying'
+            direction = self.directions[1]
 
 
         # print('degree: %.2f' % degree)
@@ -201,4 +206,21 @@ class Waypoint():
 
         return distance
 
-        
+    def get_directions_with_heading(self, to_heading):
+        heading_diff = to_heading - self.heading
+
+        if heading_diff > 180:
+            heading_diff = 360 - heading_diff
+        elif heading_diff <= -180:
+            heading_diff = 360 + heading_diff
+
+        #default no direction
+        direction = self.directions[1]
+        if heading_diff < 0:
+            #direction left
+            direction = self.directions[0]
+        elif heading_diff > 0:
+            #direction right
+            direction = self.directions[2]
+
+        return direction, abs(heading_diff)

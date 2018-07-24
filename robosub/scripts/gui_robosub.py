@@ -213,6 +213,7 @@ class Ui_MainWindow(object):
         self.rotation_layout.addWidget(self.rotation)
         self.gridLayout.addLayout(self.rotation_layout, 1, 3, 1, 1)
         self.tabWidget.addTab(self.controls, "")
+
         self.computer_vision = QtWidgets.QWidget()
         self.computer_vision.setObjectName("computer_vision")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.computer_vision)
@@ -318,18 +319,35 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addLayout(self.right_layout)
         MainWindow.setCentralWidget(self.central_widget)
 
+        # self.cv_min_rgb = QtWidgets.QPushButton('min RGB', self)
+        # self.cv_min_rgb.clicked.connect(self.on_click)
+        # self.central_widget.show()
+
         self.retranslateUi(MainWindow)
 
         # Controller connections
 
-        # mode selection
+        # Cameras
+        # TODO display cameras
+        # TODO add camera button connections
+
+        # Sensor Data
+        # TODO Sensor Data
+
+        # Messages
+        # TODO messages
+
+        # Mode Selection
         self.load_default_button.clicked.connect(self.Controller.load_default_params)
         self.change_params_button.clicked.connect(self.Controller.change_params)
         self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
         self.tab_state_changed()
         self.tabWidget.currentChanged.connect(self.tab_state_changed)
 
-        # manual mode buttons
+        # Auto Mode
+        # TODO dynamic auto mode buttons
+
+        # Manual Mode Buttons
         self.forward.clicked.connect(lambda: self.Controller.manual_move('forward', self.power.value(), self.rotation.value(), self.depth.value()))
         self.backward.clicked.connect(lambda: self.Controller.manual_move('backward', self.power.value(), self.rotation.value(), self.depth.value()))
         self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('strafe_l', self.power.value(), self.rotation.value(), self.depth.value()))
@@ -340,6 +358,9 @@ class Ui_MainWindow(object):
         self.down.clicked.connect(lambda: self.Controller.manual_move('down', self.power.value(), self.rotation.value(), self.depth.value()))
         self.brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.power.value(), self.rotation.value(), self.depth.value()))
 
+        # Computer Vision
+        # TODO use color slider widget
+
     def checkbox_state_changed(self):
         if self.auto_checkbox.isChecked():
             self.Controller.start_auto_mode(1)
@@ -349,6 +370,16 @@ class Ui_MainWindow(object):
     def tab_state_changed(self):
         if self.tabWidget.currentIndex() == 1:
             self.Controller.manual_mode()
+
+    # @QtCore.pyqtSlot()
+    # def on_click(self):
+    #     self.openColorDialog(self)
+
+    # def openColorDialog(self):
+    #     color = QtGui.QColorDialog.getColor()
+
+    #     if color.isValid():
+    #         print(color.name())
 
         # self.tabWidget.setCurrentIndex(2)
         # self.camera0.clicked.connect(self.display0.update)
@@ -398,6 +429,7 @@ class Ui_MainWindow(object):
         self.label_6.setText(_translate("MainWindow", "2 right"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.computer_vision), _translate("MainWindow", "Computer Vision"))
 
+
 def start_roscore():
     """Check if roscore is running. If not starts roscore"""
 
@@ -427,9 +459,10 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-    sys.exit(app.exec_())
 
     if(roscore):
         subprocess.Popen.kill(roscore)
         os.system('killall -9 rosmaster')
         os.system('killall -9 rosout')
+
+    sys.exit(app.exec_())

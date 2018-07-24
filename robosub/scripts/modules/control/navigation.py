@@ -41,7 +41,7 @@ class Navigation():
 
         self.depth = None  # depth (nonstop moving: -1, moving distance: x)
 
-        self.hPower = None  # power
+        self.hPower = 100  # power
 
         # used for RControl (int state, float rotation, int power) ####################################
         self.rStates = {
@@ -55,7 +55,7 @@ class Navigation():
 
         self.rotation = None  # rotation (nonstop rotating: -1, rotate degree: x)
 
-        self.rPower = None  # power
+        self.rPower = 90  # power
 
         # used for MControl (int state, int mDirection, float power, float distance) #######
         self.mStates = {
@@ -96,7 +96,7 @@ class Navigation():
         self.w_power_m = 140
         self.r_power = 90
         self.h_power = 100
-        self. m_power = 140
+        self.m_power = 140
         self.waypoint_state = 0
 
         #vars dealing with movement break time
@@ -173,25 +173,36 @@ class Navigation():
         elif self.mState == self.mStates['motor_time']:
             self.runningTime = value
 
-    def cancel_m_nav(self, power = 140):
+    def cancel_m_nav(self, power = None):
+        if not power:
+            power = 140
         self.m_nav('off', 'none', power)
 
-    def cancel_h_nav(self, power = 100):
+    def cancel_h_nav(self, power = None):
+        if not power:
+            power = 100
         self.h_nav('staying', 0, power)
 
-    def cancel_r_nav(self, power = 90):
+    def cancel_r_nav(self, power = None):
+        if not power:
+            power = 90
         self.r_nav('staying', 0, power)
 
+    def cancel_all_nav(self, power = None):
+        self.cancel_m_nav(power)
+        self.cancel_r_nav(power)
+        self.cancel_h_nav(power)
+
     def cancel_and_h_nav(self, hState=None, depth=None, hPower=None):
-        self.cancel_h_nav()
+        self.cancel_h_nav(hPower)
         self.h_nav(hState, depth, hPower)
 
     def cancel_and_r_nav(self, rState=None, rotation=None, rPower=None):
-        self.cancel_r_nav()
+        self.cancel_r_nav(rPower)
         self.r_nav(rState, rotation, rPower)
 
     def cancel_and_m_nav(self, mState=None, mDirection=None, power=None, value=None):
-        self.cancel_m_nav()
+        self.cancel_m_nav(power)
         self.m_nav(mState, mDirection, power, value)
 
     def h_nav(self, hState=None, depth=None, hPower=None):

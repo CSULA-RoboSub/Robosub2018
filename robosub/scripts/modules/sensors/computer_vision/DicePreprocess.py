@@ -5,61 +5,57 @@ import numpy as np
 class DicePreprocessor:
 
     def __init__(self):
-        self.lower = [0, 80, 80]
-        self.upper = [170, 255, 255]
+        self.lower = np.array([0, 0, 0], 'uint8') # olins orig - works for dots
+        self.upper = np.array([255, 255, 93], 'uint8') # olins orig - works for dots
+        self.dots_lower = np.array([0, 0, 0], 'uint8') # any lighting
+        self.dots_upper = np.array([180, 255, 80], 'uint8') # any lighting
+        self.detect_dots = False
+        self.min_cont_size = 100
+        self.max_cont_size = 1000
         self.roi_size = 300
+        self.ratio_lower = 0.85
+        self.ratio_upper = 1.15
+        self.kernel = np.ones((5, 5), np.uint8)
 
-    def preprocess(self,  frame):
-
-        imhsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
-        imhsv_blur = cv2.medianBlur(imhsv,11)
-        im_blur = cv2.medianBlur(frame,25)
-
-        hsv_lower = np.array([40,40,40])
-        hsv_upper = np.array([100,255,255])
-
-        hsv_mask = cv2.inRange(imhsv_blur,hsv_lower,hsv_upper)
-        hsv_filter = cv2.bitwise_and(imhsv_blur,imhsv_blur,mask=hsv_mask)
-
-        lower = np.array(self.lower, dtype='uint8')
-        upper = np.array(self.upper, dtype='uint8')
-        mask = cv2.inRange(frame,  lower,  upper)
-
-        output = cv2.bitwise_and(frame,  frame,  mask=mask)
-
-        return output, mask, imhsv, imhsv_blur, hsv_filter
-
-    def get_interest_regions(self,frame):
+        
+    def preprocess(self, img):
+        if (self.detect_dots):
+            mask = cv2.inRange(img, self.dots_lower, self.dots_upper)
+        else:
+            mask = cv2.inRange(img, self.lower, self.upper)
+        output = cv2.bitwise_and(img, img, mask=mask)
+        return output, mask
 
 
-        height, width, lines = frame.shape
-        center = (width / 2, height / 2)
-        pimage, mask ,hsv,hsv_blur,hsv_filter = self.preprocess(frame)
-        imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
-        flag, binary_image = cv2.threshold(imgray, 85, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        edges = cv2.Canny(binary_image, 50, 150)
+    def filter_contours(self, frame_contours):
+        new_cont_list = []
+        for cont in frame_contours:
+            cont_len = len(cont)
+            if self.min_cont_size < cont_len < self.max_cont_size:
+                new_cont_list.append(cont)
+        filtered_contours = np.array(new_cont_list)
+        return filtered_contours
+    
 
-        im, contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #cv2.imshow('pimage',pimage)
-        #cv2.imshow('mask',mask)
-        boxes = [cv2.boundingRect(c) for c in contours]
+    def get_interest_regions(self, frame):
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        color_filter_frame, mask = self.preprocess(hsv_frame)
 
+        close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, self.kernel)
+        erode_frame = cv2.erode(close_frame, self.kernel, iterations=1)
+        dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=3)
+
+        hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+        grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
+
+        thresh_frame = cv2.adaptiveThreshold(grayscale_frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 3)
+        frame_c, frame_contours, frame_hierarchy = cv2.findContours(thresh_frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        frame_filtered_contours = self.filter_contours(frame_contours)
+        
+        boxes = [cv2.boundingRect(c) for c in frame_contours]
+
+        # interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and (self.ratio_lower < (float(b[2])/float(b[3])) < self.ratio_upper)]
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
         return interest_regions
-
-    def show_preprocess_images(self,frame):
-        height, width, lines = frame.shape
-        center = (width / 2, height / 2)
-        pimage,  mask, hsv, hsv_blur, hsv_filter = self.preprocess(frame)
-        imgray = cv2.cvtColor(pimage, cv2.COLOR_BGR2GRAY)
-        flag, binary_image = cv2.threshold(imgray, 85, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        edges = cv2.Canny(binary_image, 50, 150)
-
-        im, contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.imshow('pimage',pimage)
-        cv2.imshow('hsv',hsv)
-        cv2.imshow('hsv_blur',hsv_blur)
-        cv2.imshow('hsv_filter',hsv_filter)
-        cv2.imshow('mask',mask)
-

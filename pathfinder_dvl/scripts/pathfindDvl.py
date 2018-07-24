@@ -56,9 +56,11 @@ class RunDVL:
         # ROS publisher setup
         pub = rospy.Publisher('dvl_status', DVL, queue_size = 1)
         # pubHeading = rospy.Publisher('dvl_heading', Float32, queue_size = 1)
+        pubSS = rospy.Publisher('dvl_ss', Float32, queue_size = 1)
         rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size = 1)
         msg = DVL()
         # msgHeading = Float32()
+        msgSS = Float32()
         
         #PD6 settings --------------------------------------------------------------
         dvl.write("CR1\r") #set factory defaults.(Pathfinder guide p.67)
@@ -101,7 +103,7 @@ class RunDVL:
         pubTimePrev = loop_time
         # pubTimeInterval = 0.01
         heading_time_prev = loop_time
-        heading_time_interval = 0.020
+        heading_time_interval = 0.021
         mod_val = 0
         while not rospy.is_shutdown():
             loop_time = time.time()
@@ -120,8 +122,8 @@ class RunDVL:
                 #and mod_val % 2 == 1
                 if self.pitch and self.roll :
                     mod_val = 0
-                    pitch = self.pitch #put heading info ** heree from IMU
-                    pitch *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
+                    pitch = self.pitch 
+                    pitch *= 100 
                     pitch_int = int(pitch)
                     if (pitch - pitch_int) >= 0.5:
                         pitch_int += 1
@@ -180,10 +182,13 @@ class RunDVL:
                 #     msgHeading.data = dvl_heading
                 #     pubHeading.publish(msgHeading)
 
-                # elif line[:3] == ":TS": #If the message is a timestamp
-                #     pass
-                    #print line
-                    #print "Heading:", heading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "\r"
+                elif line[:3] == ":TS": #If the message is a timestamp
+                    line = line.split(",")
+                    msgSS.data = float(line[5])
+                    pubSS.publish(msgSS)
+                    
+                    # print line
+                    # print "Heading:", heading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "\r"
                     
                 # print "IMU Heading:", heading, "DVL Heading:", dvl_heading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "Xpos", east_trans, "YPos", north_trans, "ZPos", depth_trans
                 

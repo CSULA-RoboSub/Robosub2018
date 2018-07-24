@@ -2,14 +2,21 @@
 class DiceManeuver():
     def __init__(self):
         ################ THRESHOLD VARIABLES ################
-
+        self.touching_die_threshold = 100
+        self.nothing_found_threshold = 100
+        self.back_up_threshold = 100
 
         ################ FLAG VARIABLES ################
         self.is_moving_forward = False
         self.is_rotated_to_center = False
+        self.is_1st_die_touched = False
+        self.is_2nd_die_touched = False
+        self.is_task_complete = False
 
         ################ TIMER/COUNTER VARIABLES ################
-
+        self.touching_die_counter = 0
+        self.nothing_found_counter = 0
+        self.back_up_counter = 0
 
         ################ DICTIONARIES ################
         self.horizontal_move = {
@@ -37,33 +44,62 @@ class DiceManeuver():
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.rotation_angle = 15
+        self.rotation_angle = 5
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_power = 70
         self.depth_change = 2
-        self.h_power = 100
+        self.r_power=100
+        self.h_power=100
+        self.m_power=120
         # TODO remove soon
         self.rotation_direction = 'right'
+
+        ################ FRAME VARIABLES ################
+        # self.frame = (744, 480)
+        self.frame = (640, 480)
 
     # reset ##################################################################################
     def reset(self):
         self.is_moving_forward = False
         self.is_rotated_to_center = False
+        self.is_1st_die_touched = False
+        self.is_2nd_die_touched = False
+        self.is_task_complete = False
+
+        self.touching_die_counter = 0
+        self.nothing_found_counter = 0
+        self.back_up_counter = 0
     
+    # reset_after_1st_die ##################################################################################
+    def reset_after_1st_die(self):
+        self.is_moving_forward = False
+        self.is_rotated_to_center = False
+
+        self.touching_die_counter = 0
+        self.nothing_found_counter = 0
+        self.back_up_counter = 0
+
     # touch_die ##################################################################################
-    def touch_die(self, navigation, coordinates, power, rotation):
+    def touch_die(self, navigation, coordinates, power, rotation, width_height):
         navigation.m_nav('power', self.horizontal_move_with_forward[coordinates[0]], power)
         navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
         navigation.h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+        
+        if self.frame == width_height:
+            self.touching_die_counter += 1
+            print 'touching die counter {}'.format(self.touching_die_counter)
+            print 'sub is touching, or close to touching die'
 
     # back_up_from_die ##################################################################################
-    def back_up_from_die(self):
-        pass
+    def back_up_from_die(self, navigation, power):
+        # TODO perhaps can add a way point when all dice are in view to navigate back to
+        # when first die is touched
+        navigation.m_nav('power', self.move_backward, power)
+        self.back_up_counter += 1
 
     # find_die ##################################################################################
-    def find_die(self, navigation, power, rotation):
-        print 'inside find die'
+    def rotate_to_find_die(self, navigation, power, rotation):
         # TODO create another way to find die
         # just using rotate from gate maneuver to try and find die
         navigation.r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
@@ -74,4 +110,42 @@ class DiceManeuver():
 
     # rotate_to_center ##################################################################################
     def rotate_to_center(self, navigation, coordinates, power, rotation):
-        navigation.r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
+        if not coordinates[0] == 0:
+            navigation.cancel_and_r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
+        else:
+            navigation.cancel_r_nav()
+        self.nothing_found_counter = 0
+
+    # completed_dice ##################################################################################
+    def completed_dice_check(self):
+        check_1st = self.is_1st_die_touched
+        check_2nd = self.is_2nd_die_touched
+
+        if check_1st and check_2nd:
+            self.is_task_complete = True
+
+        return self.is_task_complete
+
+    # rotate ##################################################################################
+    def rotate(self, navigation, r_power, rotation):
+        navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.r_power)
+        
+    # no_shape_found ##################################################################################
+    def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
+        if self.nothing_found_counter >= self.nothing_found_threshold:
+            self.rotate(navigation, power, rotation)
+        self.nothing_found_counter += 1
+
+    # centered_and_shape_found ##################################################################################
+    def centered_and_shape_found(self, navigation, coordinates, power, rotation, width_height):
+        self.nothing_found_counter = 0
+        if self.touching_die_counter < self.touching_die_threshold:
+            self.touch_die(navigation, coordinates, power, rotation, width_height)
+        else:
+            self.back_up_from_die(navigation, power)
+
+        if self.back_up_counter > self.back_up_threshold:
+            if not self.is_1st_die_touched:
+                self.is_1st_die_touched = True
+            else:
+                self.is_2nd_die_touched = True

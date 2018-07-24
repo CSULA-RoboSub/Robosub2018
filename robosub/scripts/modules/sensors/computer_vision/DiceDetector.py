@@ -22,6 +22,18 @@ class DiceDetector:
 
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
+        
+        # using die 5 and 6 for the time being since those are the only
+        # dies available
+        self.die_1 = 5
+        self.die_2 = 6
+        self.frame_size = (744, 480)
+
+        self.dies = {
+            0: 5,
+            1: 6
+        }
+        self.die_num = 0
 
     def get_shape(self, roi, buff):
         if roi == None:
@@ -43,22 +55,34 @@ class DiceDetector:
         # die = [die for die in interest_regions if self.classifier.predict(die) > .1]
         dice = self.classifier.classify(frame, interest_regions)
 
+        #TODO we need to implement a way to use self.die_1 and self.die_2
+        # in the detect to return the right coordinates. we can check if the die
+        # is touched by the sub if the frame is equal to the region of interest (744x480)
+        # or (640x480) for the laptop camera
+
+        # we can also use the dictionary, whichever one is easier
+
         ht, wd, ch =  frame.shape
         if not dice:
-            found = False
+            self.found = False
             dice_shape = None
             self.directions = [0,0]
             w,h = 0,0
         else:
-            x, y, w, h  = dice[0]
+            x, y, w, h  = dice
             # dice_shape = self.get_shape(dice, self.shape_buffer)
             dice_shape = None
+            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
             self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
             self.found = True
 
         #found, direction, shape, width, heightk
         # return (self.found, self.directions, None, (0, 0)) 
         return (self.found, self.directions, dice_shape, (w, h))
+
+    def change_dice(self):
+        print 'changing die number from die1 to die2 here'
+        # TODO need to implement way for changing number here
 
     def search_die(self, frame, value):
         found = False
