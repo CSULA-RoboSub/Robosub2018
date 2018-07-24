@@ -31,10 +31,12 @@ class GatePreprocessor:
     # expects a
     def set_lower_color(self, lower):
         self.lower = np.array(lower, 'uint8')
+        print 'lower is set'
 
         
     def set_upper_color(self, upper):
         self.upper = np.array(upper, 'uint8')
+        print 'upper is set'
 
     
     def color_subtract(self, frame):

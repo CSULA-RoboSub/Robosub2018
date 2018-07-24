@@ -3,7 +3,7 @@ import math
 import cv2
 import sys
 import time
-import gi 
+# import gi 
 import threading
 import copy
 import numpy as np
@@ -62,6 +62,10 @@ class CVController():
             # 'pinger_b': self.pingerdetector,
             # 'pinger_a': self.pingerdetector,
             # 'cash_in': self.cashindetector
+
+        # set.models = {
+
+        # }
 
         self.camera_start_dictionary = {
             0: self.opencv_camera_start,
@@ -148,6 +152,11 @@ class CVController():
     # set_upper_cv ##################################################################################
     def set_upper_cv(self, task_name, upper):
         self.tasks[task_name].preprocess.set_upper_color(upper)
+
+    # set_model ##################################################################################
+    def set_model(self, task_name=None):
+        pass
+        # TODO set model for detectors
 
     # camera selection functions ######################################################################
     def change_camera_to(self, camera_direction, task_name):
