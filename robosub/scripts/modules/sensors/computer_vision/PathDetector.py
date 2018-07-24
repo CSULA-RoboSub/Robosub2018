@@ -36,7 +36,7 @@ class PathDetector():
     def detect(self, frame):
         height, width, ch = frame.shape
         center = (width / 2, height / 2)
-        regions_of_interest = self.preprocess.get_interest_regions(frame)
+        regions_of_interest, _ = self.preprocess.get_interest_regions(frame)
         
         for roi in regions_of_interest:
             utils.draw_red_box(frame, roi)

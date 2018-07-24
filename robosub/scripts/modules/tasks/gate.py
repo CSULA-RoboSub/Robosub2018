@@ -29,6 +29,7 @@ class Gate(Task):
         # self.heading_verify_threshold = 100
         self.under_threshold = 100
         self.cant_find_threshold = 2000
+        self.is_moving_forward_camera_changed_threshold = 100
         
         ################ FLAG VARIABLES ################
         self.is_found = False
@@ -46,7 +47,6 @@ class Gate(Task):
         self.heading_verify_count = 0
         self.last_time = 0
         self.counter = Counter()
-        self.is_moving_forward_camera_changed_threshold = 100
         self.cant_find_counter = 0
 
         ################ DICTIONARIES ###########################        
@@ -68,7 +68,7 @@ class Gate(Task):
         
         ################ AUV MOBILITY VARIABLES ################
         self.depth_change = 1
-        self.rotation_angle = 40
+        self.rotation_angle = 5
         self.is_heading_correct = False
         self.previous_width_height = (0,0)
         self.direction_list = []
@@ -202,11 +202,12 @@ class Gate(Task):
             elif self.is_moving_forward_camera_changed and count >= self.is_moving_forward_camera_changed_threshold:
                 found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
-                    print 'counter since camera change: {]'.format(count)
+                    print 'counter since camera change: {}'.format(count)     
                     count += 1
                     self.last_time = time.time()
                     if found and gate_shape:
                         navigation.cancel_all_nav()
+                        
                         self.gate_maneuver.is_past_gate = True
 
             else:

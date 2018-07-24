@@ -44,7 +44,7 @@ class DiceManeuver():
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.rotation_angle = 15
+        self.rotation_angle = 5
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_power = 70
@@ -114,6 +114,7 @@ class DiceManeuver():
             navigation.cancel_and_r_nav(self.rotation_movement[coordinates[0]], self.rotation_angle, self.rotation_power)
         else:
             navigation.cancel_r_nav()
+        self.nothing_found_counter = 0
 
     # completed_dice ##################################################################################
     def completed_dice_check(self):

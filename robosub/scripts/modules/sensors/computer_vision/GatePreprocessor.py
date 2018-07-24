@@ -9,12 +9,12 @@ class GatePreprocessor:
         # self.lower = np.array([0, 100, 0], 'uint8') # lower color value
         # self.upper = np.array([180, 200, 150], 'uint8') # upper color value
         #bright values
-        # self.lower = np.array([0, 100, 0], 'uint8') # lower color value
+        # self.lower = np.array([0, 99, 0], 'uint8') # lower color value    
         # self.upper = np.array([180, 200, 155], 'uint8') # upper color value
         #dark values--------------------------------
-        self.lower = np.array([0, 0, 0], 'uint8') # lower color value  
+        self.lower = np.array([0, 69, 0], 'uint8') # lower color value  
         self.upper = np.array([255, 255, 80], 'uint8') # upper color value
-        self.min_cont_size = 100 # min contours size
+        self.min_cont_size = 100 # min contours size      
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
         self.morph_ops = True # testing

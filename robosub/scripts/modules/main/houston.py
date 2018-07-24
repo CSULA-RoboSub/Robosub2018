@@ -3,6 +3,7 @@ import cv2
 import sys
 import time
 import threading
+import time
 
 import numpy as np
 
@@ -147,6 +148,9 @@ class Houston():
 
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
+        time.sleep(5)
+        self.navigation.h_nav('down', 6, 100)
+        time.sleep(5)
         self.is_task_running = True
         # self.navigation.cancel_h_nav()
         # self.navigation.cancel_m_nav()

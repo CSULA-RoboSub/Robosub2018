@@ -17,7 +17,7 @@ class GateClassifier:
         #134sadfasdafdadfasdfadsfasdfasdfasdf  <- WHAT IS THIS? jaklsdjfafvaej
         self.task_model_config_name = "gate_model" # should be able to rename soon
         self.model_name = self.get_model_name('cv', self.task_model_config_name) # helper for config
-        self.set_model(self.model_name)
+        
         self.min_dim = 80
         self.block_size = (16, 16)
         self.block_stride = (8, 8)
@@ -33,7 +33,7 @@ class GateClassifier:
         )
 
         self.min_prob = .1 # set probability for MODELdown here for convenience
-        
+        self.set_model(self.model_name)
 
     # returns the model file name as a string from henrys config file - conig file has prenamed
     def get_model_name(self, section, option):
@@ -49,7 +49,7 @@ class GateClassifier:
         except IOError as e:
             print("IOError: {0}".format(e) )
             print("\nTraining model...")
-            self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)
+            self.lsvm = SVC(kernel="linear", C = 0.1, probability=True, random_state=2)
             self.train_lsvm()
             joblib.dump(self.lsvm, self.model_path + task_model_name + ".pkl") # store model object to disk
             print("\nStoring model to location: " + "\"" + self.model_path + "\"\n")
