@@ -147,11 +147,11 @@ class CVController():
 
     # set_lower_cv ##################################################################################
     def set_lower_cv(self, task_name, lower):
-        self.tasks[task_name].preprocess.set_lower_cv(lower)
+        self.tasks[task_name].preprocess.set_lower_cv(task_name, lower)
     
     # set_upper_cv ##################################################################################
     def set_upper_cv(self, task_name, upper):
-        self.tasks[task_name].preprocess.set_upper_color(upper)
+        self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
 
     # set_model ##################################################################################
     def set_model(self, task_name=None):
