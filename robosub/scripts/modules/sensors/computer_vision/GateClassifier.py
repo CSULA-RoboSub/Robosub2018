@@ -49,7 +49,7 @@ class GateClassifier:
         except IOError as e:
             print("IOError: {0}".format(e) )
             print("\nTraining model...")
-            self.lsvm = SVC(kernel="linear", C = 1.0, probability=True, random_state=2)
+            self.lsvm = SVC(kernel="linear", C = 0.1, probability=True, random_state=2)
             self.train_lsvm()
             joblib.dump(self.lsvm, self.model_path + task_model_name + ".pkl") # store model object to disk
             print("\nStoring model to location: " + "\"" + self.model_path + "\"\n")
