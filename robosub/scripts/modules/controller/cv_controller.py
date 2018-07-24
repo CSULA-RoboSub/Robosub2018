@@ -3,7 +3,7 @@ import math
 import cv2
 import sys
 import time
-# import gi 
+import gi 
 import threading
 import copy
 import numpy as np
@@ -146,11 +146,11 @@ class CVController():
         print 'stop cvcontroller'
 
     # set_lower_cv ##################################################################################
-    def set_lower_cv(self, task_name, lower):
+    def set_lower_color(self, task_name, lower):
         self.tasks[task_name].preprocess.set_lower_color(task_name, lower)
     
     # set_upper_cv ##################################################################################
-    def set_upper_cv(self, task_name, upper):
+    def set_upper_color(self, task_name, upper):
         self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
 
     # set_model ##################################################################################

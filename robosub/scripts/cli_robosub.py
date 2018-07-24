@@ -61,6 +61,28 @@ class CLI(cmd.Cmd):
         else:
             return args
 
+    def do_lower(self, arg):
+        '\n[task] 0-255,0-255,0-255\
+         \nused to change lower of color filter'
+        
+        if not arg.lower() == '':
+            arg1, arg2 = parse_color(arg)
+            AUV.houston.cvcontroller.set_lower_color(arg1, arg2)
+        else:
+            print('\n[task] 0-255,0-255,0-255\
+                   \nused to change lower of color filter')
+
+    def do_upper(self, arg):
+        '\n[task] 0-255,0-255,0-255\
+         \nused to change upper of color filter'
+        
+        if not arg.lower() == '':
+            arg1, arg2 = parse_color(arg)
+            AUV.houston.cvcontroller.set_upper_color(arg1, arg2)
+        else:
+            print('\n[task] 0-255,0-255,0-255\
+                   \nused to change lower of upper filter')
+
     # navigation #######################################################################################################
     def do_navigation(self, arg):
         '\n[cv] toggle computer vision (start/1 or stop/0)\
@@ -156,6 +178,14 @@ class CLI(cmd.Cmd):
         print('Closing Robosub')
 
         return True
+
+def parse_color(arg):
+    arg1, arg2 = arg.split()
+    list = []
+    temp_list = arg2.split(',')
+    for i in temp_list:
+        list.append(int(i))
+    return arg1, list
 
 
 def parse(arg):
