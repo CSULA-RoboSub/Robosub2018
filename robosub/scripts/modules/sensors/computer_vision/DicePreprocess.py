@@ -41,9 +41,9 @@ class DicePreprocessor:
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         color_filter_frame, mask = self.preprocess(hsv_frame)
 
-        close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, kernel)
-        erode_frame = cv2.erode(close_frame, kernel, iterations=1)
-        dilate_frame = cv2.dilate(erode_frame, kernel, iterations=3)
+        close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, self.kernel)
+        erode_frame = cv2.erode(close_frame, self.kernel, iterations=1)
+        dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=3)
 
         hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
         grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale

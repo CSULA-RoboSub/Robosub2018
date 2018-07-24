@@ -28,6 +28,7 @@ class Gate(Task):
         self.phase_threshold = 100
         # self.heading_verify_threshold = 100
         self.under_threshold = 100
+        self.cant_find_threshold = 2000
         
         ################ FLAG VARIABLES ################
         self.is_found = False
@@ -46,6 +47,7 @@ class Gate(Task):
         self.last_time = 0
         self.counter = Counter()
         self.is_moving_forward_camera_changed_threshold = 100
+        self.cant_find_counter = 0
 
         ################ DICTIONARIES ###########################        
         self.movement_to_square = {
@@ -63,6 +65,7 @@ class Gate(Task):
         ################ CONSTANTS ###########################  
         self.path_task_name = 'path'
         self.path_camera_direction = 'down'
+        
         ################ AUV MOBILITY VARIABLES ################
         self.depth_change = 1
         self.rotation_angle = 40
@@ -73,6 +76,7 @@ class Gate(Task):
         self.h_power=100
         self.m_power=120   
         self.found = False
+        self.orientation_heading = None
         
         ################ THREAD VARIABLES ################    
         self.thread_gate = None
@@ -99,6 +103,7 @@ class Gate(Task):
 
         self.is_heading_correct = False
         self.found = False
+        self.orientation_heading = None
         self.previous_width_height = (0,0)
         self.direction_list = []
 
@@ -109,6 +114,7 @@ class Gate(Task):
         
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
+        self.orientation_heading = navigation.waypoint.get_dvl_yaw()
         self.local_cvcontroller = cvcontroller
         cvcontroller.camera_direction = 'forward'  
         cvcontroller.start(task_name)
@@ -187,6 +193,7 @@ class Gate(Task):
             elif self.is_moving_forward_camera_changed and count < self.is_moving_forward_camera_changed_threshold:
                 found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
+                    print 'counter since camera change: {}'.format(count)
                     count += 1
                     self.last_time = time.time()
 
@@ -195,6 +202,7 @@ class Gate(Task):
             elif self.is_moving_forward_camera_changed and count >= self.is_moving_forward_camera_changed_threshold:
                 found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
+                    print 'counter since camera change: {]'.format(count)
                     count += 1
                     self.last_time = time.time()
                     if found and gate_shape:
@@ -203,6 +211,9 @@ class Gate(Task):
 
             else:
                 print 'logic error in gate.py start'
+
+        # TODO we can implement a plan_b from gate_maneuver if detection does not work
+        # will need to keep heading from orientation
 
         cvcontroller.stop()     
         self.mutex.release()

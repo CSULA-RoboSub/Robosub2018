@@ -89,6 +89,7 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
+        cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
@@ -158,21 +159,7 @@ class Dice(Task):
             else:
                 self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
         else:
-            self.die_phases[shape](navigation, coordinates, power, rotation, width_height)
-            # if not shape:
-            #     self.dice_maneuver.rotate(navigation, self.r_power, 15)
-            # elif self.dice_maneuver.touching_die_counter < self.dice_maneuver.touching_die_threshold:
-            #     self.dice_maneuver.touch_die(navigation, coordinates, power, rotation, width_height)
-            # else:
-            #     if self.dice_maneuver.back_up_counter < self.dice_maneuver.back_up_threshold:
-            #         self.dice_maneuver.back_up_from_die(navigation, coordinates, power, rotation)
-            #     else:
-            #         self.dice_maneuver.is_1st_die_touched = True
-            #         print 'auv has touched successfully touched a die'
-            #         self.dice_maneuver.touching_die_counter = 0
-            #         self.dice_maneuver.back_up_from_die = 0
-                    # TODO here we will need to reset all the dice variables but change detect 
-                    # to detect the next die.      
+            self.die_phases[shape](navigation, coordinates, power, rotation, width_height)    
     
     # complete ##################################################################################
     def complete(self):

@@ -2,7 +2,6 @@ import rospy
 import cv2
 import sys
 import time
-# import gi
 import threading
 
 import numpy as np
@@ -72,14 +71,14 @@ class Houston():
         self.last_time = time.time()
 
         ################ TASKS LIST ################
-        self.tasks = task_list
-
-        ################ DICTIONARIES ################
         """
         self.tasks values listed below
         'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         'roulette', 'pinger_a', 'cash_in'
         """
+        self.tasks = task_list
+
+        ################ DICTIONARIES ################
         self.state_num = 0
         # self.states = [
         #     self.gate, 
@@ -149,9 +148,9 @@ class Houston():
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
         self.is_task_running = True
-        self.navigation.cancel_h_nav()
-        self.navigation.cancel_m_nav()
-        self.navigation.cancel_r_nav()
+        # self.navigation.cancel_h_nav()
+        # self.navigation.cancel_m_nav()
+        # self.navigation.cancel_r_nav()
         self.all_task_loop = True
         self.state_num = 0
         while self.all_task_loop:
