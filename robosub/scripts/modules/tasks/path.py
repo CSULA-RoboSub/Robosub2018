@@ -169,12 +169,12 @@ class Path(Task):
             self.is_gate_found = True
             self.task_num += 1'''
         print 'detect path'
-        self.navigate()
-        self.complete()
-        self.bail_task()
-        self.restart_task()
+        # self.navigate()
+        # self.complete()
+        # self.bail_task()
+        # self.restart_task()
 
-        return False, [0,0]
+        # return False, [0,0]
 
     # navigate ##################################################################################
     # rotate always on
@@ -188,31 +188,37 @@ class Path(Task):
         if found:
             if not self.path_maneuver.is_close_enough:
                 if width_height[0] * width_height[1] >= self.close_enough_area:
+                    #once we're close enough to the path 
                     self.path_maneuver.is_close_enough = True
+                    navigation.cancel_h_nav(self.path_maneuver.h_power)
             elif self.path_maneuver.is_close_enough and width_height[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
+                #trigger when we first fill camera height with path
                 self.path_maneuver.is_frame_height_max = True
             elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and width_height[1] < self.frame_height_max/2:
+                #trigger once we've filled camera with path and are now starting to leave the path
                 self.path_maneuver.is_no_longer_frame_height_max = True
 
         ########################################################################################
-        if found and coordinates[0] == 0 and coordinates[1] == 0 and not self.path_maneuver.is_close_enough:
-            #dive toward bottom of path roi
-            navigation.cancel_m_nav(self.path_maneuver.m_power_strafe)
-            self.path_maneuver.dive_to_path(navigation)
+            if coordinates[0] == 0 and coordinates[1] == 0 and not self.path_maneuver.is_close_enough:
+                #dive toward bottom of path roi
+                navigation.cancel_m_nav(self.path_maneuver.m_power_strafe)
+                self.path_maneuver.dive_to_path(navigation)
 
-        elif found and not self.path_maneuver.is_close_enough:
-            #center sub on path right axis
-            if coordinates[0] != 0:
-                self.path_maneuver.center_x_or_move_forward(navigation, coordinates[0])
-            #center sub on path forward axis
-            elif coordinates[1] != 0:
-                self.path_maneuver.center_y(navigation, coordinates[1])
+            elif not self.path_maneuver.is_close_enough:
+                #center sub on path right axis
+                if coordinates[0] != 0:
+                    self.path_maneuver.center_x_or_move_forward(navigation, coordinates[0])
+                #center sub on path forward axis
+                elif coordinates[1] != 0:
+                    self.path_maneuver.center_y(navigation, coordinates[1])
 
-        #rotation now turns on at this point
-        elif found and self.path_maneuver.is_close_enough and not self.path_maneuver.is_no_longer_frame_height_max:
-            #rotate and center right axis/move forward
-            self.path_maneuver.follow_path(navigation, coordinates[0], coordinates[2])
+            #rotation now turns on at this point
+            elif self.path_maneuver.is_close_enough and not self.path_maneuver.is_no_longer_frame_height_max:
+                #rotate and center right axis/move forward
+                self.path_maneuver.follow_path(navigation, coordinates[0], coordinates[2])
 
+            else:
+                navigation.cancel_all_nav()
         #finished/not found/error state
         else:
             navigation.cancel_all_nav()

@@ -12,8 +12,8 @@ class GatePreprocessor:
         # self.lower = np.array([0, 100, 0], 'uint8') # lower color value
         # self.upper = np.array([180, 200, 155], 'uint8') # upper color value
         #dark values--------------------------------
-        self.lower = np.array([0, 99, 0], 'uint8') # lower color value  
-        self.upper = np.array([180, 200, 155], 'uint8') # upper color value
+        self.lower = np.array([0, 0, 0], 'uint8') # lower color value  
+        self.upper = np.array([255, 255, 80], 'uint8') # upper color value
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
@@ -27,6 +27,16 @@ class GatePreprocessor:
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
+
+    # expects a
+    def set_lower_color(self, lower):
+        self.lower = np.array(lower, 'uint8')
+
+        
+    def set_upper_color(self, upper):
+        self.upper = np.array(upper, 'uint8')
+
+    
     def color_subtract(self, frame):
         blue = frame.copy()
         green = frame.copy()
