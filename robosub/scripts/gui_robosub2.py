@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QColorDialog
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QColor
+from misc.qrangeslider import QRangeSlider
 
 from modules.controller.gui_controller import Controller
 
@@ -100,10 +101,11 @@ class App(QWidget):
 
         # Computer Vision Tab
         self.computer_vision = QtWidgets.QWidget()  # computer_vision
-        self.cv_layout = QtWidgets.QGridLayout(self.computer_vision)
-        self.cv_layout.setContentsMargins(0, 0, 0, 0)
-        self.cv_layout.setHorizontalSpacing(2)
-        self.cv_layout.setVerticalSpacing(3)
+        self.cv_layout = QtWidgets.QVBoxLayout(self.computer_vision)
+        # self.cv_layout = QtWidgets.QGridLayout(self.computer_vision)
+        # self.cv_layout.setContentsMargins(0, 0, 0, 0)
+        # self.cv_layout.setHorizontalSpacing(2)
+        # self.cv_layout.setVerticalSpacing(3)
         # TODO inner layout of cv tab
 
         # Widgets ##########
@@ -127,13 +129,10 @@ class App(QWidget):
         self.right_layout.addWidget(self.tab_widget)
 
         # Auto Mode Tab
-        self.task_selection = QtWidgets.QWidget()  # task_selection
         self.btn_start_tasks = QtWidgets.QPushButton('start tasks', self.task_selection)  # btn_start_tasks
         self.task_layout.addWidget(self.btn_start_tasks)
         self.btn_stop_tasks = QtWidgets.QPushButton('stop tasks', self.task_selection)  # btn_stop_tasks
         self.task_layout.addWidget(self.btn_stop_tasks)
-        self.btn_refresh = QtWidgets.QPushButton('refresh', self.task_selection)  # btn_refresh
-        self.task_layout.addWidget(self.btn_refresh)
 
         self.task_button_list = []
         self.generate_task_buttons()  # Dynamically generate task buttons from config.ini
@@ -207,7 +206,34 @@ class App(QWidget):
         self.controls_layout.addWidget(self.btn_down, 4, 4, 1, 1)
 
         # Computer Vision Tab
-        # TODO add rgb hsv sliders
+        self.txt_task_name = QtWidgets.QLineEdit(
+            self.controller.get_color_task(), self.computer_vision)  # txt_task_name
+        self.cv_layout.addWidget(self.txt_task_name)
+        self.slider0 = QRangeSlider(self.computer_vision)  # slider0
+        self.slider0.setSpanStyle('background: qlineargradient(stop:0 #822, stop:1 #933);')
+        self.slider0.setFixedHeight(50)
+        self.slider0.setMin(0)
+        self.slider0.setMax(255)
+        self.slider0.setRange(0, 255)
+        self.cv_layout.addWidget(self.slider0)
+        self.slider1 = QRangeSlider(self.computer_vision)  # slider1
+        self.slider1.setSpanStyle('background: qlineargradient(stop:0 #282, stop:1 #393);')
+        self.slider1.setFixedHeight(50)
+        self.slider1.setMin(0)
+        self.slider1.setMax(255)
+        self.slider1.setRange(0, 255)
+        self.cv_layout.addWidget(self.slider1)
+        self.slider2 = QRangeSlider(self.computer_vision)  # slider2
+        self.slider2.setSpanStyle('background: qlineargradient(stop:0 #228, stop:1 #339);')
+        self.slider2.setFixedHeight(50)
+        self.slider2.setMin(0)
+        self.slider2.setMax(255)
+        self.slider2.setRange(0, 255)
+        self.cv_layout.addWidget(self.slider2)
+        self.btn_update_color = QtWidgets.QPushButton('Update', self.computer_vision)  # btn_update_color
+        self.cv_layout.addWidget(self.btn_update_color)
+        self.btn_reset_color = QtWidgets.QPushButton('Reset', self.computer_vision)  # btn_reset_color
+        self.cv_layout.addWidget(self.btn_reset_color)
 
         self.main_layout.addLayout(self.right_layout)
 
@@ -222,27 +248,52 @@ class App(QWidget):
     def right_connections(self):
         """ Controller Connections for right section"""
 
-        # Mode Selection
-        self.btn_load_default.clicked.connect(self.controller.load_default_params)
-        self.btn_change_params.clicked.connect(self.controller.change_params)
+        # Mode Selection Connections
+        self.btn_load_default.clicked.connect(partial(self.edit_config, True))
+        self.btn_change_params.clicked.connect(self.edit_config)
         self.chk_autostart.stateChanged.connect(self.checkbox_state_changed)
         self.tab_state_changed()
         self.tab_widget.currentChanged.connect(self.tab_state_changed)
 
-        # Auto Mode Buttons
+        # Auto Mode Connections
         # TODO start and stop tasks button connection
-        self.btn_refresh.clicked.connect(self.refresh)
 
-        # Manual Mode Buttons
-        self.btn_forward.clicked.connect(lambda: self.controller.manual_move('forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_backward.clicked.connect(lambda: self.controller.manual_move('backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_strafe_l.clicked.connect(lambda: self.controller.manual_move('strafe_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_strafe_r.clicked.connect(lambda: self.controller.manual_move('strafe_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_rotate_l.clicked.connect(lambda: self.controller.manual_move('rotate_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_rotate_r.clicked.connect(lambda: self.controller.manual_move('rotate_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_up.clicked.connect(lambda: self.controller.manual_move('up', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_down.clicked.connect(lambda: self.controller.manual_move('down', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
-        self.btn_brake.clicked.connect(lambda: self.controller.manual_move('brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        # Manual Mode Connections
+        self.btn_forward.clicked.connect(lambda: self.controller.manual_move(
+            'forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_backward.clicked.connect(lambda: self.controller.manual_move(
+            'backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_l.clicked.connect(lambda: self.controller.manual_move(
+            'strafe_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_r.clicked.connect(lambda: self.controller.manual_move(
+            'strafe_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_l.clicked.connect(lambda: self.controller.manual_move(
+            'rotate_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_r.clicked.connect(lambda: self.controller.manual_move(
+            'rotate_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_up.clicked.connect(lambda: self.controller.manual_move(
+            'up', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_down.clicked.connect(lambda: self.controller.manual_move(
+            'down', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_brake.clicked.connect(lambda: self.controller.manual_move(
+            'brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+
+        # Computer Vision Mode Connections
+        self.btn_update_color.clicked.connect(lambda: self.controller.update_color(
+            self.txt_task_name.text(),
+            self.slider0.getRange(),
+            self.slider1.getRange(),
+            self.slider2.getRange()))
+        self.btn_reset_color.clicked.connect(self.reset_color)
+
+    def edit_config(self, is_load_default=False):
+        """ Triggers to edit config"""
+
+        if is_load_default:
+            self.controller.load_default_params()
+        else:
+            self.controller.change_params()
+        self.refresh()
 
     def checkbox_state_changed(self):
         """ Triggers when checkbox is toggled"""
@@ -268,7 +319,7 @@ class App(QWidget):
             self.task_button_list.append(self.btn_task)
 
     def refresh(self):
-        """ Trigger when refresh button is pressed"""
+        """ Trigger when config is changed"""
 
         for button in self.task_button_list:
             self.task_layout.removeWidget(button)
@@ -276,6 +327,13 @@ class App(QWidget):
             button = None
         self.task_button_list = []
         self.generate_task_buttons()
+
+    def reset_color(self):
+        """ Reset color sliders to original position"""
+
+        self.slider0.setRange(0, 255)
+        self.slider1.setRange(0, 255)
+        self.slider2.setRange(0, 255)
 
 
 def start_roscore():

@@ -145,12 +145,12 @@ class CVController():
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
-    # set_lower_cv ##################################################################################
-    def set_lower_cv(self, task_name, lower):
+    # set_lower_color ##################################################################################
+    def set_lower_color(self, task_name, lower):
         self.tasks[task_name].preprocess.set_lower_color(task_name, lower)
-    
-    # set_upper_cv ##################################################################################
-    def set_upper_cv(self, task_name, upper):
+
+    # set_upper_color ##################################################################################
+    def set_upper_color(self, task_name, upper):
         self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
 
     # set_model ##################################################################################
