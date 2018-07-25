@@ -109,6 +109,15 @@ class CLI(cmd.Cmd):
             print('\n[cv] toggle computer vision (start/1 or stop/0)\
                    \n[keyboard] keyboard manual navigation')
 
+    # auto-complete navigation
+    def complete_navigation(self, text, line, start_index, end_index):
+        args = ['cv', 'keyboard']
+
+        if text:
+            return [arg for arg in args if arg.startswith(text)]
+        else:
+            return args
+
     # task #######################################################################################################
     def do_task(self, arg):
         '\nto start please enter\
@@ -152,21 +161,12 @@ class CLI(cmd.Cmd):
                    \n'.format(len(AUV.houston.tasks)))
 
             AUV.display_tasks()
-        
-    # auto-complete navigation
-    def complete_navigation(self, text, line, start_index, end_index):
-        args = ['cv', 'keyboard']
-
-        if text:
-            return [arg for arg in args if arg.startswith(text)]
-        else:
-            return args
 
     # config ###########################################################################################################
     def do_config(self, arg):
         '\nOpens the config file and updates the parameters'
 
-        AUV.update_config()
+        AUV.open_config()
 
     # status logger ####################################################################################################
     def do_logging(self, arg):
