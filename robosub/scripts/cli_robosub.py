@@ -86,12 +86,23 @@ class CLI(cmd.Cmd):
          \nstop task by entering [task]\
          \n'
 
-        AUV.display_tasks()
+        print('type: [task ?] to see all options')
 
         if arg.lower() == 'stop' or arg.lower() == '':
             AUV.stop_task()
         elif arg.lower() == 'all':
             AUV.perform_tasks()
+        elif arg.lower() == 'heading':
+            AUV.save_heading()
+        elif arg == '?':
+            print('\nto start please enter:\
+                   \n[task] (0-10)\
+                   \nstop task by entering [task] or [task stop]\
+                   \nrun all tasks by entering [task all]\
+                   \nsave current heading by entering [task heading]\
+                   \n')
+
+            AUV.display_tasks()
         elif not arg == '':
             try:
                 arg = int(arg)
@@ -99,14 +110,18 @@ class CLI(cmd.Cmd):
                 print '\nINVALID NUMBER INPUT'
                 pass
 
-        if arg >= 0 and arg <= 10:
-            AUV.specific_task(arg)
-            # AUV.display_tasks()
+            if arg >= 0 and arg <= 10:
+                AUV.specific_task(arg)
+                # AUV.display_tasks()
         else:
             print('\nto start please enter:\
                    \n[task] (0-10)\
-                   \nstop task by entering [task]\
+                   \nstop task by entering [task] or [task stop]\
+                   \nrun all tasks by entering [task all]\
+                   \nsave current heading by entering [task heading]\
                    \n')
+
+            AUV.display_tasks()
         
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):

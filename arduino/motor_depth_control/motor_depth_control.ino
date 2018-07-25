@@ -215,9 +215,23 @@ void loop() {
     // LcdWriteString(dtostrf(yaw, 5, 2, string));
 
     //read reed switch
-    // reedVal = digitalRead(REED);
-    reedVal = LOW;
+    reedVal = digitalRead(REED);
+    // reedVal = LOW;
+    
+    // nh.loginfo("--------------------------");
+    // nh.loginfo(HIGH);
+    // nh.loginfo(LOW);
+    // nh.loginfo(reedVal);
+    // char reedChar[4];
+    // dtostrf(reedVal, 4, 0, reedChar);
+    // nh.loginfo(reedChar);
+    // if(reedVal == LOW){
 
+    //   nh.loginfo("reedVal == LOW");
+    // } else if (reedVal == HIGH) {
+
+    //   nh.loginfo("reedVal == HIGH");
+    // }
     //Depth
     //Testing----------------------
     feetDepth_read =  sensor.depth() * 3.28 + 1.8;                                   //1 meter = 3.28 feet

@@ -84,6 +84,7 @@ class Navigation():
 
         self.runningTime = None  # runningTime (time for the motor to turn on)
 
+        #waypoint variables
         if wp:
             self.waypoint = wp
         else:
@@ -98,6 +99,8 @@ class Navigation():
         self.h_power = 100
         self.m_power = 140
         self.waypoint_state = 0
+        self.thread_w = None
+        self.exit_waypoints = False
 
         #vars dealing with movement break time
         self.waypoint_m_time = 0
@@ -110,8 +113,8 @@ class Navigation():
         self.current_waypoint_x = 0
         self.current_waypoint_y = 0
 
-        self.thread_w = None
-        self.exit_waypoints = False
+        #var for saved heading
+        self.saved_heading = 0
     def set_h_nav(self, hState, depth, hPower):
         """
         hState -- 'down': 0, 'staying': 1, 'up': 2
@@ -504,3 +507,7 @@ class Navigation():
 
         self.exit_waypoints = False
 
+    def save_current_heading(self):
+        self.saved_heading = self.waypoint.get_dvl_yaw()
+        print('saved heading: ' + str(self.saved_heading))
+    

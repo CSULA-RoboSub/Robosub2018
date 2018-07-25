@@ -81,21 +81,21 @@ class Houston():
 
         ################ DICTIONARIES ################
         self.state_num = 0
-        # self.states = [
-        #     self.gate, 
-        #     self.path_1, 
-        #     self.dice, 
-        #     self.chip_1, 
-        #     self.path_2,
-        #     self.slots, 
-        #     self.chip_2, 
-        #     self.pinger_a, 
-        #     self.roulette, 
-        #     self.pinger_b, 
-        #     self.cash_in
-        # ]
-
         self.states = [
+            self.gate, 
+            self.path_1, 
+            self.dice, 
+            self.chip_1, 
+            self.path_2,
+            self.slots, 
+            self.chip_2, 
+            self.pinger_a, 
+            self.roulette, 
+            self.pinger_b, 
+            self.cash_in
+        ]
+
+        self.states_run_all = [
             self.gate, 
             self.path_1, 
             self.dice
@@ -158,7 +158,7 @@ class Houston():
         self.all_task_loop = True
         self.state_num = 0
         while self.all_task_loop:
-            if self.state_num > len(self.states)-1:
+            if self.state_num > len(self.states_run_all)-1:
                 self.all_task_loop = False
                 print 'no more tasks to complete'
             
@@ -172,7 +172,7 @@ class Houston():
             # self.navigation.m_nav('power', 'forward', self.power)
             # self.navigation.ros_sleep(3)
             else:
-                self.state = self.states[self.state_num]
+                self.state = self.states_run_all[self.state_num]
 
                 self.state.reset()
                 print 'doing task: {}'.format(self.tasks[self.state_num])
@@ -264,3 +264,6 @@ class Houston():
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
         self.navigation.stop()
+
+    # save heading ##########################################################################
+    def 
