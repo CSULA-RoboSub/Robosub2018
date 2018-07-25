@@ -27,6 +27,18 @@ class GatePreprocessor:
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
+
+    # expects a
+    def set_lower_color(self, task_name, lower):
+        self.lower = np.array(lower, 'uint8')
+        print 'lower is set to {} for {}'.format(lower, task_name)
+
+        
+    def set_upper_color(self, task_name, upper):
+        self.upper = np.array(upper, 'uint8')
+        print 'upper is set to {} for {}'.format(upper, task_name)
+
+    
     def color_subtract(self, frame):
         blue = frame.copy()
         green = frame.copy()
