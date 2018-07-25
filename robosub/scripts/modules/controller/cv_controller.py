@@ -63,6 +63,10 @@ class CVController():
             # 'pinger_a': self.pingerdetector,
             # 'cash_in': self.cashindetector
 
+        # set.models = {
+
+        # }
+
         self.camera_start_dictionary = {
             0: self.opencv_camera_start,
             1: self.sub_driver_camera_start
@@ -140,6 +144,19 @@ class CVController():
             print 'laptop/default camera released'
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
+
+    # set_lower_color ##################################################################################
+    def set_lower_color(self, task_name, lower):
+        self.tasks[task_name].preprocess.set_lower_color(task_name, lower)
+
+    # set_upper_color ##################################################################################
+    def set_upper_color(self, task_name, upper):
+        self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
+
+    # set_model ##################################################################################
+    def set_model(self, task_name=None):
+        pass
+        # TODO set model for detectors
 
     # camera selection functions ######################################################################
     def change_camera_to(self, camera_direction, task_name):

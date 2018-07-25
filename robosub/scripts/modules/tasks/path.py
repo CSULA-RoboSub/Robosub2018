@@ -59,6 +59,7 @@ class Path(Task):
         self.frame_width_max = 744
         self.frame_area = self.frame_width_max * self.frame_height_max
         self.close_enough_area = 53500
+        self.area_ratio = 0.55
 
         ################ ROI VARIABLES ################
         self.roi_height = 0
@@ -99,14 +100,14 @@ class Path(Task):
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
             # try:
-            # found, direction, shape, width_height = cvcontroller.detect(task_name)
+            # found, direction, shape, width_height_ratio = cvcontroller.detect(task_name)
             # found = None
             # direction = None
             # shape = None
-            # width_height = None
+            # width_height_ratio = None
             # TODO may be removed. only added to ensure methods are working
 
-            found, directions, shape, width_height = cvcontroller.detect(task_name)
+            found, directions, shape, width_height_ratio = cvcontroller.detect(task_name)
             if found:
                 self.direction_list.append(directions)
 
@@ -120,16 +121,12 @@ class Path(Task):
                     most_occur_coords = [0, 0, 0]
 
                 print 'running {} task'.format(task_name)
-                print 'widthxheight: {}'.format(width_height)
+                print 'widthxheight: {}'.format(width_height_ratio)
                 print 'current count: {}'.format(count)
                 print 'coordinates: {}'.format(most_occur_coords)
                 print '--------------------------------------------'
                 print 'type: navigation cv 0, or task to cancel task'
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
-
-                if self.path_maneuver.is_no_more_path:
-                    self.is_camera_changed = True
-                    cvcontroller.change_camera_to('forward', 'dice')
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height_ratio)
                 
                 self.counter = Counter()
                 self.direction_list = []
@@ -182,27 +179,37 @@ class Path(Task):
     # move forward if strafe centered
     # if not centered strafe to center
 
-    def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
+    def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height_ratio):
         # print 'navigate path'
-        # self.path_phases[shape](navigation, coordinates, power, rotation, width_height)
+        # self.path_phases[shape](navigation, coordinates, power, rotation, width_height_ratio)
         if found:
+            if not self.path_maneuver.is_initial_centered and coordinates[0] == 0 and coordinates[1] == 0:
+                self.path_maneuver.is_initial_centered = True
+
             if not self.path_maneuver.is_close_enough:
-                if width_height[0] * width_height[1] >= self.close_enough_area:
+                if width_height_ratio[0] * width_height_ratio[1] >= self.close_enough_area and width_height_ratio[2] > self.area_ratio:
                     #once we're close enough to the path 
                     self.path_maneuver.is_close_enough = True
                     navigation.cancel_h_nav(self.path_maneuver.h_power)
-            elif self.path_maneuver.is_close_enough and width_height[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
+
+            elif self.path_maneuver.is_close_enough and width_height_ratio[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
                 #trigger when we first fill camera height with path
                 self.path_maneuver.is_frame_height_max = True
-            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and width_height[1] < self.frame_height_max/2:
+
+            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and width_height_ratio[1] < self.frame_height_max/2:
                 #trigger once we've filled camera with path and are now starting to leave the path
                 self.path_maneuver.is_no_longer_frame_height_max = True
 
         ########################################################################################
-            if coordinates[0] == 0 and coordinates[1] == 0 and not self.path_maneuver.is_close_enough:
+            if not self.path_maneuver.is_close_enough and not self.path_maneuver.is_initial_centered and coordinates[0] == 0 and coordinates[1] == 0:
                 #dive toward bottom of path roi
                 navigation.cancel_m_nav(self.path_maneuver.m_power_strafe)
+                # self.path_maneuver.dive_to_path(navigation)
+
+            # elif coordinates[0] == 0 and coordinates[1] == 0 and self.path_maneuver.is_close_enough:
+            elif not self.path_maneuver.is_close_enough and self.path_maneuver.is_initial_centered and coordinates[0] == 0 and coordinates[1] == 0:
                 self.path_maneuver.dive_to_path(navigation)
+                navigation.cancel_m_nav(self.path_maneuver.m_power_strafe)
 
             elif not self.path_maneuver.is_close_enough:
                 #center sub on path right axis

@@ -61,6 +61,36 @@ class CLI(cmd.Cmd):
         else:
             return args
 
+    def do_lower(self, arg):
+        '\n[task] 0-255,0-255,0-255\
+         \nused to change lower of color filter'
+        
+        if not arg.lower() == '':
+            try:
+                arg1, arg2 = parse_color(arg)
+                AUV.houston.cvcontroller.set_lower_color(arg1, arg2)
+            except:
+                print('\nincorrect input.\
+                       \n[task] 0-255,0-255,0-255')
+        else:
+            print('\n[task] 0-255,0-255,0-255\
+                   \nused to change lower of color filter')
+
+    def do_upper(self, arg):
+        '\n[task] 0-255,0-255,0-255\
+         \nused to change upper of color filter'
+        
+        if not arg.lower() == '':
+            try:
+                arg1, arg2 = parse_color(arg)
+                AUV.houston.cvcontroller.set_upper_color(arg1, arg2)
+            except:
+                print('\nincorrect input.\
+                       \n[task] 0-255,0-255,0-255')
+        else:
+            print('\n[task] 0-255,0-255,0-255\
+                   \nused to change lower of upper filter')
+
     # navigation #######################################################################################################
     def do_navigation(self, arg):
         '\n[cv] toggle computer vision (start/1 or stop/0)\
@@ -79,35 +109,6 @@ class CLI(cmd.Cmd):
             print('\n[cv] toggle computer vision (start/1 or stop/0)\
                    \n[keyboard] keyboard manual navigation')
 
-    # task #######################################################################################################
-    def do_task(self, arg):
-        '\nto start please enter\
-         \n[task] <0-10>\
-         \nstop task by entering [task]\
-         \n'
-
-        AUV.display_tasks()
-
-        if arg.lower() == 'stop' or arg.lower() == '':
-            AUV.stop_task()
-        elif arg.lower() == 'all':
-            AUV.perform_tasks()
-        elif not arg == '':
-            try:
-                arg = int(arg)
-            except:
-                print '\nINVALID NUMBER INPUT'
-                pass
-
-        if arg >= 0 and arg <= 10:
-            AUV.specific_task(arg)
-            # AUV.display_tasks()
-        else:
-            print('\nto start please enter:\
-                   \n[task] (0-10)\
-                   \nstop task by entering [task]\
-                   \n')
-        
     # auto-complete navigation
     def complete_navigation(self, text, line, start_index, end_index):
         args = ['cv', 'keyboard']
@@ -117,11 +118,55 @@ class CLI(cmd.Cmd):
         else:
             return args
 
+    # task #######################################################################################################
+    def do_task(self, arg):
+        '\nto start please enter\
+         \n[task] <0-10>\
+         \nstop task by entering [task]\
+         \n'
+
+        print('type: [task ?] to see all options')
+
+        if arg.lower() == 'stop' or arg.lower() == '':
+            AUV.stop_task()
+        elif arg.lower() == 'all':
+            AUV.perform_tasks()
+        elif arg.lower() == 'heading' or arg.lower() == 'h':
+            AUV.save_heading()
+        elif arg == '?':
+            print('\nto start please enter:\
+                   \n[task] (0-{})\
+                   \nstop task by entering [task] or [task stop]\
+                   \nrun all tasks by entering [task all]\
+                   \nsave current heading by entering [task heading]\
+                   \n'.format(len(AUV.houston.tasks)))
+
+            AUV.display_tasks()
+        elif not arg == '':
+            try:
+                arg = int(arg)
+            except:
+                print '\nINVALID NUMBER INPUT'
+                pass
+
+            if arg >= 0 and arg <= len(AUV.houston.tasks):
+                AUV.specific_task(arg)
+                # AUV.display_tasks()
+        else:
+            print('\nto start please enter:\
+                   \n[task] (0-{})\
+                   \nstop task by entering [task] or [task stop]\
+                   \nrun all tasks by entering [task all]\
+                   \nsave current heading by entering [task heading]\
+                   \n'.format(len(AUV.houston.tasks)))
+
+            AUV.display_tasks()
+
     # config ###########################################################################################################
     def do_config(self, arg):
         '\nOpens the config file and updates the parameters'
 
-        AUV.update_config()
+        AUV.open_config()
 
     # status logger ####################################################################################################
     def do_logging(self, arg):
@@ -156,6 +201,14 @@ class CLI(cmd.Cmd):
         print('Closing Robosub')
 
         return True
+
+def parse_color(arg):
+    arg1, arg2 = arg.split()
+    list = []
+    temp_list = arg2.split(',')
+    for i in temp_list:
+        list.append(int(i))
+    return arg1, list
 
 
 def parse(arg):

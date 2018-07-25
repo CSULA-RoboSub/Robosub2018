@@ -29,7 +29,7 @@ class AUV():
         self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
         self.status_logger = StatusLogger()  # initialize StatusLogger() class
-        self.houston = Houston(self.navigation, self.tasks) # initialize Houston() class
+        self.houston = Houston(self.navigation, self.tasks)  # initialize Houston() class
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -37,17 +37,25 @@ class AUV():
         if data.data == 0:
             self.stop()
 
-    def update_config(self):
-        """Opens the config file and updates the parameters"""
+    def open_config(self):
+        """ Opens the config file and updates the parameters"""
 
         os.system('gedit config/config.ini')
+        self.update_config()
+
+    def update_config(self):
+        """ Loads the updated parameters from config"""
+
         self.read_config()
-        self.houston.cvcontroller.gatedetector.classifier.set_model()
-        # self.houston.cvcontroller.dicedetector.classifier.set_model()
-        # self.houston.cvcontroller.pathdetector.classifier.set_model()
-        # self.houston.cvcontroller.roulettedetector.classifier.set_model()
-        # self.houston.cvcontroller.cashindetector.classifier.set_model()
-        # self.houston.cvcontroller.slotdetector.classifier.set_model()
+        self.houston.cvcontroller.set_model()  # read and set all models from config
+
+    def update_color(self):
+        """ Update RGB/HSV for computer vision from config"""
+
+        lower_color = config.get_config('cv', 'lower_color')
+        upper_color = config.get_config('cv', 'upper_color')
+        self.houston.cvcontroller.set_lower_color(lower_color[0], lower_color[1:])
+        self.houston.cvcontroller.set_upper_color(upper_color[0], upper_color[1:])
 
     def read_config(self):
         """ Reads from config/config.ini"""
@@ -64,7 +72,7 @@ class AUV():
         """Has houston perform task"""
 
         self.houston.start_task('all', 0)
-    
+
     def specific_task(self, task_num):
         """Has houston do specific task"""
 
@@ -100,3 +108,6 @@ class AUV():
         self.keyboard.stop()
         self.status_logger.stop()
         self.houston.stop()
+
+    def save_heading(self):
+        self.navigation.save_current_heading()

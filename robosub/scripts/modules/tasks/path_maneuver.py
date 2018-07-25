@@ -14,6 +14,7 @@ class PathManeuver():
         self.is_close_enough = False
         self.is_frame_height_max = False
         self.is_no_longer_frame_height_max = False
+        self.is_initial_centered = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.follow_path_counter = 0
@@ -52,9 +53,9 @@ class PathManeuver():
         }
 
         self.m_power_horizontal_move_with_forward = {
-            -1: 110,
-             0: 50,
-             1: 110
+            -1: 70,
+             0: 90,
+             1: 70
         }
 
         self.forward_backward_move = {
@@ -66,13 +67,13 @@ class PathManeuver():
         ################ AUV MOBILITY VARIABLES ################
         self.move_forward = 'forward'
         self.move_backward = 'backward'
-        self.rotation_angle = 3
-        self.r_power=60
+        self.rotation_angle = 4
+        self.r_power=70
         self.h_power=100
         self.m_power=80
         self.m_power_strafe=self.m_power_horizontal_move_with_forward[1]
         self.no_shape_m_power = 60
-        self.depth_change = 0.1
+        self.depth_change = 0.2
         
     # reset ##################################################################################
     def reset(self):
@@ -84,6 +85,7 @@ class PathManeuver():
         self.is_close_enough = False
         self.is_frame_height_max = False
         self.is_no_longer_frame_height_max = False
+        self.is_initial_centered = False
 
         self.follow_path_counter = 0
 

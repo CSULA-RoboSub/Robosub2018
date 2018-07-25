@@ -3,6 +3,7 @@ import cv2
 import sys
 import time
 import threading
+import time
 
 import numpy as np
 
@@ -15,6 +16,7 @@ from robosub.msg import CVOut
 
 import modules.main.config as config
 
+from modules.tasks.pregate import PreGate
 from modules.tasks.gate import Gate
 from modules.tasks.path import Path
 from modules.tasks.dice import Dice
@@ -41,6 +43,7 @@ class Houston():
     def __init__(self, navigation, task_list):
         """ To initilize Houston """
         ################ INSTANCES ################
+        self.pregate = PreGate(self)
         self.gate = Gate(self)
         self.path_1 = Path(self)
         self.dice = Dice(self)
@@ -80,21 +83,23 @@ class Houston():
 
         ################ DICTIONARIES ################
         self.state_num = 0
-        # self.states = [
-        #     self.gate, 
-        #     self.path_1, 
-        #     self.dice, 
-        #     self.chip_1, 
-        #     self.path_2,
-        #     self.slots, 
-        #     self.chip_2, 
-        #     self.pinger_a, 
-        #     self.roulette, 
-        #     self.pinger_b, 
-        #     self.cash_in
-        # ]
-
         self.states = [
+            self.pregate,
+            self.gate, 
+            self.path_1, 
+            self.dice, 
+            self.chip_1, 
+            self.path_2,
+            self.slots, 
+            self.chip_2, 
+            self.pinger_a, 
+            self.roulette, 
+            self.pinger_b, 
+            self.cash_in
+        ]
+
+        self.states_run_all = [
+            self.pregate,
             self.gate, 
             self.path_1, 
             self.dice
@@ -147,14 +152,16 @@ class Houston():
 
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
+        time.sleep(7)
+        # self.navigation.h_nav('down', 6, 100)
+        # time.sleep(5)
         self.is_task_running = True
-        # self.navigation.cancel_h_nav()
-        # self.navigation.cancel_m_nav()
-        # self.navigation.cancel_r_nav()
+        self.navigation.cancel_all_nav()
+
         self.all_task_loop = True
         self.state_num = 0
         while self.all_task_loop:
-            if self.state_num > len(self.states)-1:
+            if self.state_num > len(self.states_run_all)-1:
                 self.all_task_loop = False
                 print 'no more tasks to complete'
             
@@ -168,7 +175,7 @@ class Houston():
             # self.navigation.m_nav('power', 'forward', self.power)
             # self.navigation.ros_sleep(3)
             else:
-                self.state = self.states[self.state_num]
+                self.state = self.states_run_all[self.state_num]
 
                 self.state.reset()
                 print 'doing task: {}'.format(self.tasks[self.state_num])

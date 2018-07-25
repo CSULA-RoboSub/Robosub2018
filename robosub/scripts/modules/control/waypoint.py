@@ -207,6 +207,9 @@ class Waypoint():
         return distance
 
     def get_directions_with_heading(self, to_heading):
+        if to_heading or self.heading is None:
+            return self.directions[1], 0
+
         heading_diff = to_heading - self.heading
 
         if heading_diff > 180:

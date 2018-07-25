@@ -62,9 +62,9 @@ and python 2.7.13
 	  a list of keybindings will appear:
 		navigation keyboard
 	- to run the Computer Vision test task type this command to show list:
-		task
+		task ?
 	- to run all the task though the order which they are listed:
 		navigation cv 1
-	- to cancel any task that is run (navigation cv 1 or task <0-10>):
+	- to cancel any task that is run enter:
 		task
 
