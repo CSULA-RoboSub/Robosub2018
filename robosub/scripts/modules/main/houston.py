@@ -264,6 +264,3 @@ class Houston():
         # similar start to other classes, such as auv, and keyboard
         #self.is_killswitch_on = False
         self.navigation.stop()
-
-    # save heading ##########################################################################
-    def 

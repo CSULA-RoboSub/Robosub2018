@@ -509,5 +509,5 @@ class Navigation():
 
     def save_current_heading(self):
         self.saved_heading = self.waypoint.get_dvl_yaw()
-        print('saved heading: ' + str(self.saved_heading))
+        print('saved heading: {}'.format(str(self.saved_heading)))
     
