@@ -131,7 +131,7 @@ class CLI(cmd.Cmd):
             AUV.stop_task()
         elif arg.lower() == 'all':
             AUV.perform_tasks()
-        elif arg.lower() == 'heading':
+        elif arg.lower() == 'heading' or arg.lower() == 'h':
             AUV.save_heading()
         elif arg == '?':
             print('\nto start please enter:\
