@@ -16,6 +16,7 @@ from robosub.msg import CVOut
 
 import modules.main.config as config
 
+from modules.tasks.pregate import PreGate
 from modules.tasks.gate import Gate
 from modules.tasks.path import Path
 from modules.tasks.dice import Dice
@@ -42,6 +43,7 @@ class Houston():
     def __init__(self, navigation, task_list):
         """ To initilize Houston """
         ################ INSTANCES ################
+        self.pregate = PreGate(self)
         self.gate = Gate(self)
         self.path_1 = Path(self)
         self.dice = Dice(self)
@@ -82,6 +84,7 @@ class Houston():
         ################ DICTIONARIES ################
         self.state_num = 0
         self.states = [
+            self.pregate,
             self.gate, 
             self.path_1, 
             self.dice, 
@@ -96,6 +99,7 @@ class Houston():
         ]
 
         self.states_run_all = [
+            self.pregate,
             self.gate, 
             self.path_1, 
             self.dice
@@ -148,13 +152,12 @@ class Houston():
 
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
-        time.sleep(5)
-        self.navigation.h_nav('down', 6, 100)
-        time.sleep(5)
+        time.sleep(7)
+        # self.navigation.h_nav('down', 6, 100)
+        # time.sleep(5)
         self.is_task_running = True
-        # self.navigation.cancel_h_nav()
-        # self.navigation.cancel_m_nav()
-        # self.navigation.cancel_r_nav()
+        self.navigation.cancel_all_nav()
+
         self.all_task_loop = True
         self.state_num = 0
         while self.all_task_loop:

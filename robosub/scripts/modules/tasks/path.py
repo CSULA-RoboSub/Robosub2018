@@ -127,10 +127,6 @@ class Path(Task):
                 print '--------------------------------------------'
                 print 'type: navigation cv 0, or task to cancel task'
                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height_ratio)
-
-                if self.path_maneuver.is_no_more_path:
-                    self.is_camera_changed = True
-                    cvcontroller.change_camera_to('forward', 'dice')
                 
                 self.counter = Counter()
                 self.direction_list = []

@@ -126,11 +126,11 @@ class CLI(cmd.Cmd):
             AUV.save_heading()
         elif arg == '?':
             print('\nto start please enter:\
-                   \n[task] (0-10)\
+                   \n[task] (0-{})\
                    \nstop task by entering [task] or [task stop]\
                    \nrun all tasks by entering [task all]\
                    \nsave current heading by entering [task heading]\
-                   \n')
+                   \n'.format(len(AUV.houston.tasks)))
 
             AUV.display_tasks()
         elif not arg == '':
@@ -140,16 +140,16 @@ class CLI(cmd.Cmd):
                 print '\nINVALID NUMBER INPUT'
                 pass
 
-            if arg >= 0 and arg <= 10:
+            if arg >= 0 and arg <= len(AUV.houston.tasks):
                 AUV.specific_task(arg)
                 # AUV.display_tasks()
         else:
             print('\nto start please enter:\
-                   \n[task] (0-10)\
+                   \n[task] (0-{})\
                    \nstop task by entering [task] or [task stop]\
                    \nrun all tasks by entering [task all]\
                    \nsave current heading by entering [task heading]\
-                   \n')
+                   \n'.format(len(AUV.houston.tasks)))
 
             AUV.display_tasks()
         
