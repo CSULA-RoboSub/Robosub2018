@@ -69,7 +69,7 @@ class DiceDetector:
             self.directions = [0,0]
             w,h = 0,0
         else:
-            x, y, w, h  = dice[0]
+            x, y, w, h  = dice
             # dice_shape = self.get_shape(dice, self.shape_buffer)
             dice_shape = None
             cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)

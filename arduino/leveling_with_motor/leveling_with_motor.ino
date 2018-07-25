@@ -489,7 +489,7 @@ void hControlCallback(const robosub::HControl& hControl) {
   float hDepth = hControl.depth;
   float depth = hControl.depth;
   // char depthChar[6];
-  // dtostrf(depth, 4, 2, depthChar);
+  // dtostrf(depth, 4, 0, depthChar);
   hControlPower = hControl.power;
 
   if(hControl.state == 0){

@@ -108,3 +108,6 @@ class AUV():
         self.keyboard.stop()
         self.status_logger.stop()
         self.houston.stop()
+
+    def save_heading(self):
+        self.navigation.save_current_heading()
