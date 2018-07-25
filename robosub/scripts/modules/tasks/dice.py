@@ -87,8 +87,9 @@ class Dice(Task):
         self.dice_maneuver.reset()
     
     # start ##################################################################################
-    def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
+    def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=5):
         self.local_cvcontroller = cvcontroller
+        cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
@@ -133,7 +134,7 @@ class Dice(Task):
         self.local_cvcontroller.stop()
 
     # run_detect_for_task ##################################################################################
-    def run_detect_for_task(self, m_power=120, rotation=15):
+    def run_detect_for_task(self, m_power=120, rotation=5):
         pass
 
     # reset_thread ##################################################################################

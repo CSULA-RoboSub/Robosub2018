@@ -5,7 +5,7 @@ class GateManeuver():
         ################ THRESHOLD VARIABLES ################
         self.sweep_timer = 60
         self.nothing_found_threashold = 100
-        self.heading_verify_threshold = 80
+        self.heading_verify_threshold = 40
         self.forward_movement_threshold = 400
 
         ################ FLAG VARIABLES ################
@@ -68,8 +68,8 @@ class GateManeuver():
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.rotation_angle = 10
-        self.depth_change = 2
+        self.rotation_angle = 5
+        self.depth_change = 3.5
         self.depth = -1
         self.h_power = 100
         self.move_forward = 'forward'

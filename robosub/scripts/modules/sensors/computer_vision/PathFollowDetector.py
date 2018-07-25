@@ -16,7 +16,7 @@ class PathFollowDetector():
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
         self.shape_list = []
-        self.rotation_buffer = 5
+        self.rotation_buffer = 10
 
     # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
     # returns the shape as a string
@@ -40,18 +40,31 @@ class PathFollowDetector():
     def detect(self, frame):
         height, width, ch = frame.shape
         center = (width / 2, height / 2)
-        regions_of_interest = self.preprocess.get_interest_regions(frame)
+        regions_of_interest, contours = self.preprocess.get_interest_regions(frame)
         
         if regions_of_interest:
-            path = utils.get_max_area(regions_of_interest)
-            x, y, w, h = path
-            split1 = frame[y : y + h/2, x : x+w]
-            split2 = frame[y+h/2 : y+h, x : x+w]
+            try:
+                max_cont_area = cv2.contourArea(max(contours, key=lambda x: cv2.contourArea(x)))
+                
+                path = utils.get_max_area(regions_of_interest)
+                x, y, w, h = path
+                split1 = frame[y : y + h/2, x : x+w]
+                split2 = frame[y+h/2 : y+h, x : x+w]
 
-            split1_path = utils.get_max_area(self.preprocess.get_interest_regions(split1))
-            split2_path = utils.get_max_area(self.preprocess.get_interest_regions(split2))
+                split1_rois, _ = self.preprocess.get_interest_regions(split1)
+                split2_rois, _ = self.preprocess.get_interest_regions(split2)
 
-            rotation_direction = self.get_rotation_direction(split1_path, split2_path)
+                split1_path = utils.get_max_area(split1_rois)
+                split2_path = utils.get_max_area(split2_rois)
+
+                rotation_direction = self.get_rotation_direction(split1_path, split2_path)
+
+                ratio = max_cont_area / (w*h)
+            except:
+                path = None
+                rotation_direction = 0
+                ratio = 0
+
         else:
             path = None
             rotation_direction = 0
@@ -76,7 +89,7 @@ class PathFollowDetector():
             self.directions = utils.get_directions_bottom(center, x, y, w, h)
             self.directions.append(rotation_direction)
             self.found = True
-        return (self.found, self.directions, path_shape, (w, h))
+        return (self.found, self.directions, path_shape, (w, h, ratio))
 
     def get_rotation_direction(self, split1_path, split2_path):
         s1_xl, s1_y, s1_w, s1_h = split1_path
