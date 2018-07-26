@@ -170,12 +170,12 @@ class App(QWidget):
         self.depth_label = QtWidgets.QLabel('Depth', self.manual_controls)  # spn_depth
         self.depth_label.setMaximumSize(QtCore.QSize(100, 20))
         self.depth_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.spn_depth = QtWidgets.QSpinBox(self.manual_controls)
+        self.spn_depth = QtWidgets.QDoubleSpinBox(self.manual_controls)
         self.spn_depth.setMaximumSize(QtCore.QSize(100, 80))
         self.spn_depth.setAlignment(QtCore.Qt.AlignCenter)
-        self.spn_depth.setMinimum(-500)
-        self.spn_depth.setMaximum(500)
-        self.spn_depth.setSingleStep(20)
+        self.spn_depth.setMinimum(.5)
+        self.spn_depth.setMaximum(20)
+        self.spn_depth.setSingleStep(.5)
 
         self.depth_layout.addWidget(self.depth_label)
         self.depth_layout.addWidget(self.spn_depth)
