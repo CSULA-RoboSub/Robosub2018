@@ -106,12 +106,8 @@ class StatusLogger():
             self.file.write(log + '\n')
 
     def start(self):
-<<<<<<< HEAD
-        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
-=======
         # self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
         pass
->>>>>>> dev-henry
 
     def stop(self):
         self.file.close()
