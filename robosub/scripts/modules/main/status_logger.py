@@ -14,7 +14,7 @@ class StatusLogger():
     def __init__(self, is_logging=True):
         self.is_logging = is_logging
 
-        self.file = None
+        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
 
         rospy.Subscriber('height_control', HControl, self.printHControl)
         rospy.Subscriber('rotation_control', RControl, self.printRControl)
@@ -106,7 +106,8 @@ class StatusLogger():
             self.file.write(log + '\n')
 
     def start(self):
-        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
+        # self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
+        pass
 
     def stop(self):
         self.file.close()
