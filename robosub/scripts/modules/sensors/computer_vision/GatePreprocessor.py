@@ -27,13 +27,22 @@ class GatePreprocessor:
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
+    
+    def get_lower_color(self):
+        return self.lower.tolist()
 
-    # expects a
+    
+    # expects a list - gets converted to a numpy array in setter
     def set_lower_color(self, task_name, lower):
         self.lower = np.array(lower, 'uint8')
         print 'lower is set to {} for {}'.format(lower, task_name)
 
-        
+    # returns a list - gets converted from a numpy array
+    def get_upper_color(self):
+        return self.upper.tolist()
+
+    
+    # expects a list - gets converted to a numpy array in setter
     def set_upper_color(self, task_name, upper):
         self.upper = np.array(upper, 'uint8')
         print 'upper is set to {} for {}'.format(upper, task_name)
