@@ -105,6 +105,13 @@ class Houston():
             self.dice
         ]
 
+        self.gui_states = {
+            'pregate': self.pregate,
+            'gate': self.gate,
+            'path': self.path_1,
+            'dice': self.dice
+        }
+
         self.one_or_all_tasks = {
             'one': self.do_one_task,
             'all': self.start_all_tasks
@@ -203,6 +210,20 @@ class Houston():
         self.state = self.states[task_num]
         self.state.reset()
         self.state.start(self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+        
+        self.is_task_running = False
+
+    # do_one_task_for_gui ##################################################################################
+    def do_one_task_for_gui(self, task_name):
+        self.is_task_running = True
+        self.navigation.cancel_h_nav()
+        self.navigation.cancel_m_nav()
+        self.navigation.cancel_r_nav()
+        print '\ntask: {}'.format(task_name)
+
+        self.state = self.gui_states[task_name]
+        self.state.reset()
+        self.state.start(task_name, self.navigation, self.cvcontroller, self.power, self.rotation)
         
         self.is_task_running = False
 

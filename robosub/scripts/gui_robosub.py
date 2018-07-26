@@ -256,6 +256,8 @@ class App(QWidget):
         self.tab_widget.currentChanged.connect(self.tab_state_changed)
 
         # Auto Mode Connections
+        self.btn_start_tasks.clicked.connect(partial(self.controller.read_task_button, self.btn_start_tasks.text()))
+        self.btn_stop_tasks.clicked.connect(partial(self.controller.read_task_button, self.btn_stop_tasks.text()))
         # TODO start and stop tasks button connection
 
         # Manual Mode Connections

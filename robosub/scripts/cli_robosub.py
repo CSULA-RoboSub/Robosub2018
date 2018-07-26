@@ -207,6 +207,10 @@ def parse_color(arg):
     list = []
     temp_list = arg2.split(',')
     for i in temp_list:
+        if int(i) < 0:
+            i = 0
+        elif int(i) > 255:
+            i = 255
         list.append(int(i))
     return arg1, list
 
