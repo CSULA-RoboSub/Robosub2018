@@ -9,11 +9,11 @@ class Installer():
 
     def __init__(self):
         self.scripts = [
-            'scripts/0fix_ubuntu.sh',  # Fixes apt for Ubuntu 17.04
-            'scripts/1setup_ros.sh',  # Installs ROS
-            'scripts/2ros_environment.sh',  # Creates ROS workspace and moves code to workspace
-            'scripts/3ros_serial_setup.sh',  # Installs ROS serial if not installed
-            'scripts/4dependencies.sh'  # Installs dependencies
+            'installation_scripts/0fix_ubuntu.sh',  # Fixes apt for Ubuntu 17.04
+            'installation_scripts/1setup_ros.sh',  # Installs ROS
+            'installation_scripts/2ros_environment.sh',  # Creates ROS workspace and moves code to workspace
+            'installation_scripts/3ros_serial_setup.sh',  # Installs ROS serial if not installed
+            'installation_scripts/4dependencies.sh'  # Installs dependencies
         ]
 
     def change_permissions(self, script):
@@ -28,7 +28,7 @@ class Installer():
     def apt_update(self):
         """apt-get update script"""
 
-        path = 'scripts/_apt.sh'
+        path = 'installation_scripts/_apt.sh'
         self.change_permissions(path)
         self.run_script(path)
 
@@ -40,7 +40,7 @@ class Installer():
     def install(self, response=-1):
         """Installs scripts for first time setup"""
 
-        ubuntu_fix_path = 'scripts/0fix_ubuntu.sh'
+        ubuntu_fix_path = 'installation_scripts/0fix_ubuntu.sh'
 
         try:
             response = int(response)
