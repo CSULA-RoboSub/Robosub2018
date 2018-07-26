@@ -31,8 +31,8 @@ class GateClassifier:
             self.cell_size,
             self.bins
         )
-
-        self.min_prob = .1 # set probability for MODELdown here for convenience
+   
+        self.min_prob = .6  # set probability for MODELdown here for convenience
         self.set_model(self.model_name)
 
     # returns the model file name as a string from henrys config file - conig file has prenamed

@@ -44,9 +44,9 @@ class Path(Task):
         # }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power=50
+        self.r_power=75
         self.h_power=100
-        self.m_power=60
+        self.m_power=30
 
         ################ THREAD VARIABLES ################
         self.thread_path = None
@@ -58,13 +58,10 @@ class Path(Task):
         self.frame_height_max = 480
         self.frame_width_max = 744
         self.frame_area = self.frame_width_max * self.frame_height_max
-        self.close_enough_area = 53500
-        self.area_ratio = 0.55
+        self.close_enough_area = 54000
+        self.area_ratio = 0.50
 
         ################ ROI VARIABLES ################
-        self.roi_height = 0
-        self.roi_width = 0
-        self.roi_area = 0
 
     # reset ##################################################################################
     def reset(self): 
@@ -84,10 +81,6 @@ class Path(Task):
         self.thread_path = None
         self.stop_task = False
 
-        self.roi_height = 0
-        self.roi_width = 0
-        self.roi_area = 0
-
         self.path_maneuver.reset()
     
     # start ##################################################################################
@@ -99,13 +92,6 @@ class Path(Task):
         count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
-            # try:
-            # found, direction, shape, width_height_ratio = cvcontroller.detect(task_name)
-            # found = None
-            # direction = None
-            # shape = None
-            # width_height_ratio = None
-            # TODO may be removed. only added to ensure methods are working
 
             found, directions, shape, width_height_ratio = cvcontroller.detect(task_name)
             if found:
@@ -120,18 +106,18 @@ class Path(Task):
                 except:
                     most_occur_coords = [0, 0, 0]
 
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height_ratio)
+
+                self.counter = Counter()
+                self.direction_list = []
+
                 print 'running {} task'.format(task_name)
                 print 'widthxheight: {}'.format(width_height_ratio)
                 print 'current count: {}'.format(count)
                 print 'coordinates: {}'.format(most_occur_coords)
                 print '--------------------------------------------'
                 print 'type: navigation cv 0, or task to cancel task'
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height_ratio)
-                
-                self.counter = Counter()
-                self.direction_list = []
-                # except:
-                #     print 'path detect error'
+
         cvcontroller.stop()
         self.mutex.release()
     
@@ -150,57 +136,37 @@ class Path(Task):
 
     # detect ##################################################################################
     def detect(self, frame):
-
-        '''if not self.detectpath:
-            #self.detectpath = PathDetector.PathDetector()
-            pass
-
-        found, gate_coordinates = self.detectpath.detect()
-        if gate_coordinates[0] == 0 and gate_coordinates[1] == 0:
-            if not found:
-                gate_coordinates[0] = 1
-            else:
-                self.found_timer += 1
-
-        if self.found_timer == 240:
-            self.is_gate_found = True
-            self.task_num += 1'''
         print 'detect path'
-        # self.navigate()
-        # self.complete()
-        # self.bail_task()
-        # self.restart_task()
-
-        # return False, [0,0]
 
     # navigate ##################################################################################
-    # rotate always on
-    # first dive til area large enough while aiming for bottom of roi
-    # move forward if strafe centered
-    # if not centered strafe to center
 
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height_ratio):
         # print 'navigate path'
         # self.path_phases[shape](navigation, coordinates, power, rotation, width_height_ratio)
         if found:
             if not self.path_maneuver.is_initial_centered and coordinates[0] == 0 and coordinates[1] == 0:
+                # print('self.path_maneuver.is_initial_centered = True')
                 self.path_maneuver.is_initial_centered = True
 
-            if not self.path_maneuver.is_close_enough:
+            elif not self.path_maneuver.is_close_enough:
                 if width_height_ratio[0] * width_height_ratio[1] >= self.close_enough_area and width_height_ratio[2] > self.area_ratio:
                     #once we're close enough to the path 
+                    # print('self.path_maneuver.is_close_enough = True')
                     self.path_maneuver.is_close_enough = True
                     navigation.cancel_h_nav(self.path_maneuver.h_power)
 
-            elif self.path_maneuver.is_close_enough and width_height_ratio[1] >= self.frame_height_max and not self.path_maneuver.is_frame_height_max:
+            elif self.path_maneuver.is_close_enough and (not self.path_maneuver.is_frame_height_max) and not self.path_maneuver.is_no_longer_frame_height_max and (float(width_height_ratio[1]) >= (float(self.frame_height_max) * 0.95)):
                 #trigger when we first fill camera height with path
+                # print('self.path_maneuver.is_frame_height_max = True')
                 self.path_maneuver.is_frame_height_max = True
 
-            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and width_height_ratio[1] < self.frame_height_max/2:
+            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and not self.path_maneuver.is_no_longer_frame_height_max and (float(width_height_ratio[1]) <= (float(self.frame_height_max) * 0.38)):
                 #trigger once we've filled camera with path and are now starting to leave the path
+                # print('self.path_maneuver.is_no_longer_frame_height_max = True')
                 self.path_maneuver.is_no_longer_frame_height_max = True
 
         ########################################################################################
+        if found:
             if not self.path_maneuver.is_close_enough and not self.path_maneuver.is_initial_centered and coordinates[0] == 0 and coordinates[1] == 0:
                 #dive toward bottom of path roi
                 navigation.cancel_m_nav(self.path_maneuver.m_power_strafe)
@@ -232,8 +198,8 @@ class Path(Task):
 
     # complete ##################################################################################
     def complete(self):
-        self.is_complete = self.path_maneuver.completed_path_check()
-        return self.is_complete
+        # self.is_complete = self.path_maneuver.completed_path_check()
+        return self.path_maneuver.completed_path_check()
 
     # bail_task ##################################################################################
     def bail_task(self):

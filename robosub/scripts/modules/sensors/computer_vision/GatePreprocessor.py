@@ -11,9 +11,21 @@ class GatePreprocessor:
         #bright values
         # self.lower = np.array([0, 99, 0], 'uint8') # lower color value    
         # self.upper = np.array([180, 200, 155], 'uint8') # upper color value
+        #bright values 2
+        # self.lower = np.array([0, 89, 0], 'uint8') # lower color value    
+        # self.upper = np.array([180, 254, 80], 'uint8') # upper color value
+        #bright values 3
+        # self.lower = np.array([89, 89, 39], 'uint8') # lower color value    
+        # self.upper = np.array([149, 200, 80], 'uint8') # upper color value
         #dark values--------------------------------
-        self.lower = np.array([0, 69, 0], 'uint8') # lower color value  
-        self.upper = np.array([255, 255, 80], 'uint8') # upper color value
+        # self.lower = np.array([0, 69, 0], 'uint8') # lower color value  
+        # self.upper = np.array([180, 254, 80], 'uint8') # upper color value
+        #dark val 2
+        # self.lower = np.array([1, 69, 89], 'uint8') # lower color value  
+        # self.upper = np.array([180, 254, 99], 'uint8') # upper color value
+        #dark val 3
+        self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
+        self.upper = np.array([139, 169, 99], 'uint8') # upper color value
         self.min_cont_size = 100 # min contours size      
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 400 # box size
@@ -27,13 +39,22 @@ class GatePreprocessor:
         output = cv2.bitwise_and(img, img, mask=mask)
         return output, mask
 
+    
+    def get_lower_color(self):
+        return self.lower.tolist()
 
-    # expects a
+    
+    # expects a list - gets converted to a numpy array in setter
     def set_lower_color(self, task_name, lower):
         self.lower = np.array(lower, 'uint8')
         print 'lower is set to {} for {}'.format(lower, task_name)
 
-        
+    # returns a list - gets converted from a numpy array
+    def get_upper_color(self):
+        return self.upper.tolist()
+
+    
+    # expects a list - gets converted to a numpy array in setter
     def set_upper_color(self, task_name, upper):
         self.upper = np.array(upper, 'uint8')
         print 'upper is set to {} for {}'.format(upper, task_name)

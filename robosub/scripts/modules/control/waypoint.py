@@ -207,11 +207,12 @@ class Waypoint():
         return distance
 
     def get_directions_with_heading(self, to_heading):
-        if to_heading or self.heading is None:
+        if to_heading is None or self.heading is None:
+            # print('error to_heading: {} self.heading: {}'.format(to_heading, self.heading))
             return self.directions[1], 0
 
         heading_diff = to_heading - self.heading
-
+        # print('heading_diff: {}'.format(heading_diff))
         if heading_diff > 180:
             heading_diff = 360 - heading_diff
         elif heading_diff <= -180:

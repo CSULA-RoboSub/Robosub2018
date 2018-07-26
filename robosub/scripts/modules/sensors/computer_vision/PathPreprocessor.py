@@ -7,7 +7,7 @@ class PathPreprocessor():
     def __init__(self):
         self.lower_thresh = np.array([0, 150, 0], 'uint8')
         self.upper_thresh = np.array([20, 255, 255], 'uint8')
-        self.roi_size = 700
+        self.roi_size = 1000
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
 
