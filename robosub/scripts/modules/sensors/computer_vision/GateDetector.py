@@ -45,10 +45,14 @@ class GateDetector:
         gate = self.classifier.classify(frame, regions_of_interest)
         
         gate_shape = self.get_shape(gate, self.shape_buffer)
-        
+
+        if gate_shape == self.shapes[3] or gate_shape == self.shapes[1]:
+            gate = None
+            
         if (gate == None):
             self.directions = [0, 0]
             self.found = False
+            gate_shape = None
             w, h = 0, 0
         else:
             x, y, w, h = gate

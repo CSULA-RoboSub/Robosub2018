@@ -16,7 +16,7 @@ class PathFollowDetector():
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
         self.shape_list = []
-        self.rotation_buffer = 10
+        self.rotation_buffer = 8
 
     # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
     # returns the shape as a string
@@ -41,12 +41,13 @@ class PathFollowDetector():
         height, width, ch = frame.shape
         center = (width / 2, height / 2)
         regions_of_interest, contours = self.preprocess.get_interest_regions(frame)
-        
+
         if regions_of_interest:
             try:
-                max_cont_area = cv2.contourArea(max(contours, key=lambda x: cv2.contourArea(x)))
-                
-                path = utils.get_max_area(regions_of_interest)
+                max_cont = max(contours, key=lambda x: cv2.contourArea(x))
+                max_cont_area = cv2.contourArea(max_cont)
+                path = cv2.boundingRect(max_cont)
+                # path = utils.get_max_area(regions_of_interest)
                 x, y, w, h = path
                 split1 = frame[y : y + h/2, x : x+w]
                 split2 = frame[y+h/2 : y+h, x : x+w]
@@ -60,26 +61,41 @@ class PathFollowDetector():
                 rotation_direction = self.get_rotation_direction(split1_path, split2_path)
 
                 ratio = max_cont_area / (w*h)
+                # print(max_cont)
+                # print(path)
+                # print(ratio)
             except:
                 path = None
-                rotation_direction = 0
-                ratio = 0
 
         else:
             path = None
-            rotation_direction = 0
 
         for roi in regions_of_interest:
             utils.draw_red_box(frame, roi)        
             
         path_shape = self.get_shape(path, self.shape_buffer)
         
-        if (path == None):
+        if path == None:
             self.directions = [0, 0, 0]
             self.found = False
             w, h = 0, 0
+            rotation_direction = 0
+            ratio = 0
         else:
-            x, y, w, h = path
+            # x, y, w, h = path
+            # split1 = frame[y : y + h/2, x : x+w]
+            # split2 = frame[y+h/2 : y+h, x : x+w]
+
+            # split1_rois, _ = self.preprocess.get_interest_regions(split1)
+            # split2_rois, _ = self.preprocess.get_interest_regions(split2)
+
+            # split1_path = utils.get_max_area(split1_rois)
+            # split2_path = utils.get_max_area(split2_rois)
+
+            # rotation_direction = self.get_rotation_direction(split1_path, split2_path)
+
+            # ratio = max_cont_area / (w*h)
+            
             split1_path = (split1_path[0] + x, split1_path[1] + y, split1_path[2], split1_path[3])
             split2_path = (split2_path[0] + x, split2_path[1] + y+h/2, split2_path[2], split2_path[3])
             
@@ -112,6 +128,20 @@ class PathFollowDetector():
             #path slanted left rotate left
             # print 'rotate left'
             return -1
+        elif s2_xl - s1_xl > 0 and s1_xr - s2_xr > 0:
+            if (s2_xl - s1_xl) > (s1_xr - s2_xr):
+                return -1
+            elif (s2_xl - s1_xl) < (s1_xr - s2_xr):
+                return 1
+            else:
+                return 0
+        elif s2_xl - s1_xl < 0 and s1_xr - s2_xr < 0:
+            if (s2_xl - s1_xl) > (s1_xr - s2_xr):
+                return 1
+            elif (s2_xl - s1_xl) < (s1_xr - s2_xr):
+                return -1
+            else:
+                return 0
         else:
             # print('Error in PathFollowDetector get_rotation_direction()')
             # print 'go straight'

@@ -30,6 +30,7 @@ class Gate(Task):
         self.under_threshold = 100
         self.cant_find_threshold = 2000
         self.is_moving_forward_camera_changed_threshold = 100
+        self.rotated_to_center_verify_threshold = 20 
         
         ################ FLAG VARIABLES ################
         self.is_found = False
@@ -48,6 +49,7 @@ class Gate(Task):
         self.last_time = 0
         self.counter = Counter()
         self.cant_find_counter = 0
+        self.rotated_to_center_verify = 0 
 
         ################ DICTIONARIES ###########################        
         self.movement_to_square = {
@@ -99,6 +101,7 @@ class Gate(Task):
         self.heading_verify_count = 0
         self.last_time = 0
         self.counter = Counter()
+        self.rotated_to_center_verify = 0 
         # self.is_moving_forward_camera_changed_counter = 0
 
         self.is_heading_correct = False
@@ -219,7 +222,15 @@ class Gate(Task):
     def navigate(self, navigation, found, coordinates, power, rotation, gate_shape, width_height):
         if not self.gate_maneuver.rotated_to_center and gate_shape:
             if coordinates[0] == 0:
+                self.rotated_to_center_verify += 1
+            
+            elif coordinates[0] != 0:
+                self.rotated_to_center_verify = 0    
+
+            #-------------------------------------------------------------------
+            if coordinates[0] == 0 and self.rotated_to_center_verify >= self.rotated_to_center_verify_threshold:  
                 self.gate_maneuver.rotated_to_center = True
+
             else:
                 self.gate_maneuver.rotate_to_center(navigation, coordinates)
         else:
