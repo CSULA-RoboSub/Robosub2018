@@ -39,12 +39,11 @@ class Controller():
         """ Read task string from button press"""
 
         if text == 'start tasks':
-            # start task
-            print text
+            self.AUV.perform_tasks()
         elif text == 'stop tasks':
             self.AUV.stop_task()
         else:
-            self.AUV.houston.do_one_task_for_gui(text)
+            self.AUV.specific_task_for_gui(text)
 
     def get_color_task(self):
         """ Get the task from lower_color"""

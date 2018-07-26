@@ -71,12 +71,17 @@ class AUV():
     def perform_tasks(self):
         """Has houston perform task"""
 
-        self.houston.start_task('all', 0)
+        self.houston.start_task('all', None)
 
     def specific_task(self, task_num):
         """Has houston do specific task"""
 
         self.houston.start_task('one', task_num)
+    
+    def specific_task_for_gui(self, task_name):
+        """Has houston do specific task from gui"""
+
+        self.houston.start_task_from_gui('one', task_name)
 
     def stop_task(self):
         """Has houston stop task"""
