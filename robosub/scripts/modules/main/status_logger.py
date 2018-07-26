@@ -16,9 +16,9 @@ class StatusLogger():
 
         self.file = None
 
-        rospy.Subscriber('height_control_status', HControl, self.printHControl)
-        rospy.Subscriber('rotation_control_status', RControl, self.printRControl)
-        rospy.Subscriber('movement_control_status', MControl, self.printMControl)
+        rospy.Subscriber('height_control', HControl, self.printHControl)
+        rospy.Subscriber('rotation_control', RControl, self.printRControl)
+        rospy.Subscriber('movement_control', MControl, self.printMControl)
 
     def toggle_logging(self, arg=None):
         """Toggles logging (True, False, empty == toggle)"""
@@ -106,7 +106,7 @@ class StatusLogger():
             self.file.write(log + '\n')
 
     def start(self):
-        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'w')
+        self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
 
     def stop(self):
         self.file.close()
