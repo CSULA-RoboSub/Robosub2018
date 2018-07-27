@@ -23,20 +23,58 @@ class GatePreprocessor:
         #dark val 2
         # self.lower = np.array([1, 69, 89], 'uint8') # lower color value  
         # self.upper = np.array([180, 254, 99], 'uint8') # upper color value
-        #dark val 3
-        self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
-        self.upper = np.array([139, 169, 99], 'uint8') # upper color value
+        #dark val 3 (best)
+        # self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
+        # self.upper = np.array([139, 169, 99], 'uint8') # upper color value
+
+        #orangeish red and blueish red vals 
+        #bright 1
+        # self.lower_red_orange = np.array([0, 87, 1], 'uint8')
+        # self.upper_red_orange = np.array([31, 255, 254], 'uint8')
+
+        # self.lower_red_blue = np.array([131, 87, 1], 'uint8')
+        # self.upper_red_blue = np.array([180, 255, 254], 'uint8')
+
+        #bright 2
+        self.lower_red_orange = np.array([0, 87, 2], 'uint8')
+        self.upper_red_orange = np.array([31, 255, 253], 'uint8')
+
+        self.lower_red_blue = np.array([131, 87, 2], 'uint8')
+        self.upper_red_blue = np.array([180, 255, 253], 'uint8')
+
+        #dark 1
+        # self.lower_red_orange = np.array([0, 79, 1])
+        # self.upper_red_orange = np.array([31, 255, 254])
+
+        # self.lower_red_blue = np.array([131, 79, 1])
+        # self.upper_red_blue = np.array([180, 255, 254])
+
         self.min_cont_size = 100 # min contours size      
         self.max_cont_size = 2000 # max contours size
-        self.roi_size = 400 # box size
+        self.roi_size = 1000 # box size
         self.morph_ops = True # testing
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
 
 
     # color filtering
     def preprocess(self, img):
-        mask = cv2.inRange(img, self.lower, self.upper)
+        # mask = cv2.inRange(img, self.lower, self.upper)
+        # output = cv2.bitwise_and(img, img, mask=mask)
+
+        #-----------------------------------
+        #saved test code
+        # mask_preblur = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+        # mask = cv2.GaussianBlur(mask_preblur,(9,9),0)
+        #-----------------------------------
+
+        mask_red_orange = cv2.inRange(img, self.lower_red_orange, self.upper_red_orange)
+        mask_red_blue = cv2.inRange(img, self.lower_red_blue, self.upper_red_blue)
+        mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
         output = cv2.bitwise_and(img, img, mask=mask)
+
+        # mask_inv = cv2.bitwise_not(mask)
+        # output = cv2.bitwise_and(img, img, mask=mask_inv)
+
         return output, mask
 
 
@@ -84,7 +122,7 @@ class GatePreprocessor:
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
         
         color_filt_frame, mask = self.preprocess(hsv_frame) # color filtering
-        
+
         close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
         dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
 
