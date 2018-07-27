@@ -6,7 +6,7 @@ import modules.main.config as config
 from modules.control.motor import Motor
 from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
-from modules.main.status_logger import StatusLogger
+import modules.main.status as status
 
 from houston import Houston
 
@@ -28,7 +28,6 @@ class AUV():
         self.motor = Motor(self.motor_state)  # initialize Motor() class
         self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
-        self.status_logger = StatusLogger()  # initialize StatusLogger() class
         self.houston = Houston(self.navigation, self.tasks)  # initialize Houston() class
 
     def kill_switch_callback(self, data):
@@ -77,7 +76,7 @@ class AUV():
         """Has houston do specific task"""
 
         self.houston.start_task('one', task_num)
-    
+
     def specific_task_for_gui(self, task_name):
         """Has houston do specific task from gui"""
 
@@ -102,7 +101,6 @@ class AUV():
         self.motor.start()
         self.navigation.start()
         self.keyboard.start()
-        self.status_logger.start()
         self.houston.start()
 
     def stop(self):
@@ -111,7 +109,7 @@ class AUV():
         self.motor.stop()
         self.navigation.stop()
         self.keyboard.stop()
-        self.status_logger.stop()
+        status.stop()
         self.houston.stop()
 
     def save_heading(self):

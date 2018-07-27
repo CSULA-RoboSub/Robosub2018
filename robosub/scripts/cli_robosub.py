@@ -4,6 +4,7 @@ import subprocess
 import time
 import os
 from modules.main.auv import AUV  # Import auv
+import modules.main.status as status  # Import status logger
 
 
 class CLI(cmd.Cmd):
@@ -43,9 +44,9 @@ class CLI(cmd.Cmd):
         MOTOR_ON = 4
         MOTOR_OFF = 5
 
-        if arg.lower() == 'on':
+        if arg.lower() == 'on' or arg == '4':
             AUV.motor.toggle_state(MOTOR_ON)
-        elif arg.lower() == 'off':
+        elif arg.lower() == 'off' or arg == '5':
             AUV.motor.toggle_state(MOTOR_OFF)
         elif arg.lower() == 'toggle':
             AUV.motor.toggle_state()
@@ -61,10 +62,11 @@ class CLI(cmd.Cmd):
         else:
             return args
 
+    # lower/upper color ###############################################################################################
     def do_lower(self, arg):
         '\n[task] 0-255,0-255,0-255\
          \nused to change lower of color filter'
-        
+
         if not arg.lower() == '':
             try:
                 arg1, arg2 = parse_color(arg)
@@ -79,7 +81,7 @@ class CLI(cmd.Cmd):
     def do_upper(self, arg):
         '\n[task] 0-255,0-255,0-255\
          \nused to change upper of color filter'
-        
+
         if not arg.lower() == '':
             try:
                 arg1, arg2 = parse_color(arg)
@@ -175,11 +177,13 @@ class CLI(cmd.Cmd):
          \n[state] or no argument to print current state'
 
         if arg.lower() == 'on' or arg == '1':
-            AUV.status_logger.toggle_logging(1)
+            status.is_logging = True
+            # AUV.status_logger.toggle_logging(1)
         elif arg.lower() == 'off' or arg == '0':
-            AUV.status_logger.toggle_logging(0)
-        elif arg.lower() == 'toggle':
-            AUV.status_logger.toggle_logging()
+            status.is_logging = False
+            # AUV.status_logger.toggle_logging(0)
+        # elif arg.lower() == 'toggle':
+            # AUV.status_logger.toggle_logging()
         else:
             print('\nstatus logging state: %d' % AUV.status_logger.is_logging)
 
@@ -201,6 +205,7 @@ class CLI(cmd.Cmd):
         print('Closing Robosub')
 
         return True
+
 
 def parse_color(arg):
     arg1, arg2 = arg.split()
