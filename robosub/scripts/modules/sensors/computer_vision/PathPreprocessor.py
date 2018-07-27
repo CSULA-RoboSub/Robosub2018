@@ -5,7 +5,7 @@ import numpy as np
 class PathPreprocessor():
 
     def __init__(self):
-        self.lower_thresh = np.array([0, 150, 0], 'uint8')
+        self.lower_thresh = np.array([0, 87, 1], 'uint8')
         self.upper_thresh = np.array([20, 255, 255], 'uint8')
         self.roi_size = 1000
         self.min_cont_size = 100 # min contours size

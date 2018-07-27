@@ -207,9 +207,18 @@ class CVController():
     def opencv_camera_start(self, task_name):
         self.cap = None
         # self.cap = cv2.VideoCapture(0)
+        
+        #path
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
+        
+        #dark gate
         self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
+
+        #bright gate
+        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
+
         self.setup_video_output(task_name)
         print 'laptop/default camera found'
 
@@ -300,7 +309,7 @@ class CVController():
         self.current_raw_frame = copy.copy(frame)
         found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
-        
+        # cv2.imshow('cv', frame)
         self.outprocessed.write(frame)
 
         self.current_processed_frame = copy.copy(frame)
