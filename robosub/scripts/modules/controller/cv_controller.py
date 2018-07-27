@@ -28,7 +28,7 @@ except:
 
 
 class CVController():
-    
+
     def __init__(self):
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()

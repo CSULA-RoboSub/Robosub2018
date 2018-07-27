@@ -48,7 +48,7 @@ class Houston():
         self.path_1 = Path(self)
         self.dice = Dice(self)
         self.path_2 = Path(self)
-        self.chip_1 = Chip(self)        
+        self.chip_1 = Chip(self)
         self.chip_2 = Chip(self)
         self.roulette = Roulette(self)
         self.slots = Slots(self)
@@ -105,9 +105,31 @@ class Houston():
             self.dice
         ]
 
+        self.gui_states = {
+            'pregate': self.pregate,
+            'gate': self.gate,
+            'path': self.path_1,
+            'dice': self.dice
+        }
+
         self.one_or_all_tasks = {
             'one': self.do_one_task,
             'all': self.start_all_tasks
+        }
+
+        self.gui_task_calls = {
+            'pregate': 0,
+            'gate': 1,
+            'path_1': 2,
+            'dice': 3,
+            'chip_1': 4,
+            'path_2': 5,
+            'chip_2': 6,
+            'slots': 7,
+            'pinger_a': 8,
+            'roulette': 9,
+            'pinger_b': 10,
+            'cash_in': 11
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -150,6 +172,14 @@ class Houston():
             print '\nTask is currently running.'
             print '\nPlease wait for task to finish or cancel'
 
+    # start_task_from_gui ##################################################################################
+    def start_task_from_gui(self, one_or_all, task_name):
+        if not self.is_task_running:
+            self.task_thread_start(one_or_all, self.gui_task_calls[task_name])
+        else:
+            print '\nTask is currently running.'
+            print '\nPlease wait for task to finish or cancel'
+
     # start_all_tasks ##################################################################################
     def start_all_tasks(self, _):
         time.sleep(7)
@@ -164,7 +194,7 @@ class Houston():
             if self.state_num > len(self.states_run_all)-1:
                 self.all_task_loop = False
                 print 'no more tasks to complete'
-            
+
             # self.run_orientation()
 
             # Added to show mark we are able to set orientation before hand
@@ -189,7 +219,6 @@ class Houston():
     # run_orientation ##################################################################################
     def run_orientation(self):
         self.orientation.set_orientation(self.navigation, self.power, self.r_power)
-
 
     # do_one_task ##################################################################################
     def do_one_task(self, task_num):

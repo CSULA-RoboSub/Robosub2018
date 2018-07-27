@@ -1,5 +1,6 @@
 import rospy
 from robosub.msg import HControl
+from modules.main.status import log
 
 
 class Motor():
@@ -22,6 +23,7 @@ class Motor():
 
     def toggle_state(self, arg=None):
         """Toggles the state of the motors (4 == on, 5 == off, empty == toggle)"""
+
         if arg != 4 and arg != 5:
             return
 
@@ -35,6 +37,7 @@ class Motor():
             self.state = arg
 
         print('\nmotor state set to %d' % self.state)
+        log('\nmotor state set to %d' % self.state)
 
         if self.is_killswitch_on:
             self.pub_motor_state(self.state)

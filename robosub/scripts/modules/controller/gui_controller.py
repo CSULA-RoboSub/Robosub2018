@@ -38,8 +38,12 @@ class Controller():
     def read_task_button(self, text):
         """ Read task string from button press"""
 
-        print(text)
-        # TODO call task in cv
+        if text == 'start tasks':
+            self.AUV.perform_tasks()
+        elif text == 'stop tasks':
+            self.AUV.stop_task()
+        else:
+            self.AUV.specific_task_for_gui(text)
 
     def get_color_task(self):
         """ Get the task from lower_color"""
