@@ -440,7 +440,7 @@ void movementControlFinish(){
   mControlRunningTime = 0;
   mControlPower = 0;
   mControlStatus.state = 0;
-  mControlStatus.mDirection = 0;
+  mControlStatus.mDirection = mControlDirection;
   mControlStatus.power = 0;
   mControlStatus.distance = mControlDistance;
   mControlStatus.runningTime = 0;

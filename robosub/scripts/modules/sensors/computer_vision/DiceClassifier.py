@@ -31,7 +31,7 @@ class DiceClassifier:
         self.dims = (144,144)
         self.hog = self.get_hog()
         
-        self.min_prob = .8 # adjust probability here
+        self.min_prob = .9 # adjust probability here
         self.set_model(self.model_name)
 
 
@@ -108,6 +108,8 @@ class DiceClassifier:
         max_val = 0
         if self.lsvm is None:
             print 'ERROR: lsvm not trained'
+
+        classified_rois = []
         for box in roi:
             x, y, w, h = box
             window = frame[y:y + h, x:x + w, :]
@@ -115,9 +117,10 @@ class DiceClassifier:
             feat = self.hog.compute(window_resized)
             feat_reshape = feat.reshape(1, -1)
             prob = self.lsvm.predict_proba(feat_reshape)[0]
-            prediction = self.lsvm.predict(feat_reshape)
+            # prediction = self.lsvm.predict(feat_reshape)
             dice_class = prob[1]
             # print(dice_class)
-            if (prediction > 0 and dice_class >= self.min_prob and dice_class > max_val):
-                die = box
-        return die
+            # if (prediction > 0 and dice_class >= self.min_prob and dice_class > max_val):
+            if (dice_class >= self.min_prob and dice_class > max_val):
+                classified_rois.append(box)
+        return classified_rois

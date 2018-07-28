@@ -163,7 +163,7 @@ class Path(Task):
                 # print('self.path_maneuver.is_frame_height_max = True')
                 self.path_maneuver.is_frame_height_max = True
 
-            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and not self.path_maneuver.is_no_longer_frame_height_max and (float(width_height_ratio[1]) <= (float(self.frame_height_max) * 0.38)):
+            elif self.path_maneuver.is_close_enough and ((self.path_maneuver.is_frame_height_max and not self.path_maneuver.is_no_longer_frame_height_max and (float(width_height_ratio[1]) <= (float(self.frame_height_max) * 0.38))) or not found):
                 #trigger once we've filled camera with path and are now starting to leave the path
                 # print('self.path_maneuver.is_no_longer_frame_height_max = True')
                 self.path_maneuver.is_no_longer_frame_height_max = True

@@ -65,11 +65,11 @@ class DiceManeuver():
         # TODO remove soon
         self.rotation_direction = 'right'
         self.m_state_is_moving_forward = 0
-        self.m_distance = 0.5
+        self.m_distance = 1.1
 
         ################ FRAME VARIABLES ################
         self.frame = (744, 480)
-        self.close_enough_values = (100, 100)
+        self.close_enough_values = (200, 200)
         # self.frame = (640, 480)
 
         ################ ROS STUFF ######################
@@ -108,7 +108,7 @@ class DiceManeuver():
         
         elif width_height[1] >= self.close_enough_values[1] and not self.is_moving_forward:
             self.is_moving_forward = True
-            self.cance_and_m_nav('distance', 'forward', self.m_power, self.m_distance)
+            navigation.cancel_and_m_nav('distance', 'forward', self.m_power, self.m_distance)
             self.m_state_is_moving_forward = 1
 
         # if self.frame == width_height:
@@ -179,12 +179,12 @@ class DiceManeuver():
         # print(rotation_status)
         if self.is_moving_forward:
 
-            if movement_status.state == 0 and self.m_state_is_moving_forward == 1:
+            if movement_status.state == 0 and self.m_state_is_moving_forward == 1 and abs(movement_status.distance - self.m_distance) < 0.001 and movement_status.mDirection == 1 and movement_status.power == 0:
                 # print('in state 1')
                 self.m_nav('distance', 'backward', self.m_power, self.m_distance)
                 self.m_state_is_moving_forward = 2
                 # print("backward wp state 2")
 
-            if movement_status.state == 0 and self.m_state_is_moving_forward == 2:
+            if movement_status.state == 0 and self.m_state_is_moving_forward == 2 and abs(movement_status.distance - self.m_distance) < 0.001 and movement_status.mDirection == 3 and movement_status.power == 0:
                 self.dice_touched += 1
                 self.reset_after_1st_die()
