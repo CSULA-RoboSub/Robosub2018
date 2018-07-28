@@ -54,7 +54,7 @@ class PathManeuver():
 
         self.m_power_horizontal_move_with_forward = {
             -1: 70,
-             0: 90,
+             0: 80,
              1: 70
         }
 
@@ -67,8 +67,8 @@ class PathManeuver():
         ################ AUV MOBILITY VARIABLES ################
         self.move_forward = 'forward'
         self.move_backward = 'backward'
-        self.rotation_angle = 4
-        self.r_power=70
+        self.rotation_angle = 5
+        self.r_power=90
         self.h_power=100
         self.m_power=80
         self.m_power_strafe=self.m_power_horizontal_move_with_forward[1]
@@ -123,12 +123,7 @@ class PathManeuver():
     #     navigation.r_nav(self.line_up_movement[coordinates[0]], rotation, self.rotation_power)
 
     def completed_path_check(self):
-        check_path = self.is_frame_height_max and self.is_no_longer_frame_height_max
-        
-        if check_path:
-            self.is_task_complete = True
-
-        return self.is_task_complete
+        return self.is_no_longer_frame_height_max
 
     def center_x_or_move_forward(self, navigation, horizontal_move):
         navigation.cancel_and_m_nav('power', self.horizontal_move_with_forward[horizontal_move], self.m_power_horizontal_move_with_forward[horizontal_move])

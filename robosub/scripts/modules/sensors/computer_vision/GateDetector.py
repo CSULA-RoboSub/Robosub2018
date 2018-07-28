@@ -35,24 +35,32 @@ class GateDetector:
 
     # now returns (found, directions, shape-of-roi, size)
     def detect(self, frame):
-        height, width, ch = frame.shape
-        center = (width / 2, height / 2)
-        regions_of_interest = self.preprocess.get_interest_regions(frame)
-        
-        for x, y, w, h in regions_of_interest:
-            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+        if frame is not None:
+            height, width, ch = frame.shape
+            center = (width / 2, height / 2)
+            regions_of_interest = self.preprocess.get_interest_regions(frame)
+            
+            for x, y, w, h in regions_of_interest:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
 
-        gate = self.classifier.classify(frame, regions_of_interest)
-        
-        gate_shape = self.get_shape(gate, self.shape_buffer)
-        
-        if (gate == None):
-            self.directions = [0, 0]
-            self.found = False
-            w, h = 0, 0
+            gate = self.classifier.classify(frame, regions_of_interest)
+            
+            gate_shape = self.get_shape(gate, self.shape_buffer)
+
+            if gate_shape == self.shapes[3] or gate_shape == self.shapes[1]:
+                gate = None
+                
+            if (gate == None):
+                self.directions = [0, 0]
+                self.found = False
+                gate_shape = None
+                w, h = 0, 0
+            else:
+                x, y, w, h = gate
+                cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
+                self.directions = utils.get_directions(center, x, y, w, h)
+                self.found = True
+            return (self.found, self.directions, gate_shape, (w, h))
         else:
-            x, y, w, h = gate
-            cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
-            self.directions = utils.get_directions(center, x, y, w, h)
-            self.found = True
-        return (self.found, self.directions, gate_shape, (w, h))
+            print('error no frame')
+            return False, None, None, None

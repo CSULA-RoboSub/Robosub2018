@@ -28,6 +28,7 @@ class Dice(Task):
         self.stop_task = False
         self.is_complete = False
         self.is_die_number_changed = False
+        self.is_first_found = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -73,6 +74,7 @@ class Dice(Task):
         self.is_done = False
         self.is_complete = False
         self.is_die_number_changed = False
+        self.is_first_found = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -89,13 +91,21 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=5):
         self.local_cvcontroller = cvcontroller
+        
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
+            navigation.do_depth_cap(self.h_power)
             # try:
             found, direction, shape, width_height = cvcontroller.detect(task_name)
+            
+            if found and not self.is_first_found:
+                #cancel navigation passed on from path once auv first see's a dice
+                self.is_first_found = True
+                navigation.cancel_all_nav()
+
             if found:
                 self.direction_list.append(direction)
 
@@ -147,10 +157,10 @@ class Dice(Task):
         
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
-        if not self.dice_maneuver.is_moving_forward:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
+        
+        if self.dice_maneuver.is_moving_forward:
+            self.dice_maneuver.nothing_found_counter = 0
+            return
 
         # if found:
         if not self.dice_maneuver.is_rotated_to_center and shape:

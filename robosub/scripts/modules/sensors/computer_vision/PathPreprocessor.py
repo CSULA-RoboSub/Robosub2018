@@ -5,9 +5,12 @@ import numpy as np
 class PathPreprocessor():
 
     def __init__(self):
-        self.lower_thresh = np.array([0, 150, 0], 'uint8')
-        self.upper_thresh = np.array([20, 255, 255], 'uint8')
-        self.roi_size = 700
+        #bright 1
+        # self.lower_thresh = np.array([0, 109, 5], 'uint8')
+        # self.upper_thresh = np.array([18, 255, 255], 'uint8')
+        self.lower_thresh = np.array([0, 134, 39], 'uint8')
+        self.upper_thresh = np.array([18, 255, 255], 'uint8')
+        self.roi_size = 1700
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
 
@@ -19,6 +22,14 @@ class PathPreprocessor():
                 new_cont_list.append(cont)
         filtered_contours = np.array(new_cont_list)
         return filtered_contours
+
+    def set_lower_color(self, task_name, lower):
+        self.lower = np.array(lower, 'uint8')
+        print 'lower is set to {} for {}'.format(lower, task_name)
+        
+    def set_upper_color(self, task_name, upper):
+        self.upper = np.array(upper, 'uint8')
+        print 'upper is set to {} for {}'.format(upper, task_name)
 
     def preprocess(self, img):
         mask = cv2.inRange(img, self.lower_thresh, self.upper_thresh)

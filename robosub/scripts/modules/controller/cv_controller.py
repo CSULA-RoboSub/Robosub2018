@@ -28,7 +28,7 @@ except:
 
 
 class CVController():
-    
+
     def __init__(self):
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()
@@ -63,6 +63,10 @@ class CVController():
             # 'pinger_a': self.pingerdetector,
             # 'cash_in': self.cashindetector
 
+        # set.models = {
+
+        # }
+
         self.camera_start_dictionary = {
             0: self.opencv_camera_start,
             1: self.sub_driver_camera_start
@@ -80,6 +84,10 @@ class CVController():
             'forward' : '07714031',
             'down' : '35710219'
         }
+        # self.camera_serials = {
+        #     'down' : '07714031',
+        #     'forward' : '35710219'
+        # }
         #############################
         self.sample = {
             'forward' : None,
@@ -141,6 +149,19 @@ class CVController():
         #cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
+    # set_lower_color ##################################################################################
+    def set_lower_color(self, task_name, lower):
+        self.tasks[task_name].preprocess.set_lower_color(task_name, lower)
+
+    # set_upper_color ##################################################################################
+    def set_upper_color(self, task_name, upper):
+        self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
+
+    # set_model ##################################################################################
+    def set_model(self, task_name=None):
+        pass
+        # TODO set model for detectors
+
     # camera selection functions ######################################################################
     def change_camera_to(self, camera_direction, task_name):
         self.stop()
@@ -163,7 +184,7 @@ class CVController():
         if self.sub_camera_found == 1:
             res = (744, 480)
         else:
-            res = (640, 480)
+            res = (744, 480)
 
         self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
         self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
@@ -185,7 +206,24 @@ class CVController():
     # opencv_camera_start ##################################################################################
     def opencv_camera_start(self, task_name):
         self.cap = None
-        self.cap = cv2.VideoCapture(0)
+        # self.cap = cv2.VideoCapture(0)
+        
+        #path
+        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
+        
+        #dark gate
+        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
+
+        #bright gate
+        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
+
+        #dice
+        # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h45m40s_output.avi')
+        self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
+
+        
         self.setup_video_output(task_name)
         print 'laptop/default camera found'
 
@@ -205,6 +243,7 @@ class CVController():
             # Create a numpy array from the data
             img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
             frame = img_array.reshape((height, width, 3))
+        
             self.show_img(camera_direction, frame)
 
             # except KeyboardInterrupt:
@@ -275,7 +314,9 @@ class CVController():
         self.current_raw_frame = copy.copy(frame)
         found, directions, shape, width_height = self.cv_task.detect(frame)
         #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
+        # cv2.imshow('cv', frame)
         self.outprocessed.write(frame)
+
         self.current_processed_frame = copy.copy(frame)
         return found, directions, shape, width_height
     

@@ -31,8 +31,8 @@ class GateClassifier:
             self.cell_size,
             self.bins
         )
-
-        self.min_prob = .1 # set probability for MODELdown here for convenience
+   
+        self.min_prob = .6  # set probability for MODELdown here for convenience
         self.set_model(self.model_name)
 
     # returns the model file name as a string from henrys config file - conig file has prenamed
@@ -114,9 +114,10 @@ class GateClassifier:
             feat = self.hog.compute(window_resized)
             feat_reshape = feat.reshape(1, -1)
             prob = self.lsvm.predict_proba(feat_reshape)[0]
-            prediction = self.lsvm.predict(feat_reshape)
+            # prediction = self.lsvm.predict(feat_reshape)
             gate_class = prob[1] # corresponds to class 1 (positive gate)
-            # print(gate_class)
-            if(prediction > 0 and gate_class > self.min_prob and gate_class > max_val):
+            # print('probability: {}'.format(gate_class))
+            # if(prediction > 0 and gate_class > self.min_prob and gate_class > max_val):
+            if (gate_class > self.min_prob and gate_class > max_val):
                 gate = box
         return gate

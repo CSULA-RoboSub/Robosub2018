@@ -18,7 +18,7 @@ class Controller():
     def change_params(self):
         """ Opens the config file and updates the parameters"""
 
-        self.AUV.update_config()
+        self.AUV.open_config()
 
     def get_auto_mode_state(self):
         """ Get the start_auto_mode from config.ini"""
@@ -38,8 +38,37 @@ class Controller():
     def read_task_button(self, text):
         """ Read task string from button press"""
 
-        print(text)
-        # TODO call task in cv
+        if text == 'start tasks':
+            self.AUV.perform_tasks()
+        elif text == 'stop tasks':
+            self.AUV.stop_task()
+        else:
+            self.AUV.specific_task_for_gui(text)
+
+    def get_color_task(self):
+        """ Get the task from lower_color"""
+
+        return config.get_config('cv', 'lower_color')[0]
+
+    def update_color(self, task_name, range0, range1, range2):
+        """ Read task name and slider range values from GUI"""
+
+        lower_color = (
+            task_name + ', ' +
+            str(range0[0]) + ', ' +
+            str(range1[0]) + ', ' +
+            str(range2[0])
+        )
+
+        upper_color = (
+            task_name + ', ' +
+            str(range0[1]) + ', ' +
+            str(range1[1]) + ', ' +
+            str(range2[1])
+        )
+        config.set_config('cv', 'lower_color', lower_color)
+        config.set_config('cv', 'upper_color', upper_color)
+        self.AUV.update_color()
 
     def manual_mode(self):
         """ Manual mode selected (Keyboard)"""

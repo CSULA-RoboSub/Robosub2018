@@ -1,433 +1,341 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'gui.ui'
-#
-# Created by: PyQt5 UI code generator 5.7
-#
-# WARNING! All changes made in this file will be lost!
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-from modules.controller.gui_controller import Controller
+import sys
 import subprocess
 import time
 import os
+from functools import partial
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QColorDialog
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QColor
+from misc.qrangeslider import QRangeSlider
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
+from modules.controller.gui_controller import Controller
 
-        self.Controller = Controller()  # Initialize gui controller
 
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1432, 850)
-        self.central_widget = QtWidgets.QWidget(MainWindow)
-        self.central_widget.setObjectName("central_widget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.central_widget)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+class App(QWidget):
+
+    def __init__(self):
+        super(App, self).__init__()
+        self.controller = Controller()  # Initialize gui controller
+        self.title = 'Robosub GUI'
+        self.left = 10
+        self.top = 10
+        self.width = 1432
+        self.height = 850
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+
+        self.main_layout = QtWidgets.QHBoxLayout(self)
+        self.left_section()
+        self.right_section()
+
+        self.show()
+
+    def left_section(self):
+
+        # Layouts ##########
         self.left_layout = QtWidgets.QVBoxLayout()
-        self.left_layout.setObjectName("left_layout")
-        self.displays = QtWidgets.QHBoxLayout()
-        self.displays.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.displays.setObjectName("displays")
-        self.display0 = QtWidgets.QGraphicsView(self.central_widget)
-        self.display0.setSizeIncrement(QtCore.QSize(0, 0))
-        self.display0.setBaseSize(QtCore.QSize(0, 0))
-        self.display0.setObjectName("display0")
-        self.displays.addWidget(self.display0)
-        self.display1 = QtWidgets.QGraphicsView(self.central_widget)
-        self.display1.setSizeIncrement(QtCore.QSize(0, 0))
-        self.display1.setBaseSize(QtCore.QSize(0, 0))
-        self.display1.setObjectName("display1")
-        self.displays.addWidget(self.display1)
-        self.left_layout.addLayout(self.displays)
-        self.cameras = QtWidgets.QHBoxLayout()
-        self.cameras.setObjectName("cameras")
-        self.camera0 = QtWidgets.QPushButton(self.central_widget)
-        self.camera0.setObjectName("camera0")
-        self.cameras.addWidget(self.camera0)
-        self.camera1 = QtWidgets.QPushButton(self.central_widget)
-        self.camera1.setObjectName("camera1")
-        self.cameras.addWidget(self.camera1)
-        self.camera2 = QtWidgets.QPushButton(self.central_widget)
-        self.camera2.setObjectName("camera2")
-        self.cameras.addWidget(self.camera2)
-        self.left_layout.addLayout(self.cameras)
-        self.sensor_data = QtWidgets.QTableWidget(self.central_widget)
-        self.sensor_data.setAutoScroll(True)
-        self.sensor_data.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.display_layout = QtWidgets.QHBoxLayout()
+        self.camera_layout = QtWidgets.QHBoxLayout()
+
+        # Widgets ##########
+
+        # display_layout
+        self.display0 = QtWidgets.QGraphicsView(self)  # display0
+        self.display_layout.addWidget(self.display0)
+        self.display1 = QtWidgets.QGraphicsView(self)  # display1
+        self.display_layout.addWidget(self.display1)
+
+        self.left_layout.addLayout(self.display_layout)
+
+        # camera_layout
+        self.btn_camera0 = QtWidgets.QPushButton('Camera 0', self)  # btn_camera0
+        self.camera_layout.addWidget(self.btn_camera0)
+        self.btn_camera1 = QtWidgets.QPushButton('Camera 1', self)  # btn_camera1
+        self.camera_layout.addWidget(self.btn_camera1)
+        self.btn_camera2 = QtWidgets.QPushButton('Camera 2', self)  # btn_camera2
+        self.camera_layout.addWidget(self.btn_camera2)
+
+        self.left_layout.addLayout(self.camera_layout)
+
+        # sensor_data
+        self.sensor_data = QtWidgets.QTableView(self)  # sensor_data
         self.sensor_data.setShowGrid(True)
-        self.sensor_data.setCornerButtonEnabled(True)
-        self.sensor_data.setRowCount(4)
-        self.sensor_data.setColumnCount(7)
-        self.sensor_data.setObjectName("sensor_data")
+        # sensor_data.setRowCount(4)
+        # sensor_data.setColumnCount(7)
         self.sensor_data.horizontalHeader().setVisible(False)
         self.sensor_data.horizontalHeader().setHighlightSections(False)
         self.sensor_data.verticalHeader().setVisible(False)
         self.sensor_data.verticalHeader().setHighlightSections(False)
         self.left_layout.addWidget(self.sensor_data)
-        self.messages = QtWidgets.QTextBrowser(self.central_widget)
-        self.messages.setObjectName("messages")
+        self.messages = QtWidgets.QTextBrowser(self)  # messages
         self.left_layout.addWidget(self.messages)
-        self.horizontalLayout.addLayout(self.left_layout)
+
+        self.main_layout.addLayout(self.left_layout)
+
+        self.left_connections()  # Controller connctions
+
+    def right_section(self):
+
+        # Layouts ##########
         self.right_layout = QtWidgets.QVBoxLayout()
-        self.right_layout.setObjectName("right_layout")
-        self.mode_selection = QtWidgets.QHBoxLayout()
-        self.mode_selection.setObjectName("mode_selection")
-        self.load_default_button = QtWidgets.QPushButton(self.central_widget)
-        self.load_default_button.setObjectName("load_default_button")
-        self.mode_selection.addWidget(self.load_default_button)
-        self.change_params_button = QtWidgets.QPushButton(self.central_widget)
-        self.change_params_button.setObjectName("change_params_button")
-        self.mode_selection.addWidget(self.change_params_button)
-        self.auto_checkbox = QtWidgets.QCheckBox(self.central_widget)
-        self.auto_checkbox.setObjectName("auto_checkbox")
-        self.mode_selection.addWidget(self.auto_checkbox)
-        self.right_layout.addLayout(self.mode_selection)
-        self.tabWidget = QtWidgets.QTabWidget(self.central_widget)
-        self.tabWidget.setObjectName("tabWidget")
-        self.task_selection = QtWidgets.QWidget()
-        self.task_selection.setObjectName("task_selection")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.task_selection)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.start_tasks = QtWidgets.QPushButton(self.task_selection)
-        self.start_tasks.setObjectName("start_tasks")
-        self.verticalLayout.addWidget(self.start_tasks)
-        self.stop_tasks = QtWidgets.QPushButton(self.task_selection)
-        self.stop_tasks.setObjectName("stop_tasks")
-        self.verticalLayout.addWidget(self.stop_tasks)
-        self.task0 = QtWidgets.QPushButton(self.task_selection)
-        self.task0.setEnabled(True)
-        self.task0.setObjectName("task0")
-        self.verticalLayout.addWidget(self.task0)
-        self.task1 = QtWidgets.QPushButton(self.task_selection)
-        self.task1.setObjectName("task1")
-        self.verticalLayout.addWidget(self.task1)
-        self.task2 = QtWidgets.QPushButton(self.task_selection)
-        self.task2.setObjectName("task2")
-        self.verticalLayout.addWidget(self.task2)
-        self.task3 = QtWidgets.QPushButton(self.task_selection)
-        self.task3.setObjectName("task3")
-        self.verticalLayout.addWidget(self.task3)
-        self.task4 = QtWidgets.QPushButton(self.task_selection)
-        self.task4.setObjectName("task4")
-        self.verticalLayout.addWidget(self.task4)
-        self.task5 = QtWidgets.QPushButton(self.task_selection)
-        self.task5.setObjectName("task5")
-        self.verticalLayout.addWidget(self.task5)
-        self.task6 = QtWidgets.QPushButton(self.task_selection)
-        self.task6.setObjectName("task6")
-        self.verticalLayout.addWidget(self.task6)
-        self.task7 = QtWidgets.QPushButton(self.task_selection)
-        self.task7.setObjectName("task7")
-        self.verticalLayout.addWidget(self.task7)
-        self.tabWidget.addTab(self.task_selection, "")
-        self.controls = QtWidgets.QWidget()
-        self.controls.setObjectName("controls")
-        self.gridLayout = QtWidgets.QGridLayout(self.controls)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.setHorizontalSpacing(4)
-        self.gridLayout.setVerticalSpacing(3)
-        self.gridLayout.setObjectName("gridLayout")
-        self.forward = QtWidgets.QPushButton(self.controls)
-        self.forward.setMaximumSize(QtCore.QSize(100, 100))
-        self.forward.setObjectName("forward")
-        self.gridLayout.addWidget(self.forward, 3, 2, 1, 1)
-        self.rotate_l = QtWidgets.QPushButton(self.controls)
-        self.rotate_l.setMaximumSize(QtCore.QSize(100, 100))
-        self.rotate_l.setObjectName("rotate_l")
-        self.gridLayout.addWidget(self.rotate_l, 4, 0, 1, 1)
-        self.rotate_r = QtWidgets.QPushButton(self.controls)
-        self.rotate_r.setMaximumSize(QtCore.QSize(100, 100))
-        self.rotate_r.setObjectName("rotate_r")
-        self.gridLayout.addWidget(self.rotate_r, 4, 3, 1, 1)
-        self.backward = QtWidgets.QPushButton(self.controls)
-        self.backward.setMaximumSize(QtCore.QSize(100, 100))
-        self.backward.setObjectName("backward")
-        self.gridLayout.addWidget(self.backward, 4, 2, 1, 1)
-        self.up = QtWidgets.QPushButton(self.controls)
-        self.up.setMaximumSize(QtCore.QSize(100, 100))
-        self.up.setObjectName("up")
-        self.gridLayout.addWidget(self.up, 3, 4, 1, 1)
-        self.strafe_l = QtWidgets.QPushButton(self.controls)
-        self.strafe_l.setMaximumSize(QtCore.QSize(100, 100))
-        self.strafe_l.setObjectName("strafe_l")
-        self.gridLayout.addWidget(self.strafe_l, 3, 0, 1, 1)
-        self.strafe_r = QtWidgets.QPushButton(self.controls)
-        self.strafe_r.setMaximumSize(QtCore.QSize(100, 100))
-        self.strafe_r.setObjectName("strafe_r")
-        self.gridLayout.addWidget(self.strafe_r, 3, 3, 1, 1)
-        self.down = QtWidgets.QPushButton(self.controls)
-        self.down.setMaximumSize(QtCore.QSize(100, 100))
-        self.down.setObjectName("down")
-        self.gridLayout.addWidget(self.down, 4, 4, 1, 1)
-        self.brake = QtWidgets.QPushButton(self.controls)
-        self.brake.setMaximumSize(QtCore.QSize(100, 100))
-        self.brake.setObjectName("brake")
-        self.gridLayout.addWidget(self.brake, 1, 0, 1, 1)
+        self.mode_layout = QtWidgets.QHBoxLayout()
+
+        # Auto Mode Tab
+        self.task_selection = QtWidgets.QWidget()  # task_selection
+        self.task_layout = QtWidgets.QVBoxLayout(self.task_selection)
+
+        # Manual Mode Tab
+        self.manual_controls = QtWidgets.QWidget()  # manual_controls
+        self.controls_layout = QtWidgets.QGridLayout(self.manual_controls)
+        self.controls_layout.setContentsMargins(0, 0, 0, 0)
+        self.controls_layout.setHorizontalSpacing(4)
+        self.controls_layout.setVerticalSpacing(3)
         self.power_layout = QtWidgets.QVBoxLayout()
-        self.power_layout.setObjectName("power_layout")
-        self.power_label = QtWidgets.QLabel(self.controls)
+        self.rotation_layout = QtWidgets.QVBoxLayout()
+        self.depth_layout = QtWidgets.QVBoxLayout()
+
+        # Computer Vision Tab
+        self.computer_vision = QtWidgets.QWidget()  # computer_vision
+        self.cv_layout = QtWidgets.QVBoxLayout(self.computer_vision)
+        # self.cv_layout = QtWidgets.QGridLayout(self.computer_vision)
+        # self.cv_layout.setContentsMargins(0, 0, 0, 0)
+        # self.cv_layout.setHorizontalSpacing(2)
+        # self.cv_layout.setVerticalSpacing(3)
+        # TODO inner layout of cv tab
+
+        # Widgets ##########
+
+        # mode_layout
+        self.btn_load_default = QtWidgets.QPushButton('Load Default Params', self)  # btn_load_default
+        self.mode_layout.addWidget(self.btn_load_default)
+        self.btn_change_params = QtWidgets.QPushButton('Change Params', self)  # btn_change_params
+        self.mode_layout.addWidget(self.btn_change_params)
+        self.chk_autostart = QtWidgets.QCheckBox('Start in Auto Mode', self)  # chk_autostart
+        self.chk_autostart.setChecked(self.controller.get_auto_mode_state())
+        self.mode_layout.addWidget(self.chk_autostart)
+
+        self.right_layout.addLayout(self.mode_layout)
+
+        # tab_widget
+        self.tab_widget = QtWidgets.QTabWidget(self)  # tab_widget
+        self.tab_widget.addTab(self.task_selection, 'Auto Mode')
+        self.tab_widget.addTab(self.manual_controls, 'Manual Mode')
+        self.tab_widget.addTab(self.computer_vision, 'Computer Vision')
+        self.right_layout.addWidget(self.tab_widget)
+
+        # Auto Mode Tab
+        self.btn_start_tasks = QtWidgets.QPushButton('start tasks', self.task_selection)  # btn_start_tasks
+        self.task_layout.addWidget(self.btn_start_tasks)
+        self.btn_stop_tasks = QtWidgets.QPushButton('stop tasks', self.task_selection)  # btn_stop_tasks
+        self.task_layout.addWidget(self.btn_stop_tasks)
+
+        self.task_button_list = []
+        self.generate_task_buttons()  # Dynamically generate task buttons from config.ini
+
+        # Manual Mode Tab
+        self.btn_brake = QtWidgets.QPushButton('Brake', self.manual_controls)  # btn_brake
+        self.btn_brake.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_brake, 1, 0, 1, 1)
+        self.power_label = QtWidgets.QLabel('Power', self.manual_controls)  # spn_power
         self.power_label.setMaximumSize(QtCore.QSize(100, 20))
         self.power_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.power_label.setObjectName("power_label")
+        self.spn_power = QtWidgets.QSpinBox(self.manual_controls)
+        self.spn_power.setMaximumSize(QtCore.QSize(100, 80))
+        self.spn_power.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_power.setMaximum(200)
+        self.spn_power.setSingleStep(20)
+        self.spn_power.setProperty('value', 120)
+
         self.power_layout.addWidget(self.power_label)
-        self.power = QtWidgets.QSpinBox(self.controls)
-        self.power.setMaximumSize(QtCore.QSize(100, 80))
-        self.power.setAlignment(QtCore.Qt.AlignCenter)
-        self.power.setMaximum(200)
-        self.power.setSingleStep(20)
-        self.power.setProperty("value", 120)
-        self.power.setObjectName("power")
-        self.power_layout.addWidget(self.power)
-        self.gridLayout.addLayout(self.power_layout, 1, 2, 1, 1)
-        self.depth_layout = QtWidgets.QVBoxLayout()
-        self.depth_layout.setObjectName("depth_layout")
-        self.depth_label = QtWidgets.QLabel(self.controls)
+        self.power_layout.addWidget(self.spn_power)
+        self.controls_layout.addLayout(self.power_layout, 1, 2, 1, 1)
+        self.rotation_label = QtWidgets.QLabel('Rotation', self.manual_controls)  # spn_rotation
+        self.rotation_label.setMaximumSize(QtCore.QSize(100, 20))
+        self.rotation_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_rotation = QtWidgets.QSpinBox(self.manual_controls)
+        self.spn_rotation.setMaximumSize(QtCore.QSize(100, 80))
+        self.spn_rotation.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_rotation.setMaximum(180)
+        self.spn_rotation.setSingleStep(10)
+        self.spn_rotation.setProperty('value', 20)
+
+        self.rotation_layout.addWidget(self.rotation_label)
+        self.rotation_layout.addWidget(self.spn_rotation)
+        self.controls_layout.addLayout(self.rotation_layout, 1, 3, 1, 1)
+        self.depth_label = QtWidgets.QLabel('Depth', self.manual_controls)  # spn_depth
         self.depth_label.setMaximumSize(QtCore.QSize(100, 20))
         self.depth_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.depth_label.setObjectName("depth_label")
+        self.spn_depth = QtWidgets.QDoubleSpinBox(self.manual_controls)
+        self.spn_depth.setMaximumSize(QtCore.QSize(100, 80))
+        self.spn_depth.setAlignment(QtCore.Qt.AlignCenter)
+        self.spn_depth.setMinimum(.5)
+        self.spn_depth.setMaximum(20)
+        self.spn_depth.setSingleStep(.5)
+
         self.depth_layout.addWidget(self.depth_label)
-        self.depth = QtWidgets.QSpinBox(self.controls)
-        self.depth.setMaximumSize(QtCore.QSize(100, 80))
-        self.depth.setAlignment(QtCore.Qt.AlignCenter)
-        self.depth.setMinimum(-500)
-        self.depth.setMaximum(500)
-        self.depth.setSingleStep(20)
-        self.depth.setObjectName("depth")
-        self.depth_layout.addWidget(self.depth)
-        self.gridLayout.addLayout(self.depth_layout, 1, 4, 1, 1)
-        self.rotation_layout = QtWidgets.QVBoxLayout()
-        self.rotation_layout.setObjectName("rotation_layout")
-        self.rotation_label = QtWidgets.QLabel(self.controls)
-        self.rotation_label.setMinimumSize(QtCore.QSize(100, 20))
-        self.rotation_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.rotation_label.setObjectName("rotation_label")
-        self.rotation_layout.addWidget(self.rotation_label)
-        self.rotation = QtWidgets.QSpinBox(self.controls)
-        self.rotation.setMinimumSize(QtCore.QSize(100, 80))
-        self.rotation.setAlignment(QtCore.Qt.AlignCenter)
-        self.rotation.setMaximum(180)
-        self.rotation.setSingleStep(10)
-        self.rotation.setProperty("value", 20)
-        self.rotation.setObjectName("rotation")
-        self.rotation_layout.addWidget(self.rotation)
-        self.gridLayout.addLayout(self.rotation_layout, 1, 3, 1, 1)
-        self.tabWidget.addTab(self.controls, "")
+        self.depth_layout.addWidget(self.spn_depth)
+        self.controls_layout.addLayout(self.depth_layout, 1, 4, 1, 1)
+        self.btn_strafe_l = QtWidgets.QPushButton('Strafe L', self.manual_controls)  # btn_strafe_l
+        self.btn_strafe_l.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_strafe_l, 3, 0, 1, 1)
+        self.btn_forward = QtWidgets.QPushButton('Forward', self.manual_controls)  # btn_forward
+        self.btn_forward.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_forward, 3, 2, 1, 1)
+        self.btn_strafe_r = QtWidgets.QPushButton('Strafe R', self.manual_controls)  # btn_strafe_r
+        self.btn_strafe_r.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_strafe_r, 3, 3, 1, 1)
+        self.btn_up = QtWidgets.QPushButton('Up', self.manual_controls)  # btn_up
+        self.btn_up.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_up, 3, 4, 1, 1)
+        self.btn_rotate_l = QtWidgets.QPushButton('Rotate L', self.manual_controls)  # btn_rotate_l
+        self.btn_rotate_l.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_rotate_l, 4, 0, 1, 1)
+        self.btn_backward = QtWidgets.QPushButton('Backward', self.manual_controls)  # btn_backward
+        self.btn_backward.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_backward, 4, 2, 1, 1)
+        self.btn_rotate_r = QtWidgets.QPushButton('Rotate R', self.manual_controls)  # btn_rotate_r
+        self.btn_rotate_r.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_rotate_r, 4, 3, 1, 1)
+        self.btn_down = QtWidgets.QPushButton('Down', self.manual_controls)  # btn_down
+        self.btn_down.setMaximumSize(QtCore.QSize(100, 100))
+        self.controls_layout.addWidget(self.btn_down, 4, 4, 1, 1)
 
-        self.computer_vision = QtWidgets.QWidget()
-        self.computer_vision.setObjectName("computer_vision")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.computer_vision)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.cv_layout = QtWidgets.QGridLayout()
-        self.cv_layout.setHorizontalSpacing(2)
-        self.cv_layout.setVerticalSpacing(3)
-        self.cv_layout.setObjectName("cv_layout")
-        self.cv_2_left = QtWidgets.QVBoxLayout()
-        self.cv_2_left.setContentsMargins(-1, -1, -1, 100)
-        self.cv_2_left.setObjectName("cv_2_left")
-        self.label = QtWidgets.QLabel(self.computer_vision)
-        self.label.setMinimumSize(QtCore.QSize(0, 0))
-        self.label.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setObjectName("label")
-        self.cv_2_left.addWidget(self.label)
-        self.horizontalSlider = QtWidgets.QSlider(self.computer_vision)
-        self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.horizontalSlider.setObjectName("horizontalSlider")
-        self.cv_2_left.addWidget(self.horizontalSlider)
-        self.cv_layout.addLayout(self.cv_2_left, 3, 0, 1, 1)
-        self.cv_1_left = QtWidgets.QVBoxLayout()
-        self.cv_1_left.setContentsMargins(-1, -1, -1, 100)
-        self.cv_1_left.setObjectName("cv_1_left")
-        self.label_2 = QtWidgets.QLabel(self.computer_vision)
-        self.label_2.setMinimumSize(QtCore.QSize(0, 0))
-        self.label_2.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.label_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_2.setObjectName("label_2")
-        self.cv_1_left.addWidget(self.label_2)
-        self.horizontalSlider_2 = QtWidgets.QSlider(self.computer_vision)
-        self.horizontalSlider_2.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_2.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.horizontalSlider_2.setObjectName("horizontalSlider_2")
-        self.cv_1_left.addWidget(self.horizontalSlider_2)
-        self.cv_layout.addLayout(self.cv_1_left, 2, 0, 1, 1)
-        self.cv_0_left = QtWidgets.QVBoxLayout()
-        self.cv_0_left.setContentsMargins(-1, -1, -1, 100)
-        self.cv_0_left.setObjectName("cv_0_left")
-        self.label_3 = QtWidgets.QLabel(self.computer_vision)
-        self.label_3.setMinimumSize(QtCore.QSize(0, 0))
-        self.label_3.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.label_3.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_3.setObjectName("label_3")
-        self.cv_0_left.addWidget(self.label_3)
-        self.horizontalSlider_3 = QtWidgets.QSlider(self.computer_vision)
-        self.horizontalSlider_3.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_3.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.horizontalSlider_3.setObjectName("horizontalSlider_3")
-        self.cv_0_left.addWidget(self.horizontalSlider_3)
-        self.cv_layout.addLayout(self.cv_0_left, 1, 0, 1, 1)
-        self.cv_0_right = QtWidgets.QVBoxLayout()
-        self.cv_0_right.setContentsMargins(-1, -1, -1, 100)
-        self.cv_0_right.setObjectName("cv_0_right")
-        self.label_4 = QtWidgets.QLabel(self.computer_vision)
-        self.label_4.setMinimumSize(QtCore.QSize(0, 0))
-        self.label_4.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setObjectName("label_4")
-        self.cv_0_right.addWidget(self.label_4)
-        self.horizontalSlider_4 = QtWidgets.QSlider(self.computer_vision)
-        self.horizontalSlider_4.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_4.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.horizontalSlider_4.setObjectName("horizontalSlider_4")
-        self.cv_0_right.addWidget(self.horizontalSlider_4)
-        self.cv_layout.addLayout(self.cv_0_right, 1, 1, 1, 1)
-        self.cv_1_right = QtWidgets.QVBoxLayout()
-        self.cv_1_right.setContentsMargins(-1, -1, -1, 100)
-        self.cv_1_right.setObjectName("cv_1_right")
-        self.label_5 = QtWidgets.QLabel(self.computer_vision)
-        self.label_5.setMinimumSize(QtCore.QSize(0, 0))
-        self.label_5.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.label_5.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_5.setObjectName("label_5")
-        self.cv_1_right.addWidget(self.label_5)
-        self.horizontalSlider_5 = QtWidgets.QSlider(self.computer_vision)
-        self.horizontalSlider_5.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_5.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.horizontalSlider_5.setObjectName("horizontalSlider_5")
-        self.cv_1_right.addWidget(self.horizontalSlider_5)
-        self.cv_layout.addLayout(self.cv_1_right, 2, 1, 1, 1)
-        self.cv_2_right = QtWidgets.QVBoxLayout()
-        self.cv_2_right.setContentsMargins(-1, -1, -1, 100)
-        self.cv_2_right.setObjectName("cv_2_right")
-        self.label_6 = QtWidgets.QLabel(self.computer_vision)
-        self.label_6.setMinimumSize(QtCore.QSize(0, 0))
-        self.label_6.setMaximumSize(QtCore.QSize(16777215, 20))
-        self.label_6.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_6.setObjectName("label_6")
-        self.cv_2_right.addWidget(self.label_6)
-        self.horizontalSlider_6 = QtWidgets.QSlider(self.computer_vision)
-        self.horizontalSlider_6.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider_6.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.horizontalSlider_6.setObjectName("horizontalSlider_6")
-        self.cv_2_right.addWidget(self.horizontalSlider_6)
-        self.cv_layout.addLayout(self.cv_2_right, 3, 1, 1, 1)
-        self.verticalLayout_2.addLayout(self.cv_layout)
-        self.tabWidget.addTab(self.computer_vision, "")
-        self.right_layout.addWidget(self.tabWidget)
-        self.horizontalLayout.addLayout(self.right_layout)
-        MainWindow.setCentralWidget(self.central_widget)
+        # Computer Vision Tab
+        self.txt_task_name = QtWidgets.QLineEdit(
+            self.controller.get_color_task(), self.computer_vision)  # txt_task_name
+        self.cv_layout.addWidget(self.txt_task_name)
+        self.slider0 = QRangeSlider(self.computer_vision)  # slider0
+        self.slider0.setSpanStyle('background: qlineargradient(stop:0 #822, stop:1 #933);')
+        self.slider0.setFixedHeight(50)
+        self.slider0.setMin(0)
+        self.slider0.setMax(255)
+        self.slider0.setRange(0, 255)
+        self.cv_layout.addWidget(self.slider0)
+        self.slider1 = QRangeSlider(self.computer_vision)  # slider1
+        self.slider1.setSpanStyle('background: qlineargradient(stop:0 #282, stop:1 #393);')
+        self.slider1.setFixedHeight(50)
+        self.slider1.setMin(0)
+        self.slider1.setMax(255)
+        self.slider1.setRange(0, 255)
+        self.cv_layout.addWidget(self.slider1)
+        self.slider2 = QRangeSlider(self.computer_vision)  # slider2
+        self.slider2.setSpanStyle('background: qlineargradient(stop:0 #228, stop:1 #339);')
+        self.slider2.setFixedHeight(50)
+        self.slider2.setMin(0)
+        self.slider2.setMax(255)
+        self.slider2.setRange(0, 255)
+        self.cv_layout.addWidget(self.slider2)
+        self.btn_update_color = QtWidgets.QPushButton('Update', self.computer_vision)  # btn_update_color
+        self.cv_layout.addWidget(self.btn_update_color)
+        self.btn_reset_color = QtWidgets.QPushButton('Reset', self.computer_vision)  # btn_reset_color
+        self.cv_layout.addWidget(self.btn_reset_color)
 
-        # self.cv_min_rgb = QtWidgets.QPushButton('min RGB', self)
-        # self.cv_min_rgb.clicked.connect(self.on_click)
-        # self.central_widget.show()
+        self.main_layout.addLayout(self.right_layout)
 
-        self.retranslateUi(MainWindow)
+        self.right_connections()  # Controller connctions
 
-        # Controller connections
+    def left_connections(self):
+        """ Controller Connections for left section"""
 
-        # Cameras
-        # TODO display cameras
-        # TODO add camera button connections
+        # TODO
+        pass
 
-        # Sensor Data
-        # TODO Sensor Data
+    def right_connections(self):
+        """ Controller Connections for right section"""
 
-        # Messages
-        # TODO messages
-
-        # Mode Selection
-        self.load_default_button.clicked.connect(self.Controller.load_default_params)
-        self.change_params_button.clicked.connect(self.Controller.change_params)
-        self.auto_checkbox.stateChanged.connect(self.checkbox_state_changed)
+        # Mode Selection Connections
+        self.btn_load_default.clicked.connect(partial(self.edit_config, True))
+        self.btn_change_params.clicked.connect(self.edit_config)
+        self.chk_autostart.stateChanged.connect(self.checkbox_state_changed)
         self.tab_state_changed()
-        self.tabWidget.currentChanged.connect(self.tab_state_changed)
+        self.tab_widget.currentChanged.connect(self.tab_state_changed)
 
-        # Auto Mode
-        # TODO dynamic auto mode buttons
+        # Auto Mode Connections
+        self.btn_start_tasks.clicked.connect(partial(self.controller.read_task_button, self.btn_start_tasks.text()))
+        self.btn_stop_tasks.clicked.connect(partial(self.controller.read_task_button, self.btn_stop_tasks.text()))
+        # TODO start and stop tasks button connection
 
-        # Manual Mode Buttons
-        self.forward.clicked.connect(lambda: self.Controller.manual_move('forward', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.backward.clicked.connect(lambda: self.Controller.manual_move('backward', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.strafe_l.clicked.connect(lambda: self.Controller.manual_move('strafe_l', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.strafe_r.clicked.connect(lambda: self.Controller.manual_move('strafe_r', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.rotate_l.clicked.connect(lambda: self.Controller.manual_move('rotate_l', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.rotate_r.clicked.connect(lambda: self.Controller.manual_move('rotate_r', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.up.clicked.connect(lambda: self.Controller.manual_move('up', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.down.clicked.connect(lambda: self.Controller.manual_move('down', self.power.value(), self.rotation.value(), self.depth.value()))
-        self.brake.clicked.connect(lambda: self.Controller.manual_move('brake', self.power.value(), self.rotation.value(), self.depth.value()))
+        # Manual Mode Connections
+        self.btn_forward.clicked.connect(lambda: self.controller.manual_move(
+            'forward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_backward.clicked.connect(lambda: self.controller.manual_move(
+            'backward', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_l.clicked.connect(lambda: self.controller.manual_move(
+            'strafe_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_strafe_r.clicked.connect(lambda: self.controller.manual_move(
+            'strafe_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_l.clicked.connect(lambda: self.controller.manual_move(
+            'rotate_l', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_rotate_r.clicked.connect(lambda: self.controller.manual_move(
+            'rotate_r', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_up.clicked.connect(lambda: self.controller.manual_move(
+            'up', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_down.clicked.connect(lambda: self.controller.manual_move(
+            'down', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
+        self.btn_brake.clicked.connect(lambda: self.controller.manual_move(
+            'brake', self.spn_power.value(), self.spn_rotation.value(), self.spn_depth.value()))
 
-        # Computer Vision
-        # TODO use color slider widget
+        # Computer Vision Mode Connections
+        self.btn_update_color.clicked.connect(lambda: self.controller.update_color(
+            self.txt_task_name.text(),
+            self.slider0.getRange(),
+            self.slider1.getRange(),
+            self.slider2.getRange()))
+        self.btn_reset_color.clicked.connect(self.reset_color)
+
+    def edit_config(self, is_load_default=False):
+        """ Triggers to edit config"""
+
+        if is_load_default:
+            self.controller.load_default_params()
+        else:
+            self.controller.change_params()
+        self.refresh()
 
     def checkbox_state_changed(self):
-        if self.auto_checkbox.isChecked():
-            self.Controller.start_auto_mode(1)
+        """ Triggers when checkbox is toggled"""
+
+        if self.chk_autostart.isChecked():
+            self.controller.set_auto_mode_state(1)
         else:
-            self.Controller.start_auto_mode(0)
+            self.controller.set_auto_mode_state(0)
 
     def tab_state_changed(self):
-        if self.tabWidget.currentIndex() == 1:
-            self.Controller.manual_mode()
+        """ Triggers when different tab is clicked"""
 
-    # @QtCore.pyqtSlot()
-    # def on_click(self):
-    #     self.openColorDialog(self)
+        if self.tab_widget.currentIndex() == 1:
+            self.controller.manual_mode()
 
-    # def openColorDialog(self):
-    #     color = QtGui.QColorDialog.getColor()
+    def generate_task_buttons(self):
+        """ Dynamically create task buttons based off of config.ini"""
 
-    #     if color.isValid():
-    #         print(color.name())
+        for task in self.controller.get_task_list():
+            self.btn_task = QtWidgets.QPushButton(task, self.task_selection)
+            self.task_layout.addWidget(self.btn_task)
+            self.btn_task.clicked.connect(partial(self.controller.read_task_button, self.btn_task.text()))
+            self.task_button_list.append(self.btn_task)
 
-        # self.tabWidget.setCurrentIndex(2)
-        # self.camera0.clicked.connect(self.display0.update)
-        # self.tabWidget.currentChanged['int'].connect(self.forward.animateClick)
-        # self.auto_checkbox.stateChanged['int'].connect(self.start_tasks.animateClick)
-        # self.power.valueChanged['int'].connect(self.forward.animateClick)
-        # QtCore.QMetaObject.connectSlotsByName(MainWindow)
+    def refresh(self):
+        """ Trigger when config is changed"""
 
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Robosub GUI"))
-        self.camera0.setText(_translate("MainWindow", "camera 0"))
-        self.camera1.setText(_translate("MainWindow", "camera 1"))
-        self.camera2.setText(_translate("MainWindow", "camera 2"))
-        self.load_default_button.setText(_translate("MainWindow", "Load Default Params"))
-        self.change_params_button.setText(_translate("MainWindow", "Change Params"))
-        self.auto_checkbox.setText(_translate("MainWindow", "Start in Auto mode"))
-        self.start_tasks.setText(_translate("MainWindow", "start tasks"))
-        self.stop_tasks.setText(_translate("MainWindow", "stop tasks"))
-        self.task0.setText(_translate("MainWindow", "task 0"))
-        self.task1.setText(_translate("MainWindow", "task 1"))
-        self.task2.setText(_translate("MainWindow", "task 2"))
-        self.task3.setText(_translate("MainWindow", "task 3"))
-        self.task4.setText(_translate("MainWindow", "task 4"))
-        self.task5.setText(_translate("MainWindow", "task 5"))
-        self.task6.setText(_translate("MainWindow", "task 6"))
-        self.task7.setText(_translate("MainWindow", "task 7"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.task_selection), _translate("MainWindow", "Auto mode"))
-        self.forward.setText(_translate("MainWindow", "Forward"))
-        self.rotate_l.setText(_translate("MainWindow", "Rotate L"))
-        self.rotate_r.setText(_translate("MainWindow", "Rotate R"))
-        self.backward.setText(_translate("MainWindow", "Backward"))
-        self.up.setText(_translate("MainWindow", "Up"))
-        self.strafe_l.setText(_translate("MainWindow", "Strafe L"))
-        self.strafe_r.setText(_translate("MainWindow", "Strafe R"))
-        self.down.setText(_translate("MainWindow", "Down"))
-        self.brake.setText(_translate("MainWindow", "Brake"))
-        self.power_label.setText(_translate("MainWindow", "Power"))
-        self.depth_label.setText(_translate("MainWindow", "Depth"))
-        self.rotation_label.setText(_translate("MainWindow", "Rotation"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.controls), _translate("MainWindow", "Manual mode"))
-        self.label.setText(_translate("MainWindow", "2 left"))
-        self.label_2.setText(_translate("MainWindow", "1 left"))
-        self.label_3.setText(_translate("MainWindow", "0 left"))
-        self.label_4.setText(_translate("MainWindow", "0 right"))
-        self.label_5.setText(_translate("MainWindow", "1 right"))
-        self.label_6.setText(_translate("MainWindow", "2 right"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.computer_vision), _translate("MainWindow", "Computer Vision"))
+        for button in self.task_button_list:
+            self.task_layout.removeWidget(button)
+            button.deleteLater()
+            button = None
+        self.task_button_list = []
+        self.generate_task_buttons()
+
+    def reset_color(self):
+        """ Reset color sliders to original position"""
+
+        self.slider0.setRange(0, 255)
+        self.slider1.setRange(0, 255)
+        self.slider2.setRange(0, 255)
 
 
 def start_roscore():
@@ -450,15 +358,11 @@ def start_roscore():
     return False
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     roscore = start_roscore()
 
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    app = QApplication(sys.argv)
+    ui = App()
 
     if(roscore):
         subprocess.Popen.kill(roscore)
