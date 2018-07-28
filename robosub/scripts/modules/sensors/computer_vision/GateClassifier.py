@@ -116,7 +116,7 @@ class GateClassifier:
             prob = self.lsvm.predict_proba(feat_reshape)[0]
             prediction = self.lsvm.predict(feat_reshape)
             gate_class = prob[1] # corresponds to class 1 (positive gate)
-            print('probability: {}'.format(gate_class))
+            # print('probability: {}'.format(gate_class))
             if(prediction > 0 and gate_class > self.min_prob and gate_class > max_val):
                 gate = box
         return gate

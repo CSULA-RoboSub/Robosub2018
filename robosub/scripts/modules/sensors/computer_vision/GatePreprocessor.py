@@ -43,16 +43,22 @@ class GatePreprocessor:
         # self.upper_red_blue = np.array([180, 255, 253], 'uint8')
 
         #dark 1
-        self.lower_red_orange = np.array([0, 99, 1])
-        self.upper_red_orange = np.array([31, 255, 254])
+        self.lower_red_orange = np.array([0, 99, 1], 'uint8')
+        self.upper_red_orange = np.array([31, 255, 254], 'uint8')
 
-        self.lower_red_blue = np.array([131, 99, 1])
-        self.upper_red_blue = np.array([180, 255, 254])
+        self.lower_red_blue = np.array([131, 99, 1], 'uint8')
+        self.upper_red_blue = np.array([180, 255, 254], 'uint8')
 
         ''' BGR color values '''
-        self.use_bgr = True
         self.lower_bgr = np.array([0, 0, 0], 'uint8')
         self.upper_bgr = np.array([100, 255, 255], 'uint8')
+
+        #-------------------------------------------------
+        #flags only enable one
+        self.use_bgr = False
+        self.use_hsv_and_bgr = False
+        self.use_bgr_and_hsv = False
+        #-------------------------------------------------
 
         self.min_cont_size = 100 # min contours size      
         self.max_cont_size = 2000 # max contours size
@@ -72,14 +78,54 @@ class GatePreprocessor:
         # mask = cv2.GaussianBlur(mask_preblur,(9,9),0)
         #-----------------------------------
 
-        if(self.use_bgr):
+        if self.use_bgr:
             mask = cv2.inRange(img, self.lower_bgr, self.upper_bgr)
             output = cv2.bitwise_and(img, img, mask=mask)
-        else:
-            mask_red_orange = cv2.inRange(img, self.lower_red_orange, self.upper_red_orange)
-            mask_red_blue = cv2.inRange(img, self.lower_red_blue, self.upper_red_blue)
+
+        elif self.use_hsv_and_bgr:
+            hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
+
+            mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
+            mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
+            mask_hsv = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+
+            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask_hsv)        
+
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            output_hsv = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+
+            mask = cv2.inRange(output_hsv, self.lower_bgr, self.upper_bgr)
+            output = cv2.bitwise_and(output_hsv, output_hsv, mask=mask)
+
+        elif self.use_bgr_and_hsv:
+            mask_bgr = cv2.inRange(img, self.lower_bgr, self.upper_bgr)
+            bgr_frame = cv2.bitwise_and(img, img, mask=mask_bgr)
+
+            hsv_frame = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
+
+            mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
+            mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
             mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
-            output = cv2.bitwise_and(img, img, mask=mask)        
+
+            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)        
+
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+
+        else:
+            hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
+
+            mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
+            mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
+            mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+            
+            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)        
+
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
         # mask_inv = cv2.bitwise_not(mask)
         # output = cv2.bitwise_and(img, img, mask=mask_inv)
@@ -135,30 +181,28 @@ class GatePreprocessor:
 
 
     # returns ROI
-    '''
-    def get_interest_regions(self, frame):
-        
-        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
-        
-        color_filt_frame, mask = self.preprocess(hsv_frame) # color filtering
-
-        close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-        dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
-
-        hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
-        grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
-
-        ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
-        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
-
-        boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
-        
-        return interest_regions
-    '''
+    # def get_interest_regions(self, frame):
     
+    #     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
+        
+    #     color_filt_frame, mask = self.preprocess(hsv_frame) # color filtering
+
+    #     close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+    #     dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+
+    #     hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+    #     grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
+
+    #     ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    #     frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    #     filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+
+    #     boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+    #     interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+        
+    #     return interest_regions
+        
     def get_interest_regions(self, frame):
         
         color_filt_frame, mask = self.preprocess(frame) # color filtering
