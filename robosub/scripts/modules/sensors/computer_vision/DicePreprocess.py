@@ -5,8 +5,13 @@ import numpy as np
 class DicePreprocessor:
 
     def __init__(self):
-        self.lower = np.array([0, 0, 0], 'uint8') # olins orig - works for dots
-        self.upper = np.array([255, 255, 93], 'uint8') # olins orig - works for dots
+        self.lower = np.array([0, 0, 0], 'uint8')
+        self.upper = np.array([180, 129, 93], 'uint8')
+
+        #blue filter
+        # self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
+        # self.upper = np.array([139, 169, 99], 'uint8') # upper color value
+
         self.dots_lower = np.array([0, 0, 0], 'uint8') # any lighting
         self.dots_upper = np.array([180, 255, 80], 'uint8') # any lighting
         self.detect_dots = False
@@ -50,7 +55,7 @@ class DicePreprocessor:
 
         close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, self.kernel)
         erode_frame = cv2.erode(close_frame, self.kernel, iterations=1)
-        dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=3)
+        dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=1)
 
         hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
         grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale

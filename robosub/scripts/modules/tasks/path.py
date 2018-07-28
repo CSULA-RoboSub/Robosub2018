@@ -44,9 +44,9 @@ class Path(Task):
         # }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power=75
-        self.h_power=100
-        self.m_power=30
+        self.r_power = 75
+        self.h_power = 100
+        self.m_power = 120
 
         ################ THREAD VARIABLES ################
         self.thread_path = None
@@ -92,6 +92,7 @@ class Path(Task):
         count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
+            navigation.do_depth_cap(self.h_power)
 
             found, directions, shape, width_height_ratio = cvcontroller.detect(task_name)
             if found:
@@ -119,6 +120,8 @@ class Path(Task):
                 print 'type: navigation cv 0, or task to cancel task'
 
         cvcontroller.stop()
+        navigation.m_nav('power', 'forward', self.m_power)
+
         self.mutex.release()
     
     # stop ##################################################################################

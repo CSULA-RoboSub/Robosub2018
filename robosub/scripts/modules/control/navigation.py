@@ -112,6 +112,7 @@ class Navigation():
         self.depth_assignment = 0.5
         self.current_waypoint_x = 0
         self.current_waypoint_y = 0
+        self.depth_cap = 3.5
 
         #var for saved heading
         self.saved_heading = 0
@@ -511,3 +512,8 @@ class Navigation():
         self.saved_heading = self.waypoint.get_dvl_yaw()
         print('saved heading: {}'.format(str(self.saved_heading)))
     
+    def do_depth_cap(self, h_power):
+        depth = self.waypoint.get_depth()
+
+        if depth < self.depth_cap:
+            self.cancel_and_h_nav('down', 0.2, h_power)

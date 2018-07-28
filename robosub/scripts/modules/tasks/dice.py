@@ -89,11 +89,14 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=5):
         self.local_cvcontroller = cvcontroller
+        navigation.cancel_all_nav()
+        
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
+            navigation.do_depth_cap(self.h_power)
             # try:
             found, direction, shape, width_height = cvcontroller.detect(task_name)
             if found:
@@ -147,10 +150,10 @@ class Dice(Task):
         
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
-        if not self.dice_maneuver.is_moving_forward:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
+        
+        if self.dice_maneuver.is_moving_forward:
+            self.dice_maneuver.nothing_found_counter = 0
+            return
 
         # if found:
         if not self.dice_maneuver.is_rotated_to_center and shape:

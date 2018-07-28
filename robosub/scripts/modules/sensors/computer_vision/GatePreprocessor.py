@@ -36,18 +36,18 @@ class GatePreprocessor:
         # self.upper_red_blue = np.array([180, 255, 254], 'uint8')
 
         #bright 2
-        self.lower_red_orange = np.array([0, 87, 2], 'uint8')
-        self.upper_red_orange = np.array([31, 255, 253], 'uint8')
+        # self.lower_red_orange = np.array([0, 109, 2], 'uint8')
+        # self.upper_red_orange = np.array([31, 255, 253], 'uint8')
 
-        self.lower_red_blue = np.array([131, 87, 2], 'uint8')
-        self.upper_red_blue = np.array([180, 255, 253], 'uint8')
+        # self.lower_red_blue = np.array([131, 109, 2], 'uint8')
+        # self.upper_red_blue = np.array([180, 255, 253], 'uint8')
 
         #dark 1
-        # self.lower_red_orange = np.array([0, 79, 1])
-        # self.upper_red_orange = np.array([31, 255, 254])
+        self.lower_red_orange = np.array([0, 99, 1])
+        self.upper_red_orange = np.array([31, 255, 254])
 
-        # self.lower_red_blue = np.array([131, 79, 1])
-        # self.upper_red_blue = np.array([180, 255, 254])
+        self.lower_red_blue = np.array([131, 99, 1])
+        self.upper_red_blue = np.array([180, 255, 254])
 
         self.min_cont_size = 100 # min contours size      
         self.max_cont_size = 2000 # max contours size

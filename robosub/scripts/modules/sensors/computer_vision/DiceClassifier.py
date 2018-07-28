@@ -31,7 +31,7 @@ class DiceClassifier:
         self.dims = (144,144)
         self.hog = self.get_hog()
         
-        self.min_prob = .1 # adjust probability here
+        self.min_prob = .8 # adjust probability here
         self.set_model(self.model_name)
 
 
@@ -117,6 +117,7 @@ class DiceClassifier:
             prob = self.lsvm.predict_proba(feat_reshape)[0]
             prediction = self.lsvm.predict(feat_reshape)
             dice_class = prob[1]
+            # print(dice_class)
             if (prediction > 0 and dice_class >= self.min_prob and dice_class > max_val):
                 die = box
         return die
