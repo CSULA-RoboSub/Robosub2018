@@ -6,54 +6,57 @@ import numpy as np
 class GatePreprocessor:
 
     def __init__(self):
+        # old values-----------------------------------------------------
         # self.lower = np.array([0, 100, 0], 'uint8') # lower color value
-        # self.upper = np.array([180, 200, 150], 'uint8') # upper color value
+        # self.upper = np.array([179, 200, 150], 'uint8') # upper color value
         #bright values
         # self.lower = np.array([0, 99, 0], 'uint8') # lower color value    
-        # self.upper = np.array([180, 200, 155], 'uint8') # upper color value
+        # self.upper = np.array([179, 200, 155], 'uint8') # upper color value
         #bright values 2
         # self.lower = np.array([0, 89, 0], 'uint8') # lower color value    
-        # self.upper = np.array([180, 254, 80], 'uint8') # upper color value
+        # self.upper = np.array([179, 254, 80], 'uint8') # upper color value
         #bright values 3
         # self.lower = np.array([89, 89, 39], 'uint8') # lower color value    
         # self.upper = np.array([149, 200, 80], 'uint8') # upper color value
         #dark values--------------------------------
         # self.lower = np.array([0, 69, 0], 'uint8') # lower color value  
-        # self.upper = np.array([180, 254, 80], 'uint8') # upper color value
+        # self.upper = np.array([179, 254, 80], 'uint8') # upper color value
         #dark val 2
         # self.lower = np.array([1, 69, 89], 'uint8') # lower color value  
-        # self.upper = np.array([180, 254, 99], 'uint8') # upper color value
+        # self.upper = np.array([179, 254, 99], 'uint8') # upper color value
         #dark val 3 (best)
         # self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
         # self.upper = np.array([139, 169, 99], 'uint8') # upper color value
+        #----------------------------------------------------------------
 
+        #current values--------------------------------------------------
         #orangeish red and blueish red vals 
         #bright 1
         # self.lower_red_orange = np.array([0, 87, 1], 'uint8')
         # self.upper_red_orange = np.array([31, 255, 254], 'uint8')
 
         # self.lower_red_blue = np.array([131, 87, 1], 'uint8')
-        # self.upper_red_blue = np.array([180, 255, 254], 'uint8')
+        # self.upper_red_blue = np.array([179, 255, 254], 'uint8')
 
         #bright 2
         # self.lower_red_orange = np.array([0, 109, 2], 'uint8')
         # self.upper_red_orange = np.array([31, 255, 253], 'uint8')
 
         # self.lower_red_blue = np.array([131, 109, 2], 'uint8')
-        # self.upper_red_blue = np.array([180, 255, 253], 'uint8')
+        # self.upper_red_blue = np.array([179, 255, 253], 'uint8')
 
         #dark 1
         self.lower_red_orange = np.array([0, 99, 1], 'uint8')
         self.upper_red_orange = np.array([31, 255, 254], 'uint8')
 
         self.lower_red_blue = np.array([131, 99, 1], 'uint8')
-        self.upper_red_blue = np.array([180, 255, 254], 'uint8')
+        self.upper_red_blue = np.array([179, 255, 254], 'uint8')
 
         ''' BGR color values '''
         self.lower_bgr = np.array([0, 0, 0], 'uint8')
         self.upper_bgr = np.array([100, 255, 255], 'uint8')
 
-        #-------------------------------------------------
+        #----------------------------------------------------------------
         #flags only enable one
         self.use_bgr = False
         self.use_hsv_and_bgr = False
