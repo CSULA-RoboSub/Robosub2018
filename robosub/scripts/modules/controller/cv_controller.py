@@ -331,8 +331,8 @@ class CVController():
         #     return False, [0,0], None, (0,0)
 
     # change_die_num ##################################################################################
-    def change_die_num(self):
-        self.dicedetector.change_dice()
+    def change_dice(self, dice = None):
+        self.dicedetector.change_dice(dice)
 
     # show_img ##################################################################################
     def show_img(self, camera_direction, img):

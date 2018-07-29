@@ -21,10 +21,10 @@ class DiceDetector:
         self.found = False
 
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
-        self.shape_ratio_lower = 0.75
-        self.shape_ratio_upper = 1.25
+        self.shape_ratio_lower = 0.76
+        self.shape_ratio_upper = 1.24
         
-        self.die = 6
+        self.die = 5
         self.frame_size = (744, 480)
 
         self.dies = {
@@ -108,18 +108,27 @@ class DiceDetector:
         #sort list in place
         interest_regions.sort(key = lambda x: x[2]*x[3])
 
+    def sort_largest(self, interest_regions):
+        #get smallest roi that pass through filter
+        # return min(interest_regions, key=lambda x: x[2]*x[3])
+        #sort list in place
+        interest_regions.sort(key = lambda x: x[2]*x[3], reverse = True)
+
     def detect_five(self, interest_regions, shape):
         if interest_regions:
             self.sort_smallest(interest_regions)
 
+            area_mult = 0.2
+            range_mult = 2.5
+
             cx, cy, cw, ch = interest_regions[0]
             carea = float(cw) * float(ch)
-            neighbor_area_buffer = carea * 0.2
+            neighbor_area_buffer = carea * area_mult
             area_check_upper = carea + neighbor_area_buffer
             area_check_lower = carea - neighbor_area_buffer
 
             neighbor_range = float(max(cw, ch))
-            neighbor_range_buffer = neighbor_range * 2.5
+            neighbor_range_buffer = neighbor_range * range_mult
 
             neighbor_count = 0
             counted_rois = []
@@ -136,12 +145,12 @@ class DiceDetector:
                     elif neighbor_count < 1:
                         cx, cy, cw, ch = interest_regions[i]
                         carea = float(cw) * float(ch)
-                        neighbor_area_buffer = carea * 0.25
+                        neighbor_area_buffer = carea * area_mult
                         area_check_upper = carea + neighbor_area_buffer
                         area_check_lower = carea - neighbor_area_buffer
 
                         neighbor_range = float(max(cw, ch))
-                        neighbor_range_buffer = neighbor_range * 2.5
+                        neighbor_range_buffer = neighbor_range * range_mult
 
                         neighbor_count = 0
                         counted_rois = []
@@ -188,7 +197,7 @@ class DiceDetector:
 
     def detect_six(self, interest_regions, shape1, shape2):
         if interest_regions:
-            self.sort_smallest(interest_regions)
+            self.sort_largest(interest_regions)
 
             area_mult = 0.2
             range_mult = 1.5

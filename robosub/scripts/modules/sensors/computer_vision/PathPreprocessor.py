@@ -8,7 +8,7 @@ class PathPreprocessor():
         #bright 1
         # self.lower_thresh = np.array([0, 109, 5], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
-        self.lower_thresh = np.array([0, 134, 39], 'uint8')
+        self.lower_thresh = np.array([0, 139, 39], 'uint8')
         self.upper_thresh = np.array([18, 255, 255], 'uint8')
         self.roi_size = 1700
         self.min_cont_size = 100 # min contours size
