@@ -130,8 +130,8 @@ class Dice(Task):
                 self.direction_list = []
             
             if self.dice_maneuver.is_1st_die_touched and not self.is_die_number_changed:
+                cvcontroller.change_die_num(6)
                 self.is_die_number_changed = True
-                cvcontroller.change_die_num()
                 self.dice_maneuver.reset_after_1st_die()
             # except:
             #     print 'dice detect error'

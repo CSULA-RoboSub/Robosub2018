@@ -144,10 +144,10 @@ class DiceManeuver():
 
     # completed_dice ##################################################################################
     def completed_dice_check(self):
-        check_1st = self.is_1st_die_touched
-        check_2nd = self.is_2nd_die_touched
+        # check_1st = self.is_1st_die_touched
+        # check_2nd = self.is_2nd_die_touched
 
-        if check_1st and check_2nd:
+        if self.dice_touched >= 2:
             self.is_task_complete = True
 
         return self.is_task_complete
@@ -188,4 +188,4 @@ class DiceManeuver():
 
             if movement_status.state == 0 and self.m_state_is_moving_forward == 2 and abs(movement_status.distance - self.m_distance_backward) < 0.001 and movement_status.mDirection == 3 and movement_status.power == 0:
                 self.dice_touched += 1
-                self.reset_after_1st_die()
+                self.is_1st_die_touched = True
