@@ -6,7 +6,7 @@ from robosub.msg import MControl
 
 """ Prints and logs status to file"""
 
-is_logging = True
+is_logging = False
 
 file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
 
