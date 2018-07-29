@@ -440,7 +440,7 @@ void movementControlFinish(){
   mControlRunningTime = 0;
   mControlPower = 0;
   mControlStatus.state = 0;
-  mControlStatus.mDirection = 0;
+  mControlStatus.mDirection = mControlDirection;
   mControlStatus.power = 0;
   mControlStatus.distance = mControlDistance;
   mControlStatus.runningTime = 0;
@@ -498,7 +498,8 @@ void hControlCallback(const robosub::HControl& hControl) {
       isGoingUp = false;
       isGoingDown = false;
       ROS_INFO("Height control is now cancelled\n");
-      assignedDepth = feetDepth_read + heightThreshold;
+      // assignedDepth = feetDepth_read + heightThreshold;
+      assignedDepth = feetDepth_read + 0.1;
     }
   }
   else if(hControl.state == 2){
