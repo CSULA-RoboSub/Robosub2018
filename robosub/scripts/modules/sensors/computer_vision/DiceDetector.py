@@ -21,7 +21,8 @@ class DiceDetector:
         self.found = False
 
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
-        self.shape_buffer = 15
+        self.shape_ratio_lower = 0.8
+        self.shape_ratio_upper = 1.20
         
         # using die 5 and 6 for the time being since those are the only
         # dies available
@@ -35,17 +36,22 @@ class DiceDetector:
         }
         self.die_num = 0
 
-    def get_shape(self, roi, buff):
+    def get_shape(self, roi, ratio_lower = None, ratio_upper = None):
         if roi == None:
             return None
         else:
             x, y, w, h = roi
 
+        if ratio_lower is None:
+            ratio_lower = self.shape_ratio_lower
+        if ratio_upper is None:
+            ratio_upper = self.shape_ratio_upper
+
         #if ( (h >= (w + buff) ) or (h >= (w - buff) )):
-        if h - w > buff:
+        if float(w)/float(h) < ratio_lower:
             return self.shapes[1] # vertical
         #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
-        elif w - h > buff:    
+        elif float(w)/float(h) > ratio_upper:    
             return self.shapes[2] # horizontal
         else:
             return self.shapes[3] # square
@@ -71,7 +77,7 @@ class DiceDetector:
 
             ht, wd, ch =  frame.shape
 
-            dice_shape = self.get_shape(dice, self.shape_buffer)
+            dice_shape = self.get_shape(dice)
             # if dice_shape != self.shapes[1]:
             #     dice = None
                 
@@ -106,68 +112,48 @@ class DiceDetector:
         if interest_regions:
             self.sort_smallest(interest_regions)
 
-            smallest = interest_regions[0]
-            neighbor_area_buffer = smallest[2]*smallest[3] * 0.4
-            area_check_upper = smallest[2] * smallest[3] + neighbor_area_buffer
-            area_check_lower = smallest[2] * smallest[3] - neighbor_area_buffer
-            #compare
-            neighbor_range = max(smallest[2], smallest[3])
-            neighbor_range_buffer = neighbor_range * 2.0
-            n_range_check = neighbor_range + neighbor_range_buffer
+            cx, cy, cw, ch = interest_regions[0]
+            carea = float(cw) * float(ch)
+            neighbor_area_buffer = carea * 0.2
+            area_check_upper = carea + neighbor_area_buffer
+            area_check_lower = carea - neighbor_area_buffer
+
+            neighbor_range = float(max(cw, ch))
+            neighbor_range_buffer = neighbor_range * 2.5
 
             neighbor_count = 0
-
-            left_top_corner = list(smallest)
-            right_bottom_corner = list(smallest)
-            min_x = smallest[0]
-            min_y = smallest[1]
-            max_x = smallest[0]+smallest[2]
-            max_y = smallest[1]+smallest[3]
-            max_w = smallest[2]
-            max_h = smallest[3]
             counted_rois = []
+            counted_rois.append(interest_regions[0])
 
-            if len(interest_regions) > 1:
-                for i in range(1, len(interest_regions)):
+            len_rois = len(interest_regions)
+            if len_rois > 2:
+                for i in range(1, len_rois):
                     x, y, w, h = interest_regions[i]
-                    if (smallest[0] - n_range_check <= x <= smallest[0] + n_range_check) and (smallest[1] - n_range_check <= y <= smallest[1] + n_range_check) and (area_check_lower <= (w*h) <= area_check_upper) and self.get_shape(interest_regions[i], self.shape_buffer) == shape:
+                    if (cx-neighbor_range_buffer <= x <= cx+neighbor_range_buffer) and (cy-neighbor_range_buffer <= y <= cy+neighbor_range_buffer) and (area_check_lower <= (w*h) <= area_check_upper) and self.get_shape(interest_regions[i]) == shape:
                         neighbor_count += 1
                         counted_rois.append(interest_regions[i])
-                        #find min x,y for top left corner
-                        # if min_x < x:
-                        #     min_x = x
-                        
-                        # if min_y < y:
-                        #     min_y = y
-
-                        # #find max x+w and y+h for bottom right corner
-                        # if max_x > x+w:
-                        #     max_x = x+w
-
-                        # if max_y > y+h:
-                        #     max_y = y+h
-
-                        # if max_w > w:
-                        #     max_w = w
-
-                        # if max_h > h:
-                        #     max_h = h
+                    elif neighbor_count < 1:
+                        counted_rois.pop(0)
+                        counted_rois.append(interest_regions[i])
+                        cx = x
+                        cy = y
+                        cw = w
+                        ch = h 
                 try:
                     min_x = min(counted_rois, key=lambda x: x[0])[0]
                     min_y = min(counted_rois, key=lambda x: x[1])[1]
+
                     max_x = max(counted_rois, key=lambda x: x[0])[0]
                     max_y = max(counted_rois, key=lambda x: x[1])[1]
-                    max_w = max(counted_rois, key=lambda x: x[2])[2]
-                    max_h = max(counted_rois, key=lambda x: x[3])[3]
+                    
+                    max_w = max(counted_rois, key=lambda x: x[0]+x[2])[2]
+                    max_h = max(counted_rois, key=lambda x: x[1]+x[3])[3]
                 except:
                     return None
 
-                w_fin = max_x - min_x
-                h_fin = max_y - min_y
-
-                if neighbor_count >= 2:
-                    w_ret = max_x - min_x + w_fin
-                    h_ret = max_y - min_y + h_fin
+                if neighbor_count > 2:
+                    w_ret = max_x - min_x + max_w
+                    h_ret = max_y - min_y + max_h
                     return min_x, min_y, w_ret, h_ret 
             
         return None
