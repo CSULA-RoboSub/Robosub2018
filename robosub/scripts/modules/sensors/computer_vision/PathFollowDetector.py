@@ -137,9 +137,9 @@ class PathFollowDetector():
                 return 0
         elif s2_xl - s1_xl < 0 and s1_xr - s2_xr < 0:
             if (s2_xl - s1_xl) > (s1_xr - s2_xr):
-                return 1
-            elif (s2_xl - s1_xl) < (s1_xr - s2_xr):
                 return -1
+            elif (s2_xl - s1_xl) < (s1_xr - s2_xr):
+                return 1
             else:
                 return 0
         else:

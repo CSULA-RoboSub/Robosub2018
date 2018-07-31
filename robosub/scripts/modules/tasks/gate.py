@@ -125,6 +125,8 @@ class Gate(Task):
         count = 0
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
+            navigation.do_depth_cap(self.h_power)
+            
             if not self.gate_maneuver.is_moving_forward:
                 # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
@@ -185,8 +187,8 @@ class Gate(Task):
 
         # TODO we can implement a plan_b from gate_maneuver if detection does not work
         # will need to keep heading from orientation
-
         cvcontroller.stop()     
+
         self.mutex.release()
 
     # stop ##################################################################################

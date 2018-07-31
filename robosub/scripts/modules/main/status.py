@@ -6,12 +6,15 @@ from robosub.msg import MControl
 
 """ Prints and logs status to file"""
 
-is_logging = True
-
-file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
+is_logging = False
+if is_logging:
+    file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
 
 
 def log(data):
+
+    if not is_logging:
+        return
     """
     Prints to console and logs to file
     data -- str
@@ -25,6 +28,8 @@ def log(data):
 
 
 def printHControl(data):
+    if not is_logging:
+        return
     """Callback. Prints all the data for HControl"""
 
     if is_logging:
@@ -54,6 +59,8 @@ def printHControl(data):
 
 
 def printRControl(data):
+    if not is_logging:
+        return
     """Callback. Prints all the data for RControl"""
 
     if is_logging:
@@ -82,6 +89,8 @@ def printRControl(data):
 
 
 def printMControl(data):
+    if not is_logging:
+        return
     """Callback. Prints all the data for MControl"""
 
     if is_logging:
@@ -119,15 +128,20 @@ def printMControl(data):
             pass
 
 
-rospy.Subscriber('height_control', HControl, printHControl)
-rospy.Subscriber('rotation_control', RControl, printRControl)
-rospy.Subscriber('movement_control', MControl, printMControl)
+if is_logging:
+    rospy.Subscriber('height_control', HControl, printHControl)
+    rospy.Subscriber('rotation_control', RControl, printRControl)
+    rospy.Subscriber('movement_control', MControl, printMControl)
 
 
 def start():
+    if not is_logging:
+        return
     # self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
     pass
 
 
 def stop():
+    if not is_logging:
+        return
     file.close()

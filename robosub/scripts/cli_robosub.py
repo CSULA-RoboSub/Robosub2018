@@ -185,7 +185,8 @@ class CLI(cmd.Cmd):
         # elif arg.lower() == 'toggle':
             # AUV.status_logger.toggle_logging()
         else:
-            print('\nstatus logging state: %d' % AUV.status_logger.is_logging)
+            # print('\nstatus logging state: %d' % AUV.status_logger.is_logging)
+            pass
 
     # auto-complete status logger
     def complete_logging(self, text, line, start_index, end_index):

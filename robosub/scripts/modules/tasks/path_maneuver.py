@@ -68,7 +68,7 @@ class PathManeuver():
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_angle = 5
-        self.r_power=80
+        self.r_power=90
         self.h_power=100
         self.m_power=80
         self.m_power_strafe=self.m_power_horizontal_move_with_forward[1]

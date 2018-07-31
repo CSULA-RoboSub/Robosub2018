@@ -28,6 +28,7 @@ class Dice(Task):
         self.stop_task = False
         self.is_complete = False
         self.is_die_number_changed = False
+        self.is_first_found = False
 
         ################ TIMER VARIABLES ################
         self.not_found_timer = 0
@@ -73,6 +74,7 @@ class Dice(Task):
         self.is_done = False
         self.is_complete = False
         self.is_die_number_changed = False
+        self.is_first_found = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -89,13 +91,22 @@ class Dice(Task):
     # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=5):
         self.local_cvcontroller = cvcontroller
+        self.dice_maneuver.navigation = navigation
+
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
+            navigation.do_depth_cap(self.h_power)
             # try:
             found, direction, shape, width_height = cvcontroller.detect(task_name)
+            
+            if found and not self.is_first_found:
+                #cancel navigation passed on from path once auv first see's a dice
+                self.is_first_found = True
+                navigation.cancel_all_nav()
+
             if found:
                 self.direction_list.append(direction)
 
@@ -108,25 +119,27 @@ class Dice(Task):
                 except:
                     most_occur_coords = [0, 0]
 
-                print 'running {} task'.format(task_name)
-                print 'widthxheight: {}'.format(width_height)
-                print 'current count: {}'.format(count)
-                print 'coordinates: {}'.format(most_occur_coords)
-                print '--------------------------------------------'
-                print 'type: navigation cv 0, or task to cancel task'
+                # print 'running {} task'.format(task_name)
+                # print 'widthxheight: {}'.format(width_height)
+                # print 'current count: {}'.format(count)
+                # print 'coordinates: {}'.format(most_occur_coords)
+                # print '--------------------------------------------'
+                # print 'type: navigation cv 0, or task to cancel task'
                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
                 
                 self.counter = Counter()
                 self.direction_list = []
             
             if self.dice_maneuver.is_1st_die_touched and not self.is_die_number_changed:
+                cvcontroller.change_dice(6)
                 self.is_die_number_changed = True
-                cvcontroller.change_die_num()
                 self.dice_maneuver.reset_after_1st_die()
             # except:
             #     print 'dice detect error'
 
         cvcontroller.stop()
+
+
         self.mutex.release()
     
     # stop ##################################################################################
@@ -147,10 +160,10 @@ class Dice(Task):
         
     # navigate ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
-        if not self.dice_maneuver.is_moving_forward:
-            navigation.cancel_r_nav()
-            navigation.cancel_m_nav()
-            navigation.cancel_h_nav()
+        
+        if self.dice_maneuver.is_moving_forward:
+            self.dice_maneuver.nothing_found_counter = 0
+            return
 
         # if found:
         if not self.dice_maneuver.is_rotated_to_center and shape:

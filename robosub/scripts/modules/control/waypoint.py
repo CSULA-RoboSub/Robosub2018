@@ -228,3 +228,5 @@ class Waypoint():
             direction = self.directions[2]
 
         return direction, abs(heading_diff)
+
+        

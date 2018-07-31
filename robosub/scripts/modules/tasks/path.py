@@ -44,9 +44,9 @@ class Path(Task):
         # }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power=75
-        self.h_power=100
-        self.m_power=30
+        self.r_power = 75
+        self.h_power = 100
+        self.m_power = 120
 
         ################ THREAD VARIABLES ################
         self.thread_path = None
@@ -92,6 +92,7 @@ class Path(Task):
         count = 0
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
+            navigation.do_depth_cap(self.h_power)
 
             found, directions, shape, width_height_ratio = cvcontroller.detect(task_name)
             if found:
@@ -119,6 +120,10 @@ class Path(Task):
                 print 'type: navigation cv 0, or task to cancel task'
 
         cvcontroller.stop()
+        navigation.cancel_all_nav()
+        navigation.m_nav('power', 'forward', self.m_power)
+        navigation.go_to_depth(6, self.h_power)
+
         self.mutex.release()
     
     # stop ##################################################################################
@@ -160,7 +165,7 @@ class Path(Task):
                 # print('self.path_maneuver.is_frame_height_max = True')
                 self.path_maneuver.is_frame_height_max = True
 
-            elif self.path_maneuver.is_close_enough and self.path_maneuver.is_frame_height_max and not self.path_maneuver.is_no_longer_frame_height_max and (float(width_height_ratio[1]) <= (float(self.frame_height_max) * 0.38)):
+            elif self.path_maneuver.is_close_enough and ((self.path_maneuver.is_frame_height_max and not self.path_maneuver.is_no_longer_frame_height_max and (float(width_height_ratio[1]) <= (float(self.frame_height_max) * 0.38))) or not found):
                 #trigger once we've filled camera with path and are now starting to leave the path
                 # print('self.path_maneuver.is_no_longer_frame_height_max = True')
                 self.path_maneuver.is_no_longer_frame_height_max = True

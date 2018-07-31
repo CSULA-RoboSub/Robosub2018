@@ -5,14 +5,19 @@ import numpy as np
 class DicePreprocessor:
 
     def __init__(self):
-        self.lower = np.array([0, 0, 0], 'uint8') # olins orig - works for dots
-        self.upper = np.array([255, 255, 93], 'uint8') # olins orig - works for dots
+        self.lower = np.array([0, 0, 0], 'uint8')
+        self.upper = np.array([180, 155, 99], 'uint8')
+
+        #blue filter
+        # self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
+        # self.upper = np.array([139, 169, 99], 'uint8') # upper color value
+
         self.dots_lower = np.array([0, 0, 0], 'uint8') # any lighting
         self.dots_upper = np.array([180, 255, 80], 'uint8') # any lighting
         self.detect_dots = False
         self.min_cont_size = 100
         self.max_cont_size = 1000
-        self.roi_size = 300
+        self.roi_size = 500
         self.ratio_lower = 0.85
         self.ratio_upper = 1.15
         self.kernel = np.ones((5, 5), np.uint8)
@@ -44,15 +49,24 @@ class DicePreprocessor:
         return filtered_contours
     
 
-    def get_interest_regions(self, frame):
+    def get_interest_regions(self, frame, die = None):
+        if die is None:
+            die = 5
+        elif die != 5 and die != 6:
+            return None
+
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         color_filter_frame, mask = self.preprocess(hsv_frame)
 
         close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, self.kernel)
         erode_frame = cv2.erode(close_frame, self.kernel, iterations=1)
-        dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=3)
+        
+        if die == 6:
+            dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=1)
+            hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+        else:
+            hsv2bgr_frame = cv2.cvtColor(erode_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
-        hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
         grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
 
         thresh_frame = cv2.adaptiveThreshold(grayscale_frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 3)
