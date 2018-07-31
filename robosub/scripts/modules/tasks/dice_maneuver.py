@@ -160,7 +160,8 @@ class DiceManeuver():
     # no_shape_found ##################################################################################
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
         if self.nothing_found_counter >= self.nothing_found_threshold:
-            self.rotate(navigation, power, rotation)
+            # self.rotate(navigation, power, rotation)
+            pass
         self.nothing_found_counter += 1
 
     # centered_and_shape_found ##################################################################################

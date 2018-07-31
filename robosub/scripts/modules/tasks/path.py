@@ -122,7 +122,6 @@ class Path(Task):
         cvcontroller.stop()
         navigation.cancel_all_nav()
         navigation.m_nav('power', 'forward', self.m_power)
-        navigation.go_to_depth(6, self.h_power)
 
         self.mutex.release()
     

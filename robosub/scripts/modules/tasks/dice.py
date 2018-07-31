@@ -54,7 +54,7 @@ class Dice(Task):
         ################ AUV MOBILITY VARIABLES ################
         self.r_power=100
         self.h_power=100
-        self.m_power=120
+        self.m_power=100
 
         ################ THREAD VARIABLES ################  
         self.thread_dice = None
@@ -93,6 +93,7 @@ class Dice(Task):
         self.local_cvcontroller = cvcontroller
         self.dice_maneuver.navigation = navigation
 
+        navigation.go_to_depth(9, self.h_power)
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
@@ -138,7 +139,8 @@ class Dice(Task):
             #     print 'dice detect error'
 
         cvcontroller.stop()
-
+        navigation.go_to_depth(5, self.h_power)
+        navigation.m_nav('power', 'forward', self.m_power)
 
         self.mutex.release()
     
@@ -166,13 +168,13 @@ class Dice(Task):
             return
 
         # if found:
-        if not self.dice_maneuver.is_rotated_to_center and shape:
-            if coordinates[0] == 0:
-                self.dice_maneuver.is_rotated_to_center = True
-            else:
-                self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
-        else:
-            self.die_phases[shape](navigation, coordinates, power, rotation, width_height)    
+        # if not self.dice_maneuver.is_rotated_to_center and shape:
+        #     if coordinates[0] == 0:
+        #         self.dice_maneuver.is_rotated_to_center = True
+        #     else:
+        #         self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
+        # else:
+        self.die_phases[shape](navigation, coordinates, power, rotation, width_height)    
     
     # complete ##################################################################################
     def complete(self):
