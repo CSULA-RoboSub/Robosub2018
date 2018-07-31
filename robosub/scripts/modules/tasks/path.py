@@ -120,6 +120,7 @@ class Path(Task):
                 print 'type: navigation cv 0, or task to cancel task'
 
         cvcontroller.stop()
+        navigation.cancel_all_nav()
         navigation.m_nav('power', 'forward', self.m_power)
 
         self.mutex.release()

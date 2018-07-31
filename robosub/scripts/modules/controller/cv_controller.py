@@ -216,13 +216,13 @@ class CVController():
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
 
         #bright gate
-        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
+        self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
 
         #dice  
         # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_17h47m39s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h45m40s_output.avi')
-        self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-28-18/raw_dice_2018-7-28_15h38m38s_output.avi')
 
         
@@ -331,8 +331,8 @@ class CVController():
         #     return False, [0,0], None, (0,0)
 
     # change_die_num ##################################################################################
-    def change_die_num(self):
-        self.dicedetector.change_dice()
+    def change_dice(self, dice = None):
+        self.dicedetector.change_dice(dice)
 
     # show_img ##################################################################################
     def show_img(self, camera_direction, img):
@@ -541,3 +541,9 @@ class CVController():
     # start_loop ##################################################################################
     def start_loop(self):
         self.loop.run()
+
+    def change_gate_target(self, is_center = None):
+        if is_center is None:
+            is_center = True
+        self.gatedetector.is_direction_center = is_center
+
