@@ -232,7 +232,7 @@ class Gate(Task):
             #-------------------------------------------------------------------
             if coordinates[0] == 0 and self.rotated_to_center_verify >= self.rotated_to_center_verify_threshold:  
                 self.gate_maneuver.rotated_to_center = True
-
+                self.local_cvcontroller.change_gate_target(False)
             else:
                 self.gate_maneuver.rotate_to_center(navigation, coordinates)
         else:
