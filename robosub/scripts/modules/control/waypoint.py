@@ -128,6 +128,8 @@ class Waypoint():
         return self.heading
 
     def get_depth_directions(self, new_depth):
+        if new_depth is None or self.depth is None:
+            return 'staying', 0
         direction_val = new_depth - self.depth
         if direction_val > 0:
             direction = 'down'
@@ -228,3 +230,5 @@ class Waypoint():
             direction = self.directions[2]
 
         return direction, abs(heading_diff)
+
+        

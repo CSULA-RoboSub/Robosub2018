@@ -305,6 +305,14 @@ class Navigation():
     def ros_rate(self, hz = 100):
         rospy.Rate(hz)
 
+
+    def go_to_depth(self, depth, h_power = None):
+        if h_power is None:
+            h_power = 100
+            
+        direction, depth_change = self.waypoint.get_depth_directions(depth)
+        self.h_nav(direction, depth_change, h_power)
+
 ############################### Waypoint Functions ######################################################################################
     
     #rotaton control status callback

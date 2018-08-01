@@ -36,31 +36,38 @@ class GatePreprocessor:
         # self.upper_red_orange = np.array([31, 255, 254], 'uint8')
 
         # self.lower_red_blue = np.array([131, 87, 1], 'uint8')
-        # self.upper_red_blue = np.array([179, 255, 254], 'uint8')
+        # self.upper_red_blue = np.array([180, 255, 254], 'uint8')
 
         #bright 2
         # self.lower_red_orange = np.array([0, 109, 2], 'uint8')
-        # self.upper_red_orange = np.array([31, 255, 253], 'uint8')
+        # self.upper_red_orange = np.array([31, 255, 254], 'uint8')
 
         # self.lower_red_blue = np.array([131, 109, 2], 'uint8')
-        # self.upper_red_blue = np.array([179, 255, 253], 'uint8')
+        # self.upper_red_blue = np.array([180, 255, 254], 'uint8')
+
+        #bright 3
+        # self.lower_red_orange = np.array([0, 99, 2])
+        # self.upper_red_orange = np.array([31, 255, 254])
+
+        # self.lower_red_blue = np.array([123, 99, 2])
+        # self.upper_red_blue = np.array([180, 255, 254])
 
         #dark 1
-        self.lower_red_orange = np.array([0, 99, 1], 'uint8')
-        self.upper_red_orange = np.array([31, 255, 254], 'uint8')
+        self.lower_red_orange = np.array([0, 39, 29], 'uint8')
+        self.upper_red_orange = np.array([31, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([131, 99, 1], 'uint8')
-        self.upper_red_blue = np.array([179, 255, 254], 'uint8')
+        self.lower_red_blue = np.array([130, 39, 29], 'uint8')
+        self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         ''' BGR color values '''
         self.lower_bgr = np.array([0, 0, 0], 'uint8')
-        self.upper_bgr = np.array([100, 255, 255], 'uint8')
+        self.upper_bgr = np.array([200, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one
         self.use_bgr = False
         self.use_hsv_and_bgr = False
-        self.use_bgr_and_hsv = False
+        self.use_bgr_and_hsv = True
         #-------------------------------------------------
 
         self.min_cont_size = 100 # min contours size      
@@ -68,6 +75,12 @@ class GatePreprocessor:
         self.roi_size = 1000 # box size
         self.morph_ops = True # testing
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
+        # self.kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
+        # self.kernel = np.array([[0, 1, 1, 1, 0],
+        #                         [0, 1, 1, 1, 0],
+        #                         [1, 1, 1, 1, 1],
+        #                         [0, 1, 1, 1, 0],
+        #                         [0, 1, 1, 1, 0]])
 
 
     # color filtering

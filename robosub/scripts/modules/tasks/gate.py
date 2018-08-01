@@ -142,13 +142,13 @@ class Gate(Task):
                     except:
                         most_occur_coords = [0, 0]
 
-                    print 'running {} task'.format(task_name)
-                    print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
-                    print 'current count: {}'.format(count)
-                    print 'coordinates: {}'.format(most_occur_coords)
-                    print '--------------------------------------------'
-                    print 'type: navigation cv 0, or task to cancel task'
-                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                    # print 'running {} task'.format(task_name)
+                    # print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+                    # print 'current count: {}'.format(count)
+                    # print 'coordinates: {}'.format(most_occur_coords)
+                    # print '--------------------------------------------'
+                    # print 'type: navigation cv 0, or task to cancel task'
+                    # self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
                     self.last_time = time.time()
                     self.counter = Counter()
@@ -232,7 +232,7 @@ class Gate(Task):
             #-------------------------------------------------------------------
             if coordinates[0] == 0 and self.rotated_to_center_verify >= self.rotated_to_center_verify_threshold:  
                 self.gate_maneuver.rotated_to_center = True
-
+                self.local_cvcontroller.change_gate_target(False)
             else:
                 self.gate_maneuver.rotate_to_center(navigation, coordinates)
         else:

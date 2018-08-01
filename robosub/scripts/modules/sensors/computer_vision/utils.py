@@ -58,6 +58,61 @@ def get_directions(center, x, y, w, h):
     # print('x: %d, y: %d' %(directions[0],directions[1]))
     return directions
 
+def get_directions_right(center, x, y, w, h):
+    directions = [0,0]
+    w_pad = w / 7
+    h_pad = h / 7
+    cx = center[0]
+    cy = center[1]
+    # print('x range: %d to %d, y range: %d to %d' %(x + (3*w_pad),x + (4 * w_pad), y + (3*h_pad),y + (4 * h_pad)))
+    # print('cx: %d, cy: %d' %(cx,cy))
+    if x + (4*w_pad) < cx:
+        if cx < x + (5 * w_pad):
+            directions[0] = 0
+        else:
+            directions[0] = -1
+    else:
+        directions[0] = 1
+
+    if y + (6*h_pad) < cy:
+        if cy < y + (7 * h_pad):
+            directions[1] = 0
+        else:
+            directions[1] = 1
+    else:
+        directions[1] = -1
+    
+    # print('x: %d, y: %d' %(directions[0],directions[1]))
+    return directions
+
+def get_directions_left(center, x, y, w, h):
+    directions = [0,0]
+    w_pad = w / 7
+    h_pad = h / 7
+    cx = center[0]
+    cy = center[1]
+    # print('x range: %d to %d, y range: %d to %d' %(x + (3*w_pad),x + (4 * w_pad), y + (3*h_pad),y + (4 * h_pad)))
+    # print('cx: %d, cy: %d' %(cx,cy))
+    
+    if x + (2*w_pad) < cx:
+        if cx < x + (3 * w_pad):
+            directions[0] = 0
+        else:
+            directions[0] = -1
+    else:
+        directions[0] = 1
+
+    if y + (6*h_pad) < cy:
+        if cy < y + (7 * h_pad):
+            directions[1] = 0
+        else:
+            directions[1] = 1
+    else:
+        directions[1] = -1
+    
+    # print('x: %d, y: %d' %(directions[0],directions[1]))
+    return directions
+
 def get_directions_bottom(center, x, y, w, h):
     directions = [0,0]
     w_pad = w / 7

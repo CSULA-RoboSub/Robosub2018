@@ -15,6 +15,8 @@ class GateDetector:
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
         self.shape_list = []
+        self.is_direction_center = True
+        self.is_red_left = False
 
     # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
     # returns the shape as a string
@@ -58,9 +60,23 @@ class GateDetector:
             else:
                 x, y, w, h = gate
                 cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
-                self.directions = utils.get_directions(center, x, y, w, h)
+
+                w_pad = w / 7
+                h_pad = h / 7
+                if self.is_direction_center:
+                    self.directions = utils.get_directions(center, x, y, w, h)
+                    cv2.rectangle(frame, (x + (3*w_pad), y + (3*h_pad)), (x + (4 * w_pad), y + (4 * h_pad)), utils.colors["green"], 2)
+                else:
+                    if self.is_red_left:
+                        self.directions = utils.get_directions_left(center, x, y, w, h)
+                        cv2.rectangle(frame, (x + (2*w_pad), y + (3*h_pad)), (x + (3 * w_pad), y + (4 * h_pad)), utils.colors["green"], 2)
+                    else:
+                        self.directions = utils.get_directions_right(center, x, y, w, h)
+                        cv2.rectangle(frame, (x + (4*w_pad), y + (3*h_pad)), (x + (5 * w_pad), y + (4 * h_pad)), utils.colors["green"], 2)
                 self.found = True
             return (self.found, self.directions, gate_shape, (w, h))
         else:
             print('error no frame')
             return False, None, None, None
+
+
