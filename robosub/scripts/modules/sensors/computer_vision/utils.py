@@ -74,8 +74,8 @@ def get_directions_right(center, x, y, w, h):
     else:
         directions[0] = 1
 
-    if y + (3*h_pad) < cy:
-        if cy < y + (4 * h_pad):
+    if y + (6*h_pad) < cy:
+        if cy < y + (7 * h_pad):
             directions[1] = 0
         else:
             directions[1] = 1
@@ -102,8 +102,8 @@ def get_directions_left(center, x, y, w, h):
     else:
         directions[0] = 1
 
-    if y + (3*h_pad) < cy:
-        if cy < y + (4 * h_pad):
+    if y + (6*h_pad) < cy:
+        if cy < y + (7 * h_pad):
             directions[1] = 0
         else:
             directions[1] = 1
