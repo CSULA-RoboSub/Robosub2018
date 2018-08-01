@@ -11,17 +11,17 @@ class PathPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 49, 39], 'uint8')
+        self.lower_red_orange = np.array([0, 14, 0], 'uint8')
         self.upper_red_orange = np.array([31, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([154, 49, 39], 'uint8')
+        self.lower_red_blue = np.array([154, 14, 0], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         self.roi_size = 1700
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
-        self.lower_bgr = np.array([0, 0, 0], 'uint8')
+        self.lower_bgr = np.array([212, 0, 0], 'uint8')
         self.upper_bgr = np.array([255, 255, 255], 'uint8')
 
     def filter_contours(self, frame_contours):
@@ -47,6 +47,8 @@ class PathPreprocessor():
         mask_red_blue = cv2.inRange(img, self.lower_red_blue, self.upper_red_blue)
         mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
             
+        # mask_preblur = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+        # mask = cv2.GaussianBlur(mask_preblur,(9,9),0)
         output = cv2.bitwise_and(img, img, mask = mask)
 
         return output, mask
@@ -57,10 +59,11 @@ class PathPreprocessor():
         img_hsv = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
         img_color_filt, mask = self.preprocess(img_hsv)
 
-        close_frame = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.kernel) # fill in
-        dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+        dilate_frame = cv2.dilate(mask, self.kernel, iterations=3) # make chubby
+        close_frame = cv2.morphologyEx(dilate_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+        # open_frame = cv2.morphologyEx(close_frame, cv2.MORPH_OPEN, self.kernel) # fill in
 
-        im, contours, hierarchy = cv2.findContours(dilate_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        im, contours, hierarchy = cv2.findContours(close_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         
         # filtered_contours = self.filter_contours(contours)
         # boxes = [cv2.boundingRect(c) for c in filtered_contours]

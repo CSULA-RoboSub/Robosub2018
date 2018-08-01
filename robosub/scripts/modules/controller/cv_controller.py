@@ -360,9 +360,9 @@ class CVController():
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")
 
-        for name in source.get_tcam_property_names():
-            temp = source.get_tcam_property(name)
-            print( name + " " + str(temp))
+        # for name in source.get_tcam_property_names():
+        #     temp = source.get_tcam_property(name)
+        #     print( name + " " + str(temp))
 
         serial = self.camera_serials[camera_direction]
         # source = Gst.ElementFactory.make("tcamsrc")
@@ -395,7 +395,6 @@ class CVController():
         # Ask the user for the format that should be used for capturing
         fmt =  self.select_format(source.get_by_name("tcambin-source")) #----------------------- replace
         # fmt =  self.select_format(source) #----------------------- replace
-        
         # If the user selected a bayer format, we change it to BGRx so that the
         # tcambin will decode the bayer pattern to a color image
         if fmt.get_name() == "video/x-bayer":
@@ -425,11 +424,15 @@ class CVController():
         # self.pipeline[camera_direction] = Gst.parse_launch(parse_str)
 
         # auto_exposure = Gst.ElementFactory.make("tcamautoexposure")
+        # # auto_exposure.set_property('value', False)
         # white_balance = Gst.ElementFactory.make("tcamwhitebalance")
+        # # white_balance.set_property('value', False)
         # auto_focus = Gst.ElementFactory.make("tcamautofocus")
+        # # auto_focus.set_property('value', False)
 
         # Add all elements
         self.pipeline[camera_direction].add(source)
+
         # self.pipeline[camera_direction].add(auto_exposure)
         # self.pipeline[camera_direction].add(auto_focus)
         # self.pipeline[camera_direction].add(white_balance)
@@ -448,6 +451,9 @@ class CVController():
         queue.link(convert)
         convert.link(scale)
         scale.link(output)
+        # output.link(auto_exposure)
+        # auto_exposure.link(white_balance)
+        # white_balance.link(auto_focus)
         
         # Usually one would use cv2.imgshow(...) to display an image but this is
         # tends to hang in threaded environments. So we create a small display
@@ -470,6 +476,7 @@ class CVController():
         self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING)  
 
         self.pipeline[camera_direction].set_state(Gst.State.PLAYING)
+        # self.pipeline[camera_direction].set_state(Gst.State.NULL)
 
         # pip_source = self.pipeline[camera_direction].get_by_name("source")
         # pip_source = Gst.Bin.get_by_name(Gst.Bin(self.pipeline[camera_direction]), "source")
@@ -481,6 +488,15 @@ class CVController():
         #     temp = pip_source.get_tcam_property(name)
         #     print( name + " " + str(temp))
 
+        # print self.pipeline[camera_direction].get_by_name('tcamautoexposure')
+        # print self.pipeline[camera_direction].get_by_name('tcamwhitebalance')
+        # print self.pipeline[camera_direction].get_by_name('tcamautofocus')
+        # Gst.Bin.remove(source.get_tcam_property('tcamautoexposure'))
+        # Gst.Bin.remove(source.get_tcam_property('tcamwhitebalance'))
+        # Gst.Bin.remove(source.get_tcam_property('tcamautofocus'))
+        # for name in source.get_tcam_property_names():
+        #     temp = source.get_tcam_property(name)
+        #     print( name + " " + str(temp))
         print 'done setting up pipeline'
 
     # close_pipeline ##################################################################################
