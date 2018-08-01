@@ -1,7 +1,7 @@
 import utils
 import cv2
 import numpy as np
-
+from utils.filters import *
 
 class GatePreprocessor:
 
@@ -66,15 +66,18 @@ class GatePreprocessor:
         #----------------------------------------------------------------
         #flags only enable one
         self.use_bgr = False
-        self.use_hsv_and_bgr = False
-        self.use_bgr_and_hsv = True
+        self.use_hsv_and_bgr = True
+        self.use_bgr_and_hsv = False
         #-------------------------------------------------
 
         self.min_cont_size = 100 # min contours size      
         self.max_cont_size = 2000 # max contours size
         self.roi_size = 1000 # box size
         self.morph_ops = True # testing
-        self.kernel = np.ones( (5, 5), np.uint8) # basic filter
+
+        ''' KERNEL '''
+        #self.kernel = np.ones( (5, 5), np.uint8) # basic filter
+        self.kernel = kernel_diag_neg
         # self.kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
         # self.kernel = np.array([[0, 1, 1, 1, 0],
         #                         [0, 1, 1, 1, 0],
@@ -129,7 +132,7 @@ class GatePreprocessor:
             close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
             dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
             output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
-
+            
         else:
             hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
 
@@ -218,7 +221,8 @@ class GatePreprocessor:
     #     interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
         
     #     return interest_regions
-        
+
+    '''
     def get_interest_regions(self, frame):
         
         color_filt_frame, mask = self.preprocess(frame) # color filtering
@@ -233,4 +237,40 @@ class GatePreprocessor:
         boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
         
+        return interest_regions
+    '''
+
+
+    # new uses conv filtering
+    def get_interest_regions(self, frame):
+        ''' blur types '''
+        #blur_avg = cv2.blur(frame, (5, 5) )
+        #blur_avg = cv2.blur(dilate_frame, (5, 5) )
+        #blur_gau = cv2.GaussianBlur(frame, (5, 5), 0)
+        blur_med = cv2.medianBlur(frame, 5)
+        #blur_bi = cv2.bilateralFilter(frame, 9, 75, 160) # WAS 9, 160, 160
+
+        ''' positive slope '''
+        #dst_dp = cv2.filter2D(frame, -1, kernel_diag_pos)
+        #dst_dp = cv2.filter2D(blur_avg, -1, kernel_diag_pos)
+        #dst_dp = cv2.filter2D(blur_gau, -1, kernel_diag_pos)
+        #dst_dp = cv2.filter2D(blur_med, -1, kernel_diag_pos)
+        #dst_dp = cv2.filter2D(blur_bi, -1, kernel_diag_pos)
+
+        ''' negative slope '''
+        #dst_dn = cv2.filter2D(frame, -1, kernel_diag_neg)
+        #dst_dn = cv2.filter2D(blur_avg, -1, kernel_diag_neg)
+        #dst_dn = cv2.filter2D(blur_gau, -1, kernel_diag_neg)
+        dst_dn = cv2.filter2D(blur_med, -1, kernel_diag_neg)
+        #dst_dn = cv2.filter2D(blur_bi, -1, kernel_diag_neg)
+
+        grayscale_frame = cv2.cvtColor(dst_dn, cv2.COLOR_BGR2GRAY)
+        ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+
+        boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+
         return interest_regions
