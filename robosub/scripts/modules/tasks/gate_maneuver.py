@@ -253,8 +253,9 @@ class GateManeuver():
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, found):
         if not self.is_heading_correct:
             if self.nothing_found_counter >= self.nothing_found_threashold:
-                self.rotate(navigation, self.rotation_power, rotation)
+                # self.rotate(navigation, self.rotation_power, rotation)
                 #self.sweep(navigation, self.sweep_power, rotation)
+                pass
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)
