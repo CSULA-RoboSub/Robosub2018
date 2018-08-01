@@ -1,5 +1,6 @@
 import rospy
 from datetime import datetime
+import os
 from robosub.msg import HControl
 from robosub.msg import RControl
 from robosub.msg import MControl
@@ -7,28 +8,25 @@ from robosub.msg import MControl
 """ Prints and logs status to file"""
 
 is_logging = False
-file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
+file_name = ('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt')
+file = open(file_name, 'a')
 
 
 def log(data):
-
-    if not is_logging:
-        return
     """
     Prints to console and logs to file
     data -- str
     """
 
-    print(data)
-    try:
-        file.write(data + '\n')
-    except ValueError:
-        pass
+    if is_logging:
+        print(data)
+        try:
+            file.write(data + '\n')
+        except ValueError:
+            return
 
 
 def printHControl(data):
-    if not is_logging:
-        return
     """Callback. Prints all the data for HControl"""
 
     if is_logging:
@@ -54,12 +52,10 @@ def printHControl(data):
         try:
             file.write(text + '\n')
         except ValueError:
-            pass
+            return
 
 
 def printRControl(data):
-    if not is_logging:
-        return
     """Callback. Prints all the data for RControl"""
 
     if is_logging:
@@ -84,12 +80,10 @@ def printRControl(data):
         try:
             file.write(text + '\n')
         except ValueError:
-            pass
+            return
 
 
 def printMControl(data):
-    if not is_logging:
-        return
     """Callback. Prints all the data for MControl"""
 
     if is_logging:
@@ -124,23 +118,24 @@ def printMControl(data):
         try:
             file.write(text + '\n')
         except ValueError:
-            pass
+            return
 
 
-if is_logging:
-    rospy.Subscriber('height_control', HControl, printHControl)
-    rospy.Subscriber('rotation_control', RControl, printRControl)
-    rospy.Subscriber('movement_control', MControl, printMControl)
+# rospy.Subscriber('height_control', HControl, printHControl)
+# rospy.Subscriber('rotation_control', RControl, printRControl)
+# rospy.Subscriber('movement_control', MControl, printMControl)
 
 
 def start():
-    if not is_logging:
-        return
-    # self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
-    pass
+    return
 
 
 def stop():
-    if not is_logging:
-        return
     file.close()
+    try:
+        if os.stat(file_name).st_size == 0:
+            os.remove(file_name)
+        else:
+            print(file_name + ' created.')
+    except OSError:
+        return
