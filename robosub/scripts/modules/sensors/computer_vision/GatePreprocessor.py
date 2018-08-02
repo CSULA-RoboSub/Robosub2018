@@ -60,14 +60,17 @@ class GatePreprocessor:
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         ''' BGR color values '''
-        self.lower_bgr = np.array([212, 0, 0], 'uint8')
-        self.upper_bgr = np.array([200, 255, 255], 'uint8')
+        #self.lower_bgr = np.array([212, 0, 0], 'uint8')
+        #self.upper_bgr = np.array([200, 255, 255], 'uint8')
+
+        self.lower_bgr = np.array([130, 150, 210], 'uint8')
+        self.upper_bgr = np.array([255, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one
-        self.use_bgr = False
+        self.use_bgr = True
         self.use_hsv_and_bgr = False
-        self.use_bgr_and_hsv = True
+        self.use_bgr_and_hsv = False
         #-------------------------------------------------
 
         self.min_cont_size = 100 # min contours size
