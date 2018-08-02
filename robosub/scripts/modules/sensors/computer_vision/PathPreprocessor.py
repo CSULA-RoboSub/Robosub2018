@@ -11,10 +11,10 @@ class PathPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 0, 100], 'uint8')
+        self.lower_red_orange = np.array([0, 21, 100], 'uint8')
         self.upper_red_orange = np.array([80, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([131, 0, 100], 'uint8')
+        self.lower_red_blue = np.array([131, 21, 100], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         self.roi_size = 2000

@@ -29,12 +29,18 @@ class PreGate(Task):
         ################ TIMER VARIABLES ################
 
         ################ DICTIONARIES ################
-        
+        self.headings = {
+            'a': 317.0,
+            'b': 359.1,
+            'c': 160.0,
+            'd': 167.5
+        }
 
         ################ AUV MOBILITY VARIABLES ################
+        self.selected_heading = 'a'
         self.r_power=80
         self.h_power=100
-        self.m_power=70
+        self.m_power=120
         self.h_depth = 5
 
         ################ THREAD VARIABLES ################
@@ -67,7 +73,7 @@ class PreGate(Task):
         self.is_busy = False
         self.is_running_rotation = False
 
-        navigation.h_nav('down', 5, self.h_power)
+        navigation.h_nav('down', 3.5, self.h_power)
         
         while not self.stop_task and not self.complete():
             if not self.is_busy and not self.is_running_rotation:
@@ -75,8 +81,8 @@ class PreGate(Task):
                 self.is_busy = True
                 self.is_running_rotation = True
                 #run rotation
-                print(navigation.saved_heading)
-                direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
+                print(self.headings['a'])
+                direction, degree = navigation.waypoint.get_directions_with_heading(self.headings['a'])
                 # print('direction: {} degree: {}'.format(str(direction), str(degree)))
                 #set is running rotation
                 navigation.r_nav(direction, degree, self.r_power)

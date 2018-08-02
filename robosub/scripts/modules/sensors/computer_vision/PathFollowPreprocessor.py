@@ -1,3 +1,10 @@
+# ffmpeg -ss 00:00:30 -i orginalfile -t 00:00:05 -vcodec copy -acodec copy newfile
+#
+#
+#
+#
+#
+
 import utils
 import cv2
 import numpy as np
@@ -11,10 +18,10 @@ class PathFollowPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 0, 96], 'uint8')
+        self.lower_red_orange = np.array([0, 10, 96], 'uint8')
         self.upper_red_orange = np.array([80, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([130, 0, 96], 'uint8')
+        self.lower_red_blue = np.array([130, 10, 96], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         self.roi_size = 2000
