@@ -8,7 +8,7 @@ class GateDetector:
 
     def __init__(self):
         self.classifier = gc.GateClassifier()
-        self.found =  False;
+        self.found =  False
         self.preprocess = gp.GatePreprocessor()
         self.directions = [0,0]
         self.isTaskComplete = False
