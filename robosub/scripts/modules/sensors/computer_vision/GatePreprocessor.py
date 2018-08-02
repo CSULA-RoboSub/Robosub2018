@@ -244,6 +244,7 @@ class GatePreprocessor:
     '''
 
 
+    '''
     # new uses conv filtering
     def get_interest_regions(self, frame):
         ''' blur types '''
@@ -280,3 +281,24 @@ class GatePreprocessor:
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
         return interest_regions
+        '''
+
+    # new BGR color filter - only finds bars right now
+    def get_interest_regions(self, frame):
+        
+        blur_frame = cv2.medianBlur(frame, 9)
+        
+        color_filt_frame, mask = self.preprocess(blur_frame) # color filtering
+        
+        grayscale_frame = cv2.cvtColor(color_filt_frame, cv2.COLOR_BGR2GRAY)
+        
+        ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+
+        boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+
+        return interest_regions
+
