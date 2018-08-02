@@ -164,6 +164,26 @@ class CLI(cmd.Cmd):
 
             AUV.display_tasks()
 
+    # drop ###########################################################################################################
+    def do_drop(self, arg):
+        '\nSets state of dropper\
+         \n[0] to close both gates\
+         \n[1] to open both gates\
+         \n[2] to drop one ball'
+        # \n[state] or no argument to print current state\
+
+        if arg == '0' or arg == '1' or arg == '2':
+            AUV.dropper_state(arg)
+        else:
+            print('\nSets state of dropper\
+                   \n[0] to close both gates\
+                   \n[1] to open both gates\
+                   \n[2] to drop one ball')
+
+    # torpedo ###########################################################################################################
+    def do_torpedo(self, arg):
+        pass
+
     # config ###########################################################################################################
     def do_config(self, arg):
         '\nOpens the config file and updates the parameters'
