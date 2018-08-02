@@ -26,7 +26,7 @@ class Slots(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
-        # self.slot_maneuver = SlotManeuver()
+        self.slot_maneuver = SlotsManeuver()
         self.detectslots = None
 
         ################ THRESHOLD VARIABLES ################
@@ -107,6 +107,7 @@ class Slots(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
+        self.slot_maneuver.torpedo('prime', 'right')
         while not self.stop_task and not self.complete():
             print 'looping slots for testing'
 
@@ -129,6 +130,9 @@ class Slots(Task):
                     # print '--------------------------------------------'
                     # print 'type: navigation cv 0, or task to cancel task'
                     # self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+
+        self.mutex.release()
+        cvcontroller.stop()
 
     # stop ##################################################################################
     def stop(self):
