@@ -25,14 +25,6 @@ def preprocess(img):
     grayscale_frame = cv2.cvtColor(color_filter_frame, cv2.COLOR_BGR2GRAY) # to grayscale
     return grayscale_frame, mask
 
-def set_lower_color(task_name, lower):
-    lower = np.array(lower, 'uint8')
-    print 'lower is set to {} for {}'.format(lower, task_name)
-    
-def set_upper_color(task_name, upper):
-    upper = np.array(upper, 'uint8')
-    print 'upper is set to {} for {}'.format(upper, task_name)
-
 def filter_contours(frame_contours):
     new_cont_list = []
     for cont in frame_contours:
@@ -41,7 +33,6 @@ def filter_contours(frame_contours):
             new_cont_list.append(cont)
     filtered_contours = np.array(new_cont_list)
     return filtered_contours
-
 
 def get_interest_regions(frame, die=None): 
     frame_c, frame_contours, frame_hierarchy = cv2.findContours(frame, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
