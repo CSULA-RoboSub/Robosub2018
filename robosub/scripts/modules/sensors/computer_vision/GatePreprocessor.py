@@ -70,14 +70,14 @@ class GatePreprocessor:
         self.use_bgr_and_hsv = True
         #-------------------------------------------------
 
-        self.min_cont_size = 100 # min contours size      
-        self.max_cont_size = 2000 # max contours size
+        self.min_cont_size = 100 # min contours size
+        self.max_cont_size = 1000 # max contours size
         self.roi_size = 1000 # box size
         self.morph_ops = True # testing
 
         ''' KERNEL '''
         #self.kernel = np.ones( (5, 5), np.uint8) # basic filter
-        self.kernel = kernel_diag_neg
+        self.kernel = kernel_diag_pos
         # self.kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
         # self.kernel = np.array([[0, 1, 1, 1, 0],
         #                         [0, 1, 1, 1, 0],
@@ -108,7 +108,7 @@ class GatePreprocessor:
             mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
             mask_hsv = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
 
-            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask_hsv)        
+            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask_hsv)
 
             close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
             dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
@@ -245,27 +245,30 @@ class GatePreprocessor:
     def get_interest_regions(self, frame):
         ''' blur types '''
         #blur_avg = cv2.blur(frame, (5, 5) )
-        #blur_avg = cv2.blur(dilate_frame, (5, 5) )
         #blur_gau = cv2.GaussianBlur(frame, (5, 5), 0)
         blur_med = cv2.medianBlur(frame, 5)
         #blur_bi = cv2.bilateralFilter(frame, 9, 75, 160) # WAS 9, 160, 160
 
+        ### USE only where WALL is to the LEFT of the GATE - since slope of wall is negative
         ''' positive slope '''
         #dst_dp = cv2.filter2D(frame, -1, kernel_diag_pos)
         #dst_dp = cv2.filter2D(blur_avg, -1, kernel_diag_pos)
         #dst_dp = cv2.filter2D(blur_gau, -1, kernel_diag_pos)
-        #dst_dp = cv2.filter2D(blur_med, -1, kernel_diag_pos)
+        dst_dp = cv2.filter2D(blur_med, -1, kernel_diag_pos)
         #dst_dp = cv2.filter2D(blur_bi, -1, kernel_diag_pos)
 
+        ### USE ony where WALL is to the RIGHT of the GATE - since slope of wall is positive
         ''' negative slope '''
         #dst_dn = cv2.filter2D(frame, -1, kernel_diag_neg)
         #dst_dn = cv2.filter2D(blur_avg, -1, kernel_diag_neg)
         #dst_dn = cv2.filter2D(blur_gau, -1, kernel_diag_neg)
-        dst_dn = cv2.filter2D(blur_med, -1, kernel_diag_neg)
+        #dst_dn = cv2.filter2D(blur_med, -1, kernel_diag_neg)
         #dst_dn = cv2.filter2D(blur_bi, -1, kernel_diag_neg)
 
-        grayscale_frame = cv2.cvtColor(dst_dn, cv2.COLOR_BGR2GRAY)
-        ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        grayscale_frame = cv2.cvtColor(dst_dp, cv2.COLOR_BGR2GRAY)
+        #grayscale_frame = cv2.cvtColor(dst_dn, cv2.COLOR_BGR2GRAY)
+        
+        ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
