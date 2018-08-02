@@ -141,7 +141,7 @@ class CLI(cmd.Cmd):
                    \nstop task by entering [task] or [task stop]\
                    \nrun all tasks by entering [task all]\
                    \nsave current heading by entering [task heading]\
-                   \n'.format(len(AUV.houston.tasks)))
+                   \n'.format(len(AUV.houston.tasks)-1))
 
             AUV.display_tasks()
         elif not arg == '':
@@ -163,6 +163,26 @@ class CLI(cmd.Cmd):
                    \n'.format(len(AUV.houston.tasks)))
 
             AUV.display_tasks()
+
+    # drop ###########################################################################################################
+    def do_drop(self, arg):
+        '\nSets state of dropper\
+         \n[0] to close both gates\
+         \n[1] to open both gates\
+         \n[2] to drop one ball'
+        # \n[state] or no argument to print current state\
+
+        if arg == '0' or arg == '1' or arg == '2':
+            AUV.dropper_state(arg)
+        else:
+            print('\nSets state of dropper\
+                   \n[0] to close both gates\
+                   \n[1] to open both gates\
+                   \n[2] to drop one ball')
+
+    # torpedo ###########################################################################################################
+    def do_torpedo(self, arg):
+        pass
 
     # config ###########################################################################################################
     def do_config(self, arg):

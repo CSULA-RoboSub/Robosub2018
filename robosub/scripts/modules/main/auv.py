@@ -6,6 +6,8 @@ import modules.main.config as config
 from modules.control.motor import Motor
 from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
+import modules.servos.dropper as dropper
+import modules.servos.torpedo as torpedo
 import modules.main.status as status
 
 from houston import Houston
@@ -114,3 +116,12 @@ class AUV():
 
     def save_heading(self):
         self.navigation.save_current_heading()
+
+    def prime_torpedo(self, side):
+        pass
+
+    def shoot_torpedo(self, side):
+        pass
+
+    def dropper_state(self, state):
+        dropper.drop_control(state)
