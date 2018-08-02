@@ -193,7 +193,6 @@ class CLI(cmd.Cmd):
     # status logger ####################################################################################################
     def do_logging(self, arg):
         '\n[on/off] or [1/0] Turn on or off status logging\
-         \n[toggle] to toggle logging\
          \n[state] or no argument to print current state'
 
         if arg.lower() == 'on' or arg == '1':
