@@ -182,7 +182,29 @@ class CLI(cmd.Cmd):
 
     # torpedo ###########################################################################################################
     def do_torpedo(self, arg):
-        pass
+        '\nPrime or Fire torpedo\
+         \n[prime] [side] Prime the torpedo with given side/s\
+         \n[fire] [side] Fire the torpedo with given side/s\
+         \nside -- (str) left, right'
+
+        try:
+            arg1, arg2 = parse_torpedo(arg)
+
+            if arg1.lower() == 'prime':
+                AUV.prime_torpedo(arg2)
+            elif arg1.lower() == 'fire':
+                AUV.fire_torpedo(arg2)
+            else:
+                print('\nPrime or Fire torpedo\
+                       \n[prime] [side] Prime the torpedo with given side/s\
+                       \n[fire] [side] Fire the torpedo with given side/s\
+                       \nside -- (str) left, right')
+        except ValueError:
+            print('\nIncorrect number of arguments.\
+                   \nTorpedo takes [prime/fire] [side]\
+                   \nside -- (str) left, right')
+
+
 
     # config ###########################################################################################################
     def do_config(self, arg):
@@ -236,6 +258,10 @@ def parse_color(arg):
             i = 255
         list.append(int(i))
     return arg1, list
+
+def parse_torpedo(arg):
+    arg1, arg2 = arg.split()
+    return arg1, arg2
 
 
 def parse(arg):

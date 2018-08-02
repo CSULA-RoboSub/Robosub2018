@@ -118,10 +118,16 @@ class AUV():
         self.navigation.save_current_heading()
 
     def prime_torpedo(self, side):
-        pass
+        if side.lower() == 'left' or side.lower() == 'right':
+            torpedo.prime_torpedo(side)
+        else:
+            print('Invalid side input. Please enter correct side.')
 
-    def shoot_torpedo(self, side):
-        pass
+    def fire_torpedo(self, side):
+        if side.lower() == 'left' or side.lower() == 'right':
+            torpedo.fire_torpedo(side)
+        else:
+            print('Invalid side input. Please enter correct side.')
 
     def dropper_state(self, state):
         dropper.drop_control(state)
