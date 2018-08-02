@@ -81,6 +81,7 @@ class Slots(Task):
         self.thread_slots = None
         self.mutex = Lock()
 
+    # detect ##################################################################################
     def detect(self, frame):
         print('detect_dice')
         if not self.detectslots:
@@ -98,6 +99,7 @@ class Slots(Task):
             self.is_gate_found = True
             self.task_num += 1
 
+    # start ##################################################################################
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
         cvcontroller.camera_direction = 'forward'
@@ -108,33 +110,62 @@ class Slots(Task):
         while not self.stop_task and not self.complete():
             print 'looping slots for testing'
 
+            # found, directions, shape, width_height = cvcontroller.detect(task_name)
+            # TODO implement slots detector for CV controller
+            # if found:
+                # self.direction_list.append(directions)
+                # if (time.time()-self.last_time > 0.05):
+                #     count += 1
+
+                #     try:
+                #         most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                #     except:
+                #         most_occur_coords = [0, 0]
+
+                    # print 'running {} task'.format(task_name)
+                    # print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+                    # print 'current count: {}'.format(count)
+                    # print 'coordinates: {}'.format(most_occur_coords)
+                    # print '--------------------------------------------'
+                    # print 'type: navigation cv 0, or task to cancel task'
+                    # self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+
+    # stop ##################################################################################
     def stop(self):
         pass
 
-
+    # navigation ##################################################################################
     def navigate(self, navigation, found, coordinates, power, rotation):
         pass
-    
+
+    # complete ##################################################################################
     def complete(self):
         return False
 
+    # bail_task ##################################################################################
     def bail_task(self):
         pass
 
+    # restart_task ##################################################################################
     def restart_task(self):
         pass
 
-
+    #search ##################################################################################
     def search(self):
         pass
 
+    # run_detect_for_task ##################################################################################
     def run_detect_for_task(self):
         pass
 
+    # reset_thread ##################################################################################
     def reset_thread(self):
         pass
 
+    # get_most_occur_coordinates ##################################################################################
     def get_most_occur_coordinates(self): 
         pass 
-        
-    def reset(self): pass
+
+    # reset ##################################################################################
+    def reset(self):
+        pass
