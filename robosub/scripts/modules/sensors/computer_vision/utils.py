@@ -141,7 +141,10 @@ def get_directions_bottom(center, x, y, w, h):
     return directions
 
 def get_max_area(interest_regions):
-    return max(interest_regions, key=lambda x: x[2]*x[3])
+    try:
+        return max(interest_regions, key=lambda x: x[2]*x[3])
+    except:
+        return None
 
 def center(ob):
     return (ob[0] + ob[2] / 2), (ob[1] + ob[3] / 2)

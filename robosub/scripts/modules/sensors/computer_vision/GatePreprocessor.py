@@ -64,7 +64,7 @@ class GatePreprocessor:
         #self.upper_bgr = np.array([200, 255, 255], 'uint8')
 
         self.lower_bgr = np.array([130, 150, 210], 'uint8')
-        self.upper_bgr = np.array([255, 255, 255], 'uint8')
+        self.upper_bgr = np.array([200, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one
@@ -245,43 +245,43 @@ class GatePreprocessor:
 
 
     '''
-    # new uses conv filtering
-    def get_interest_regions(self, frame):
-        ''' blur types '''
-        #blur_avg = cv2.blur(frame, (5, 5) )
-        #blur_gau = cv2.GaussianBlur(frame, (5, 5), 0)
-        blur_med = cv2.medianBlur(frame, 5)
-        #blur_bi = cv2.bilateralFilter(frame, 9, 75, 160) # WAS 9, 160, 160
+    # # new uses conv filtering
+    # def get_interest_regions(self, frame):'''
+    #     ''' blur types '''
+    #     #blur_avg = cv2.blur(frame, (5, 5) )
+    #     #blur_gau = cv2.GaussianBlur(frame, (5, 5), 0)
+    #     blur_med = cv2.medianBlur(frame, 5)
+    #     #blur_bi = cv2.bilateralFilter(frame, 9, 75, 160) # WAS 9, 160, 160
 
-        ### USE only where WALL is to the LEFT of the GATE - since slope of wall is negative
-        ''' positive slope '''
-        #dst_dp = cv2.filter2D(frame, -1, kernel_diag_pos)
-        #dst_dp = cv2.filter2D(blur_avg, -1, kernel_diag_pos)
-        #dst_dp = cv2.filter2D(blur_gau, -1, kernel_diag_pos)
-        dst_dp = cv2.filter2D(blur_med, -1, kernel_diag_pos)
-        #dst_dp = cv2.filter2D(blur_bi, -1, kernel_diag_pos)
+    #     ### USE only where WALL is to the LEFT of the GATE - since slope of wall is negative
+    #     ''' positive slope '''
+    #     #dst_dp = cv2.filter2D(frame, -1, kernel_diag_pos)
+    #     #dst_dp = cv2.filter2D(blur_avg, -1, kernel_diag_pos)
+    #     #dst_dp = cv2.filter2D(blur_gau, -1, kernel_diag_pos)
+    #     dst_dp = cv2.filter2D(blur_med, -1, kernel_diag_pos)
+    #     #dst_dp = cv2.filter2D(blur_bi, -1, kernel_diag_pos)
 
-        ### USE ony where WALL is to the RIGHT of the GATE - since slope of wall is positive
-        ''' negative slope '''
-        #dst_dn = cv2.filter2D(frame, -1, kernel_diag_neg)
-        #dst_dn = cv2.filter2D(blur_avg, -1, kernel_diag_neg)
-        #dst_dn = cv2.filter2D(blur_gau, -1, kernel_diag_neg)
-        #dst_dn = cv2.filter2D(blur_med, -1, kernel_diag_neg)
-        #dst_dn = cv2.filter2D(blur_bi, -1, kernel_diag_neg)
+    #     ### USE ony where WALL is to the RIGHT of the GATE - since slope of wall is positive
+    #     ''' negative slope '''
+    #     #dst_dn = cv2.filter2D(frame, -1, kernel_diag_neg)
+    #     #dst_dn = cv2.filter2D(blur_avg, -1, kernel_diag_neg)
+    #     #dst_dn = cv2.filter2D(blur_gau, -1, kernel_diag_neg)
+    #     #dst_dn = cv2.filter2D(blur_med, -1, kernel_diag_neg)
+    #     #dst_dn = cv2.filter2D(blur_bi, -1, kernel_diag_neg)
 
-        grayscale_frame = cv2.cvtColor(dst_dp, cv2.COLOR_BGR2GRAY)
-        #grayscale_frame = cv2.cvtColor(dst_dn, cv2.COLOR_BGR2GRAY)
+    #     grayscale_frame = cv2.cvtColor(dst_dp, cv2.COLOR_BGR2GRAY)
+    #     #grayscale_frame = cv2.cvtColor(dst_dn, cv2.COLOR_BGR2GRAY)
         
-        ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #     ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    #     frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+    #     filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
 
-        boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+    #     boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+    #     interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
-        return interest_regions
-        '''
+    #     return interest_regions
+    #     '''
 
     # new BGR color filter - only finds bars right now
     def get_interest_regions(self, frame):

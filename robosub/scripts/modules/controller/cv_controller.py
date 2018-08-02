@@ -712,15 +712,15 @@ class CVController():
         # exposure is a variable that is initialized to a value (usually around 40) and changes depending on brightness
         if brightness < 85:
             self.exposure = self.exposure + 1
-        elif brightness > 170:
+        elif brightness > 169.97:
             self.exposure = self.exposure - 1
         # self.exposure = 6
 
         os.system('v4l2-ctl -d %s -c exposure_absolute=%s' %(self.camera_ids[camera_direction], str(self.exposure)))
 
-    def set_camera_auto_exposure_manual(self, camera_direction):
-        #1 is manual exposure 3 is auto
-        os.system('v4l2-ctl -d %s -c exposure_auto=1' %(self.camera_ids[camera_direction]))
+    # def set_camera_auto_exposure_manual(self, camera_direction):
+    #     #1 is manual exposure 3 is auto
+    #     os.system('v4l2-ctl -d %s -c exposure_auto=1' %(self.camera_ids[camera_direction]))
 
 
     def change_gate_target(self, is_center = None):

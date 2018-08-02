@@ -31,13 +31,14 @@ class PreGate(Task):
         ################ DICTIONARIES ################
         self.headings = {
             'a': 317.0,
-            'b': 359.1,
+            'b': 358.0,
             'c': 160.0,
             'd': 167.5
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.selected_heading = 'a'
+        self.selected_heading = 'b'
+        
         self.r_power=80
         self.h_power=100
         self.m_power=120

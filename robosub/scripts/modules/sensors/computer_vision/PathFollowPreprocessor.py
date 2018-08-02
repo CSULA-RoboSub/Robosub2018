@@ -18,10 +18,10 @@ class PathFollowPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 10, 96], 'uint8')
+        self.lower_red_orange = np.array([0, 20, 20], 'uint8')
         self.upper_red_orange = np.array([80, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([130, 10, 96], 'uint8')
+        self.lower_red_blue = np.array([130, 20, 20], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         self.roi_size = 2000
@@ -29,7 +29,7 @@ class PathFollowPreprocessor():
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
-        self.lower_bgr = np.array([196, 96, 96], 'uint8')
+        self.lower_bgr = np.array([100, 20, 20], 'uint8')
         self.upper_bgr = np.array([255, 255, 255], 'uint8')
 
     def filter_contours(self, frame_contours):
