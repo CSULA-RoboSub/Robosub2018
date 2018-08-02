@@ -1,3 +1,4 @@
+import modules.servos.torpedo as torpedo
 
 class SlotsManeuver():
     def __init__(self):
@@ -38,6 +39,22 @@ class SlotsManeuver():
              1: 'right'
         }
 
+        self.torpedo_state = {
+            'prime': torpedo.prime_torpedo,
+            'fire': torpedo.fire_torpedo
+        }
+
+        self.torpedo_sides = {
+            0: 'left',
+            1: 'right'
+        }
+
+        ################ CONSTANTS ################
+        self.prime = 'prime'
+        self.fire = 'fire'
+        self.left = 'left'
+        self.right = 'right'
+
         ################ AUV MOBILITY VARIABLES ################
 
 
@@ -56,3 +73,6 @@ class SlotsManeuver():
 
     def other_shape_found(self):
         pass
+
+    def torpedo(self, state, side):
+        self.torpedo_state[state](side)
