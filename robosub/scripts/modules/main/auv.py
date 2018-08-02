@@ -46,6 +46,12 @@ class AUV():
         self.tasks = config.get_config('auv', 'tasks')  # read tasks from config
         self.houston.cvcontroller.update_config()
 
+    # def update_config(self):
+    #     """ Loads the updated parameters from config"""
+
+    #     self.read_config()
+    #     self.houston.cvcontroller.set_model()  # read and set all models from config
+
     def reset_config_option(self, section=None, option=None):
         """ Resets the config to default configurations given selection and option"""
 
@@ -57,12 +63,6 @@ class AUV():
 
         os.system('gedit config/config.ini')
         self.update_config()
-
-    # def update_config(self):
-    #     """ Loads the updated parameters from config"""
-
-    #     self.read_config()
-    #     self.houston.cvcontroller.set_model()  # read and set all models from config
 
     # def update_color(self):
     #     """ Update RGB/HSV for computer vision from config"""
