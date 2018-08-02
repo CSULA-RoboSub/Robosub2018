@@ -1,7 +1,7 @@
 import utils
 import cv2
 import numpy as np
-from utilities.filters import *
+from modules.sensors.computer_vision.utils.filters import *
 
 class GatePreprocessor:
 

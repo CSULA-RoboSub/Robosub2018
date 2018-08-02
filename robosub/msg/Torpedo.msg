@@ -1,0 +1,2 @@
+int8 state
+int8 torpedo_number

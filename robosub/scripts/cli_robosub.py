@@ -178,12 +178,10 @@ class CLI(cmd.Cmd):
 
         if arg.lower() == 'on' or arg == '1':
             status.is_logging = True
-            # AUV.status_logger.toggle_logging(1)
+            print('status logging turned on.')
         elif arg.lower() == 'off' or arg == '0':
             status.is_logging = False
-            # AUV.status_logger.toggle_logging(0)
-        # elif arg.lower() == 'toggle':
-            # AUV.status_logger.toggle_logging()
+            print('status logging turned off.')
         else:
             print('\nstatus logging state: %d' % status.is_logging)
 
