@@ -5,6 +5,7 @@ import time
 import os
 from modules.main.auv import AUV  # Import auv
 import modules.main.status as status  # Import status logger
+import modules.main.config as config  # Import config
 
 
 class CLI(cmd.Cmd):
@@ -22,7 +23,7 @@ class CLI(cmd.Cmd):
             print(AUV.tasks)
             print('test')
         elif arg.lower() == 'reset':
-            AUV.config.reset_option('auv', 'tasks')
+            AUV.reset_config_option('auv', 'tasks')
         else:
             print(AUV.tasks)
 

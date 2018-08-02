@@ -24,12 +24,13 @@ class AUV():
         self.motor_state = None
         self.tasks = None
 
+        self.navigation = Navigation()  # initialize Navigation() class
+        self.houston = Houston(self.navigation, self.tasks)  # initialize Houston() class
+
         self.update_config()  # read parameters from the config.ini file
 
         self.motor = Motor(self.motor_state)  # initialize Motor() class
-        self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
-        self.houston = Houston(self.navigation, self.tasks)  # initialize Houston() class
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -43,16 +44,13 @@ class AUV():
 
         self.motor_state = config.get_config('auv', 'motor_state')  # read motor state from config
         self.tasks = config.get_config('auv', 'tasks')  # read tasks from config
-        # TODO update set_model
-        self.houston.cvcontroller.set_model() # read and set all models from config
-        # TODO update set_lower_color/upper
-        self.houston.cvcontroller.set_color()  # read and set all lower/upper RGB/HSV from config
-        # TODO create set_cont_size
-        self.houston.cvcontroller.set_cont_size()  # read and set all min/max cont_size
-        # TODO create set_roi_size
-        self.houston.cvcontroller.set_roi_size()  # read and set all roi_size
-        # TODO create set_filter
-        self.houton.cvcontroller.set_filter()  # read and set all types of filters to use
+        self.houston.cvcontroller.update_config()
+
+    def reset_config_option(self, section=None, option=None):
+        """ Resets the config to default configurations given selection and option"""
+
+        config.reset_option(section, option)
+        # TODO make better
 
     def open_config(self):
         """ Opens the config file and updates the parameters"""

@@ -7,3 +7,4 @@ class Preprocessor:
     @abstractmethod
     def preprocess(self):
         raise NotImplementedError
+

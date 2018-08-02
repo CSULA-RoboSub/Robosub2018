@@ -1,6 +1,7 @@
 import utils
 import cv2
 import numpy as np
+import modules.main.config as config
 
 class PathPreprocessor():
 
@@ -109,3 +110,10 @@ class PathPreprocessor():
             # close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
             # dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
             # output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+
+    def read_config(self):
+        self.lower_bgr = np.array(config.get_config('path', 'lower_bgr'), 'uint8')
+        self.upper_bgr = np.array(config.get_config('path', 'upper_bgr'), 'uint8')
+        self.min_cont_size = config.get_config('path', 'min_cont_size')
+        self.max_cont_size = config.get_config('path', 'max_cont_size')
+        self.roi_size = config.get_config('path', 'roi_size')
