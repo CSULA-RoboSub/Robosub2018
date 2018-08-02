@@ -64,35 +64,35 @@ class CLI(cmd.Cmd):
             return args
 
     # lower/upper color ###############################################################################################
-    def do_lower(self, arg):
-        '\n[task] 0-255,0-255,0-255\
-         \nused to change lower of color filter'
+    # def do_lower(self, arg):
+    #     '\n[task] 0-255,0-255,0-255\
+    #      \nused to change lower of color filter'
 
-        if not arg.lower() == '':
-            try:
-                arg1, arg2 = parse_color(arg)
-                AUV.houston.cvcontroller.set_lower_color(arg1, arg2)
-            except:
-                print('\nincorrect input.\
-                       \n[task] 0-255,0-255,0-255')
-        else:
-            print('\n[task] 0-255,0-255,0-255\
-                   \nused to change lower of color filter')
+    #     if not arg.lower() == '':
+    #         try:
+    #             arg1, arg2 = parse_color(arg)
+    #             AUV.houston.cvcontroller.set_lower_color(arg1, arg2)
+    #         except:
+    #             print('\nincorrect input.\
+    #                    \n[task] 0-255,0-255,0-255')
+    #     else:
+    #         print('\n[task] 0-255,0-255,0-255\
+    #                \nused to change lower of color filter')
 
-    def do_upper(self, arg):
-        '\n[task] 0-255,0-255,0-255\
-         \nused to change upper of color filter'
+    # def do_upper(self, arg):
+    #     '\n[task] 0-255,0-255,0-255\
+    #      \nused to change upper of color filter'
 
-        if not arg.lower() == '':
-            try:
-                arg1, arg2 = parse_color(arg)
-                AUV.houston.cvcontroller.set_upper_color(arg1, arg2)
-            except:
-                print('\nincorrect input.\
-                       \n[task] 0-255,0-255,0-255')
-        else:
-            print('\n[task] 0-255,0-255,0-255\
-                   \nused to change lower of upper filter')
+    #     if not arg.lower() == '':
+    #         try:
+    #             arg1, arg2 = parse_color(arg)
+    #             AUV.houston.cvcontroller.set_upper_color(arg1, arg2)
+    #         except:
+    #             print('\nincorrect input.\
+    #                    \n[task] 0-255,0-255,0-255')
+    #     else:
+    #         print('\n[task] 0-255,0-255,0-255\
+    #                \nused to change lower of upper filter')
 
     # navigation #######################################################################################################
     def do_navigation(self, arg):
