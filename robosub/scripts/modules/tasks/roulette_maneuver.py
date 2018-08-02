@@ -25,7 +25,7 @@ class RouletteManeuver():
              0: 'staying',
              1: 'up'
         }
-                                
+
         self.rotation_movement = {
             -1: 'left',
              0: 'staying',

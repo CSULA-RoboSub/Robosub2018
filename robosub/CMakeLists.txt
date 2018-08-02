@@ -56,6 +56,8 @@ add_message_files(
   CVIn.msg
   CVOut.msg
   Hydrophone.msg
+  Dropper.msg
+  Torpedo.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -1,15 +1,15 @@
 import utils
 import time
-import GateClassifier as gc
-import GatePreprocessor as gp
+import SlotsClassifier as sc
+import SlotsPreprocessor as sp
 import cv2
 
-class GateDetector:
+class SlotsDetector:
 
     def __init__(self):
-        self.classifier = gc.GateClassifier()
-        self.found =  False
-        self.preprocess = gp.GatePreprocessor()
+        self.classifier = sc.SlotsClassifier()
+        self.found = False
+        self.preprocess = sp.SlotsPreprocessor()
         self.directions = [0,0]
         self.isTaskComplete = False
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
@@ -18,8 +18,6 @@ class GateDetector:
         self.is_direction_center = True
         self.is_red_left = False
 
-    # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
-    # returns the shape as a string
     def get_shape(self, roi, buff):
         if roi == None:
             return None
@@ -35,7 +33,6 @@ class GateDetector:
         else:
             return self.shapes[3] # square
 
-    # now returns (found, directions, shape-of-roi, size)
     def detect(self, frame):
         if frame is not None:
             height, width, ch = frame.shape
@@ -78,5 +75,3 @@ class GateDetector:
         else:
             print('error no frame')
             return False, None, None, None
-
-
