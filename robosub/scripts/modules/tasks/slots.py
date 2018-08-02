@@ -6,7 +6,7 @@ from itertools import combinations
 
 from task import Task
 
-# from slots_maneuver import SlotsManeuver
+from slots_maneuver import SlotsManeuver
 
 class Slots(Task):
     

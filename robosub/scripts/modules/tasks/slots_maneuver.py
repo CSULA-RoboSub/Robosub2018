@@ -47,3 +47,12 @@ class SlotsManeuver():
     # reset ##################################################################################
     def reset(self):
         self.found_red_square_counter = 0
+
+    def square_shape(self):
+        pass
+
+    def no_shape_found(self):
+        pass
+
+    def other_shape_found(self):
+        pass
