@@ -9,7 +9,7 @@ class SlotsDetector:
     def __init__(self):
         self.classifier = sc.SlotsClassifier()
         self.found = False
-        self.preprocess = gp.SlotsPreprocessor()
+        self.preprocess = sp.SlotsPreprocessor()
         self.directions = [0,0]
         self.isTaskComplete = False
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker

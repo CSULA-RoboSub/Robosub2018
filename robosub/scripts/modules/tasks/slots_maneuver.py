@@ -74,5 +74,6 @@ class SlotsManeuver():
     def other_shape_found(self):
         pass
 
+    # will be used for priming and firing of torpedos
     def torpedo(self, state, side):
         self.torpedo_state[state](side)
