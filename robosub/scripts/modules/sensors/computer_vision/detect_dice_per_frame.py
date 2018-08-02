@@ -8,6 +8,9 @@ sensitivity = 10
 lower = np.array([0,0,240])
 upper = np.array([255,sensitivity,255])
 
+min_cont_size = 100
+max_cont_size = 1000
+
 
 def preprocess(img):
     die = 5
