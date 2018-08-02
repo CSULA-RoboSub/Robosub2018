@@ -75,7 +75,7 @@ class Houston():
         ################ TASKS LIST ################
         """
         self.tasks values listed below
-        'gate', 'path', 'dice', 'path', 'slots', 'chip', 'pinger_a', 
+        'pregate', 'gate', 'path', 'dice', 'path', 'slots', 'chip', 'pinger_a', 
         'roulette', 'pinger_b', 'cash_in'
         """
         self.tasks = task_list

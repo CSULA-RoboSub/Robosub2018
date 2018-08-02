@@ -43,7 +43,7 @@ class GateDetector:
             regions_of_interest = self.preprocess.get_interest_regions(frame)
             
             for x, y, w, h in regions_of_interest:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
 
             gate = self.classifier.classify(frame, regions_of_interest)
             
