@@ -70,23 +70,23 @@ class PreGate(Task):
         navigation.h_nav('down', 5, self.h_power)
         
         while not self.stop_task and not self.complete():
-            # if not self.is_busy and not self.is_running_rotation:
-            #     # print('in rotation')
-            #     self.is_busy = True
-            #     self.is_running_rotation = True
-            #     #run rotation
-            #     print(navigation.saved_heading)
-            #     direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
-            #     # print('direction: {} degree: {}'.format(str(direction), str(degree)))
-            #     #set is running rotation
-            #     navigation.r_nav(direction, degree, self.r_power)
+            if not self.is_busy and not self.is_running_rotation:
+                # print('in rotation')
+                self.is_busy = True
+                self.is_running_rotation = True
+                #run rotation
+                print(navigation.saved_heading)
+                direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
+                # print('direction: {} degree: {}'.format(str(direction), str(degree)))
+                #set is running rotation
+                navigation.r_nav(direction, degree, self.r_power)
 
-            # elif self.is_busy and not self.is_running_rotation:
-            #     # print('in move')
-            #     #run forward
-            #     navigation.m_nav('power', 'forward', self.m_power)
-            #     #set complete
-            #     self.is_complete = True
+            elif self.is_busy and not self.is_running_rotation:
+                # print('in move')
+                #run forward
+                navigation.m_nav('power', 'forward', self.m_power)
+                #set complete
+                self.is_complete = True
             pass
         # cvcontroller.stop()
         print 'PreGate Finish'

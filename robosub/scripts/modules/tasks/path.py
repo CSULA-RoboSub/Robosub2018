@@ -107,22 +107,21 @@ class Path(Task):
                 except:
                     most_occur_coords = [0, 0, 0]
 
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height_ratio)
+                # self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height_ratio)
 
                 self.counter = Counter()
                 self.direction_list = []
 
-                print 'running {} task'.format(task_name)
-                print 'widthxheight: {}'.format(width_height_ratio)
-                print 'current count: {}'.format(count)
-                print 'coordinates: {}'.format(most_occur_coords)
-                print '--------------------------------------------'
-                print 'type: navigation cv 0, or task to cancel task'
+                # print 'running {} task'.format(task_name)
+                # print 'widthxheight: {}'.format(width_height_ratio)
+                # print 'current count: {}'.format(count)
+                # print 'coordinates: {}'.format(most_occur_coords)
+                # print '--------------------------------------------'
+                # print 'type: navigation cv 0, or task to cancel task'
 
         cvcontroller.stop()
         navigation.cancel_all_nav()
         navigation.m_nav('power', 'forward', self.m_power)
-        navigation.go_to_depth(6, self.h_power)
 
         self.mutex.release()
     

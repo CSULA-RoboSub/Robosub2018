@@ -54,7 +54,7 @@ class Dice(Task):
         ################ AUV MOBILITY VARIABLES ################
         self.r_power=100
         self.h_power=100
-        self.m_power=120
+        self.m_power=100
 
         ################ THREAD VARIABLES ################  
         self.thread_dice = None
@@ -93,6 +93,8 @@ class Dice(Task):
         self.local_cvcontroller = cvcontroller
         self.dice_maneuver.navigation = navigation
 
+        navigation.go_to_depth(9, self.h_power)
+        cvcontroller.change_dice(6)
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         count = 0
@@ -119,26 +121,29 @@ class Dice(Task):
                 except:
                     most_occur_coords = [0, 0]
 
+                
+                # self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+
                 # print 'running {} task'.format(task_name)
                 # print 'widthxheight: {}'.format(width_height)
                 # print 'current count: {}'.format(count)
                 # print 'coordinates: {}'.format(most_occur_coords)
                 # print '--------------------------------------------'
                 # print 'type: navigation cv 0, or task to cancel task'
-                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
                 
                 self.counter = Counter()
                 self.direction_list = []
             
             if self.dice_maneuver.is_1st_die_touched and not self.is_die_number_changed:
-                cvcontroller.change_dice(6)
+                cvcontroller.change_dice(5)
                 self.is_die_number_changed = True
                 self.dice_maneuver.reset_after_1st_die()
             # except:
             #     print 'dice detect error'
 
         cvcontroller.stop()
-
+        navigation.go_to_depth(5, self.h_power)
+        navigation.m_nav('power', 'forward', self.m_power)
 
         self.mutex.release()
     
@@ -166,13 +171,13 @@ class Dice(Task):
             return
 
         # if found:
-        if not self.dice_maneuver.is_rotated_to_center and shape:
-            if coordinates[0] == 0:
-                self.dice_maneuver.is_rotated_to_center = True
-            else:
-                self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
-        else:
-            self.die_phases[shape](navigation, coordinates, power, rotation, width_height)    
+        # if not self.dice_maneuver.is_rotated_to_center and shape:
+        #     if coordinates[0] == 0:
+        #         self.dice_maneuver.is_rotated_to_center = True
+        #     else:
+        #         self.dice_maneuver.rotate_to_center(navigation, coordinates, power, rotation)
+        # else:
+        self.die_phases[shape](navigation, coordinates, power, rotation, width_height)    
     
     # complete ##################################################################################
     def complete(self):

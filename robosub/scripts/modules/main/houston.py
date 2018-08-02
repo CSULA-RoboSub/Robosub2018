@@ -102,7 +102,8 @@ class Houston():
             self.pregate,
             self.gate, 
             self.path_1, 
-            self.dice
+            self.dice,
+            self.path_2
         ]
 
         self.gui_states = {

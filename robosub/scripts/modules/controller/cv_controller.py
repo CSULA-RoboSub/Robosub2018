@@ -22,7 +22,7 @@ try:
     gi.require_version("Tcam", "0.1")
     gi.require_version("Gst", "1.0")
 
-    from gi.repository import Tcam, Gst, GLib
+    from gi.repository import Tcam, Gst, GLib, GObject
 except:
     print '*******unable to import sub camera drivers*******'
 
@@ -201,11 +201,15 @@ class CVController():
     # opencv_camera_start ##################################################################################
     def opencv_camera_start(self, task_name):
         self.cap = None
-        # self.cap = cv2.VideoCapture(0)
+        # self.cap = cv2.VideoCapture(1)
         
+        # self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
+        # self.cap.set(cv2.CAP_PROP_EXPOSURE, 1000.0)
         #path
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
+        self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
         
         #dark gate
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
@@ -217,7 +221,7 @@ class CVController():
         #dice  
         # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_17h47m39s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h45m40s_output.avi')
-        self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-28-18/raw_dice_2018-7-28_15h38m38s_output.avi')
 
         
@@ -348,6 +352,13 @@ class CVController():
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")
 
+        for name in source.get_tcam_property_names():
+            temp = source.get_tcam_property(name)
+            print( name + " " + str(temp))
+
+        serial = self.camera_serials[camera_direction]
+        # source = Gst.ElementFactory.make("tcamsrc")
+
         # retrieve all available serial numbers
         serials = source.get_device_serials()
         if not serials:
@@ -361,17 +372,21 @@ class CVController():
         #     device_list.append(s)
         
         # serial = serials[0]
-        serial = self.camera_serials[camera_direction]
         # print serial
         if serial is not None:
             source.set_property("serial", serial)
+            # source.set_property('anme', 'DFK 22UC03')
 
+        # print source.get_by_name('tcamautoexposure')
+        # print source.get_by_name('tcamwhitebalance')
+        # print source.get_by_name('tcamautofocus')
         # Define the format of the video buffers that will get passed to opencv
         # TARGET_FORMAT = "video/x-raw,width=640,height=480,format=GRAY8"
         TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
 
         # Ask the user for the format that should be used for capturing
         fmt =  self.select_format(source.get_by_name("tcambin-source")) #----------------------- replace
+        # fmt =  self.select_format(source) #----------------------- replace
         
         # If the user selected a bayer format, we change it to BGRx so that the
         # tcambin will decode the bayer pattern to a color image
@@ -396,14 +411,28 @@ class CVController():
         output.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.set_property("emit-signals", True)
         self.pipeline[camera_direction] = Gst.Pipeline.new()
+        #video/x-raw,format=BGR,width=744,height=480,framerate=60/1
+        # parse_str = 'tcambin serial=' + serial + ' ! capsfilter caps="video/x-raw,format=BGRx" ! videoconvert ! videoscale ! queue max-size-buffers=2 ! appsink caps="'+ TARGET_FORMAT +'" emit-signals=true'
+        # print parse_str
+        # self.pipeline[camera_direction] = Gst.parse_launch(parse_str)
+
+        # auto_exposure = Gst.ElementFactory.make("tcamautoexposure")
+        # white_balance = Gst.ElementFactory.make("tcamwhitebalance")
+        # auto_focus = Gst.ElementFactory.make("tcamautofocus")
 
         # Add all elements
         self.pipeline[camera_direction].add(source)
+        # self.pipeline[camera_direction].add(auto_exposure)
+        # self.pipeline[camera_direction].add(auto_focus)
+        # self.pipeline[camera_direction].add(white_balance)
         self.pipeline[camera_direction].add(capsfilter)
         self.pipeline[camera_direction].add(queue)
         self.pipeline[camera_direction].add(convert)
         self.pipeline[camera_direction].add(scale)
         self.pipeline[camera_direction].add(output)
+        # output = self.pipeline[camera_direction].get_by_name("appsink")
+        # output.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
+        # output.set_property("emit-signals", True)
 
         # Link the elements
         source.link(capsfilter)
@@ -420,11 +449,30 @@ class CVController():
         self.display_input[camera_direction] = self.display_pipeline[camera_direction].get_by_name(src_name)
         self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.connect("new-sample", self.camera_callbacks[camera_direction])
-
+        
+        #source.get_by_name("tcambin-source")
+        # pip_source = self.pipeline[camera_direction].get_by_name("source")
+        # pip_source = self.pipeline[camera_direction].get_by_name("tcambin-source")
+        # pip_source = source
+        # PropertyName = 'Exposure Auto'
+        # value = False
+        # pip_source.set_tcam_property(PropertyName,GObject.Value(type(value),value))
+        
         self.display_buffers[camera_direction] = []
         self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING)  
 
         self.pipeline[camera_direction].set_state(Gst.State.PLAYING)
+
+        # pip_source = self.pipeline[camera_direction].get_by_name("source")
+        # pip_source = Gst.Bin.get_by_name(Gst.Bin(self.pipeline[camera_direction]), "source")
+        # PropertyName = 'Exposure Auto'
+        # value = False
+        # pip_source.set_tcam_property(PropertyName,GObject.Value(type(value),value))
+        
+        # for name in pip_source.get_tcam_property_names():
+        #     temp = pip_source.get_tcam_property(name)
+        #     print( name + " " + str(temp))
+
         print 'done setting up pipeline'
 
     # close_pipeline ##################################################################################
@@ -533,3 +581,8 @@ class CVController():
     # start_loop ##################################################################################
     def start_loop(self):
         self.loop.run()
+
+    def change_gate_target(self, is_center = None):
+        if is_center is None:
+            is_center = True
+        self.gatedetector.is_direction_center = is_center
