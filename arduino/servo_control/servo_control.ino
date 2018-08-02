@@ -23,13 +23,13 @@ void torpedo_cb(const robosub::Torpedo& msg) {
   //prime
   if(msg.state == 0){
     //left
-    if(torpedo_number == 0){
+    if(msg.torpedo_number == 0){
       tlc_setServo(TORPEDO_LEFT_SERVO_PIN, 0);
       Tlc.update();
       delay(300);
     }
     //right
-    else if(torpedo_number == 1){
+    else if(msg.torpedo_number == 1){
       tlc_setServo(TORPEDO_RIGHT_SERVO, 0);
       Tlc.update();
       delay(300);
@@ -39,13 +39,13 @@ void torpedo_cb(const robosub::Torpedo& msg) {
   //fire
   if(msg.state == 1){
     //left
-    if(torpedo_number == 0){
+    if(msg.torpedo_number == 0){
       tlc_setServo(TORPEDO_RIGHT_SERVO, 0);
       Tlc.update();
       delay(300);
     }
     //right
-    else if(torpedo_number == 1){
+    else if(msg.torpedo_number == 1){
       tlc_setServo(TORPEDO_RIGHT_SERVO, 50);
       Tlc.update();
       delay(300);
