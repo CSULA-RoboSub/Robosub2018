@@ -1,4 +1,12 @@
+import time
+
+from threading import Thread, Lock
+from collections import Counter
+from itertools import combinations
+
 from task import Task
+
+# from slots_maneuver import SlotsManeuver
 
 class Slots(Task):
     
@@ -6,8 +14,6 @@ class Slots(Task):
         """ To initialize Slots """
         super(Slots, self).__init__()
 
-        self.houston = Houston
-        
         self.detectslots = None
         self.coordinates = []
         self.is_found = False
@@ -17,6 +23,63 @@ class Slots(Task):
         
         self.not_found_timer = 0
         self.found_timer = 0
+
+        ################ INSTANCES ################
+        self.houston = Houston
+        # self.slot_maneuver = SlotManeuver()
+        self.detectslots = None
+
+        ################ THRESHOLD VARIABLES ################
+        self.phase_threshold = 100
+        # self.heading_verify_threshold = 100
+        self.under_threshold = 100
+        self.cant_find_threshold = 2000
+        self.rotated_to_center_verify_threshold = 20 
+        
+        ################ FLAG VARIABLES ################
+        self.is_found = False
+        self.stop_task = False
+        self.is_complete = False
+
+        ################ TIMER/COUNTER VARIABLES ################
+        self.not_found_timer = 0
+        self.found_timer = 0
+        self.forward_counter = 0
+        self.heading_verify_count = 0
+        self.last_time = 0
+        self.counter = Counter()
+        self.rotated_to_center_verify = 0 
+
+        ################ DICTIONARIES ###########################        
+        self.movement_to_square = {
+            'vertical': 'right',
+            'horizontal': 'backward'
+        }
+                                
+        # self.slots_phases = {
+        #     None: self.slots_maneuver.no_shape_found,
+        #     'vertical': self.slots_maneuver.vertical,
+        #     'horizontal': self.slots_maneuver.horizontal,
+        #     'square': self.slots_maneuver.square
+        # }
+
+        ################ CONSTANTS ###########################  
+
+        ################ AUV MOBILITY VARIABLES ################
+        self.depth_change = 1
+        self.rotation_angle = 5
+        self.is_heading_correct = False
+
+        self.direction_list = []
+        self.r_power=70
+        self.h_power=100
+        self.m_power=120   
+        self.found = False
+        # self.orientation_heading = None
+        
+        ################ THREAD VARIABLES ################    
+        self.thread_slots = None
+        self.mutex = Lock()
 
     def detect(self, frame):
         print('detect_dice')
@@ -35,11 +98,25 @@ class Slots(Task):
             self.is_gate_found = True
             self.task_num += 1
 
+    def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
+        self.local_cvcontroller = cvcontroller
+        cvcontroller.camera_direction = 'forward'
+        cvcontroller.start(task_name)
+        self.mutex.acquire()
+        count = 0
+        self.last_time = time.time()
+        while not self.stop_task and not self.complete():
+            print 'looping slots for testing'
+
+    def stop(self):
+        pass
+
+
     def navigate(self, navigation, found, coordinates, power, rotation):
         pass
     
     def complete(self):
-        pass
+        return False
 
     def bail_task(self):
         pass
@@ -50,13 +127,7 @@ class Slots(Task):
 
     def search(self):
         pass
-        
-    def start(self):
-        pass
-    
-    def stop(self):
-        pass
-        
+
     def run_detect_for_task(self):
         pass
 

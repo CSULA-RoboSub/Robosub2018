@@ -119,7 +119,7 @@ class Gate(Task):
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         # self.orientation_heading = navigation.waypoint.get_dvl_yaw()
         self.local_cvcontroller = cvcontroller
-        cvcontroller.camera_direction = 'forward'  
+        cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         self.mutex.acquire()
         count = 0
