@@ -97,15 +97,17 @@ class PreGate(Task):
             elif self.is_busy and not self.is_running_rotation:
                 # print('in move')
                 #run forward
-                navigation.m_nav('power', 'forward', self.m_power)
                 #set complete
                 self.is_complete = True
 
-                #last ditch
-                # navigation.m_nav('distance', 'forward', self.m_power, 15.5)
-                # time.sleep(7)
             pass
         # cvcontroller.stop()
+
+        navigation.m_nav('power', 'forward', self.m_power)
+
+        #last ditch
+        # navigation.m_nav('distance', 'forward', self.m_power, 15.5)
+        # time.sleep(7)
         print 'PreGate Finish'
         self.mutex.release()
     
