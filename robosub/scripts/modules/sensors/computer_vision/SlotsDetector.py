@@ -34,6 +34,7 @@ class SlotsDetector:
             return self.shapes[3] # square
 
     def detect(self, frame):
+        print 'testing slots detect'
         if frame is not None:
             height, width, ch = frame.shape
             center = (width / 2, height / 2)

@@ -24,7 +24,7 @@ def prime_torpedo(side):
     if side in SIDES:
         torpedo.state = PRIME_TORPEDO
         torpedo.torpedo_number = SIDES[side]
-        # pub(torpedo)
+        pub.publish(torpedo)
         print('prime %s torpedo' % side)
 
 def fire_torpedo(side):
@@ -36,5 +36,5 @@ def fire_torpedo(side):
     if side in SIDES:
         torpedo.state = FIRE_TORPEDO
         torpedo.torpedo_number = SIDES[side]
-        # pub(torpedo)
+        pub.publish(torpedo)
         print('fire %s torpedo' % side)
