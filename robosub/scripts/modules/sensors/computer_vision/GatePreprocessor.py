@@ -339,6 +339,10 @@ class GatePreprocessor:
 
         filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
 
+        X_df, y_df = create_dataset(filtered_contours) # not using y_df
+
+        contour_pairs = nearest_neighbors(X_df)
+
         boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
