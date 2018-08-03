@@ -5,7 +5,6 @@ import time
 import os
 from modules.main.auv import AUV  # Import auv
 import modules.main.status as status  # Import status logger
-import modules.main.config as config  # Import config
 
 
 class CLI(cmd.Cmd):
@@ -23,7 +22,7 @@ class CLI(cmd.Cmd):
             print(AUV.tasks)
             print('test')
         elif arg.lower() == 'reset':
-            AUV.reset_config_option('auv', 'tasks')
+            AUV.config.reset_option('auv', 'tasks')
         else:
             print(AUV.tasks)
 
@@ -64,35 +63,35 @@ class CLI(cmd.Cmd):
             return args
 
     # lower/upper color ###############################################################################################
-    # def do_lower(self, arg):
-    #     '\n[task] 0-255,0-255,0-255\
-    #      \nused to change lower of color filter'
+    def do_lower(self, arg):
+        '\n[task] 0-255,0-255,0-255\
+         \nused to change lower of color filter'
 
-    #     if not arg.lower() == '':
-    #         try:
-    #             arg1, arg2 = parse_color(arg)
-    #             AUV.houston.cvcontroller.set_lower_color(arg1, arg2)
-    #         except:
-    #             print('\nincorrect input.\
-    #                    \n[task] 0-255,0-255,0-255')
-    #     else:
-    #         print('\n[task] 0-255,0-255,0-255\
-    #                \nused to change lower of color filter')
+        if not arg.lower() == '':
+            try:
+                arg1, arg2 = parse_color(arg)
+                AUV.houston.cvcontroller.set_lower_color(arg1, arg2)
+            except:
+                print('\nincorrect input.\
+                       \n[task] 0-255,0-255,0-255')
+        else:
+            print('\n[task] 0-255,0-255,0-255\
+                   \nused to change lower of color filter')
 
-    # def do_upper(self, arg):
-    #     '\n[task] 0-255,0-255,0-255\
-    #      \nused to change upper of color filter'
+    def do_upper(self, arg):
+        '\n[task] 0-255,0-255,0-255\
+         \nused to change upper of color filter'
 
-    #     if not arg.lower() == '':
-    #         try:
-    #             arg1, arg2 = parse_color(arg)
-    #             AUV.houston.cvcontroller.set_upper_color(arg1, arg2)
-    #         except:
-    #             print('\nincorrect input.\
-    #                    \n[task] 0-255,0-255,0-255')
-    #     else:
-    #         print('\n[task] 0-255,0-255,0-255\
-    #                \nused to change lower of upper filter')
+        if not arg.lower() == '':
+            try:
+                arg1, arg2 = parse_color(arg)
+                AUV.houston.cvcontroller.set_upper_color(arg1, arg2)
+            except:
+                print('\nincorrect input.\
+                       \n[task] 0-255,0-255,0-255')
+        else:
+            print('\n[task] 0-255,0-255,0-255\
+                   \nused to change lower of upper filter')
 
     # navigation #######################################################################################################
     def do_navigation(self, arg):
@@ -216,6 +215,7 @@ class CLI(cmd.Cmd):
     # status logger ####################################################################################################
     def do_logging(self, arg):
         '\n[on/off] or [1/0] Turn on or off status logging\
+         \n[toggle] to toggle logging\
          \n[state] or no argument to print current state'
 
         if arg.lower() == 'on' or arg == '1':

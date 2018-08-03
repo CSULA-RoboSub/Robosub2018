@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-import modules.main.config as config # located in our project folder
 
 
 class Classifier:

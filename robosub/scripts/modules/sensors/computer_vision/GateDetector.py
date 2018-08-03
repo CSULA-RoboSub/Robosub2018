@@ -3,7 +3,6 @@ import time
 import GateClassifier as gc
 import GatePreprocessor as gp
 import cv2
-import modules.main.config as config
 
 class GateDetector:
 
@@ -80,5 +79,4 @@ class GateDetector:
             print('error no frame')
             return False, None, None, None
 
-    def read_config(self):
-        self.is_red_left = config.get_config('gate', 'is_red_left')
+

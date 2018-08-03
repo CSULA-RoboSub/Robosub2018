@@ -15,7 +15,7 @@ class DiceClassifier:
         self.positive_image_path = self.new_struct_path + 'data/dice/positive/*.jpg'
         self.negative_image_path = self.new_struct_path + 'data/dice/negative/*.jpg'
         self.task_model_config_name = "DiceSVMstd"
-        self.model_name = self.get_model_name('dice', 'model')  # TODO
+        self.model_name = self.get_model_name('cv', self.task_model_config_name)
         # will convert hog to same way gate is 
         self.minDim = 80
         self.blockSize = (16, 16)
@@ -32,7 +32,7 @@ class DiceClassifier:
         self.hog = self.get_hog()
         
         self.min_prob = .9 # adjust probability here
-        # self.set_model(self.model_name)
+        self.set_model(self.model_name)
 
 
     # returns the model file name as a string from henry's config file
@@ -53,6 +53,7 @@ class DiceClassifier:
             self.train_lsvm()
             joblib.dump(self.lsvm, self.model_path + task_model_name + ".pkl")
             print("\nStoring model to location: " + "\"" + self.model_path + "\"\n'")
+        
 
     '''note that the height and widths must be multiples of 8 in order to use a HOOG'''
     def get_hog(self):
@@ -123,10 +124,3 @@ class DiceClassifier:
             if (dice_class >= self.min_prob and dice_class > max_val):
                 classified_rois.append(box)
         return classified_rois
-
-    
-    def read_config(self):
-        # TODO
-        self.model_name = config.get_config('dice', 'model')
-        self.set_model(self.model_name)
-        self.min_prob = config.get_config('dice', 'min_prob')

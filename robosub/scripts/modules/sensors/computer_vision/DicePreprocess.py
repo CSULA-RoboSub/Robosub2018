@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import modules.main.config as config
 
 
 class DicePreprocessor:
@@ -81,10 +80,3 @@ class DicePreprocessor:
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
         return interest_regions
-
-    def read_config(self):
-        self.dots_lower = np.array(config.get_config('dice', 'dots_lower'), 'uint8')
-        self.upper_bgr = np.array(config.get_config('dice', 'dots_upper'), 'uint8')
-        self.min_cont_size = config.get_config('dice', 'min_cont_size')
-        self.max_cont_size = config.get_config('dice', 'max_cont_size')
-        self.roi_size = config.get_config('dice', 'roi_size')

@@ -727,15 +727,3 @@ class CVController():
         if is_center is None:
             is_center = True
         self.gatedetector.is_direction_center = is_center
-
-    def update_config(self):
-        self.gatedetector.read_config()
-        self.gatedetector.classifier.read_config()
-        self.gatedetector.preprocess.read_config()
-
-        self.roulettedetector.preprocess.read_config()
-        
-        self.pathdetector.preprocess.read_config()
-
-        self.dicedetector.classifier.read_config()
-        self.dicedetector.preprocessor.read_config()

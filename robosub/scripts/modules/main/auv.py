@@ -24,13 +24,13 @@ class AUV():
         self.motor_state = None
         self.tasks = None
 
-        self.navigation = Navigation()  # initialize Navigation() class
-        self.houston = Houston(self.navigation, self.tasks)  # initialize Houston() class
-
-        self.update_config()  # read parameters from the config.ini file
+        # self.config = Config()  # initialize Config() class
+        self.read_config()  # read parameters from the config.ini file
 
         self.motor = Motor(self.motor_state)  # initialize Motor() class
+        self.navigation = Navigation()  # initialize Navigation() class
         self.keyboard = Keyboard(self.navigation)  # initialize Keyboard() class
+        self.houston = Houston(self.navigation, self.tasks)  # initialize Houston() class
 
     def kill_switch_callback(self, data):
         if data.data == 1:
@@ -38,45 +38,31 @@ class AUV():
         if data.data == 0:
             self.stop()
 
-    # CONFIG ##############################################################################################
-    def update_config(self):
-        """ Loads the updated parameters from config"""
-
-        self.motor_state = config.get_config('auv', 'motor_state')  # read motor state from config
-        self.tasks = config.get_config('auv', 'tasks')  # read tasks from config
-        self.houston.cvcontroller.update_config()
-
-    # def update_config(self):
-    #     """ Loads the updated parameters from config"""
-
-    #     self.read_config()
-    #     self.houston.cvcontroller.set_model()  # read and set all models from config
-
-    def reset_config_option(self, section=None, option=None):
-        """ Resets the config to default configurations given selection and option"""
-
-        config.reset_option(section, option)
-        # TODO make better
-
     def open_config(self):
         """ Opens the config file and updates the parameters"""
 
         os.system('gedit config/config.ini')
         self.update_config()
 
-    # def update_color(self):
-    #     """ Update RGB/HSV for computer vision from config"""
+    def update_config(self):
+        """ Loads the updated parameters from config"""
 
-    #     lower_color = config.get_config('cv', 'lower_color')
-    #     upper_color = config.get_config('cv', 'upper_color')
-    #     self.houston.cvcontroller.set_lower_color(lower_color[0], lower_color[1:])
-    #     self.houston.cvcontroller.set_upper_color(upper_color[0], upper_color[1:])
+        self.read_config()
+        self.houston.cvcontroller.set_model()  # read and set all models from config
 
-    # def read_config(self):
-    #     """ Reads from config/config.ini"""
+    def update_color(self):
+        """ Update RGB/HSV for computer vision from config"""
 
-    #     self.motor_state = config.get_config('auv', 'motor_state')  # read motor state from config
-    #     self.tasks = config.get_config('auv', 'tasks')  # read tasks from config
+        lower_color = config.get_config('cv', 'lower_color')
+        upper_color = config.get_config('cv', 'upper_color')
+        self.houston.cvcontroller.set_lower_color(lower_color[0], lower_color[1:])
+        self.houston.cvcontroller.set_upper_color(upper_color[0], upper_color[1:])
+
+    def read_config(self):
+        """ Reads from config/config.ini"""
+
+        self.motor_state = config.get_config('auv', 'motor_state')  # read motor state from config
+        self.tasks = config.get_config('auv', 'tasks')  # read tasks from config
 
     def keyboard_nav(self):
         """Navigate the robosub using keyboard controls"""

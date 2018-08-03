@@ -16,7 +16,7 @@ class GateClassifier:
         self.negative_image_path = self.new_struct_path + 'data/gate/negative/*.jpg'
         #134sadfasdafdadfasdfadsfasdfasdfasdf  <- WHAT IS THIS? jaklsdjfafvaej
         self.task_model_config_name = "gate_model" # should be able to rename soon
-        self.model_name = self.get_model_name('gate', 'model') # helper for config TODO
+        self.model_name = self.get_model_name('cv', self.task_model_config_name) # helper for config
         
         self.min_dim = 80
         self.block_size = (16, 16)
@@ -33,11 +33,12 @@ class GateClassifier:
         )
    
         self.min_prob = .6  # set probability for MODELdown here for convenience
-        # self.set_model(self.model_name)
+        self.set_model(self.model_name)
 
     # returns the model file name as a string from henrys config file - conig file has prenamed
     def get_model_name(self, section, option):
         return config.get_config(section, option)
+
         
     def set_model(self, task_model_name=None):
         if task_model_name is None: # so later on we can rename? or something have to ask henry
@@ -120,9 +121,3 @@ class GateClassifier:
             if (gate_class > self.min_prob and gate_class > max_val):
                 gate = box
         return gate
-
-    def read_config(self):
-        # TODO
-        self.model_name = config.get_config('gate', 'model')
-        self.set_model(self.model_name)
-        self.min_prob = config.get_config('gate', 'min_prob')

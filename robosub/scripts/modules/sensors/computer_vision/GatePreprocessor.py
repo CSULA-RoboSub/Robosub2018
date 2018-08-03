@@ -2,7 +2,6 @@ import utils
 import cv2
 import numpy as np
 from modules.sensors.computer_vision.utilities.filters import *
-import modules.main.config as config
 
 class GatePreprocessor:
 
@@ -303,13 +302,3 @@ class GatePreprocessor:
 
         return interest_regions
 
-    def read_config(self):
-        self.lower_bgr = np.array(config.get_config('gate', 'lower_bgr'), 'uint8')
-        self.upper_bgr = np.array(config.get_config('gate', 'upper_bgr'), 'uint8')
-        self.min_cont_size = config.get_config('gate', 'min_cont_size')
-        self.max_cont_size = config.get_config('gate', 'max_cont_size')
-        self.roi_size = config.get_config('gate', 'roi_size')
-        try:
-            self.kernel = eval(config.get_config('gate', 'kernel'))
-        except NameError:
-            print('\nNOT VALID KERNEL IN CONFIG')
