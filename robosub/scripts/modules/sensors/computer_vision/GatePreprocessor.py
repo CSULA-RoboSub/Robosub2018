@@ -1,6 +1,7 @@
 import utils
 import cv2
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 from modules.sensors.computer_vision.utilities.filters import *
 
 class GatePreprocessor:
@@ -207,6 +208,31 @@ class GatePreprocessor:
         green_blue = green_gray - blue_gray
 
         return green_blue
+
+
+    def create_dataset(contours):
+        X = []
+        y = []
+
+        for i, cont in enumerate(contours):
+            M = cv2.moments(cont)
+            #cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
+            cy = int(M["m01"] / M["m00"]) # add 1 to avoid division by zero
+            perimeter = cv2.arcLength(cont, True)
+            X.append([perimeter, cy])
+            y.append([i])
+
+        return (pd.DataFrame(X), pd.Series(y) )
+
+
+    def nearest_neighbors(dataset, distance=False):
+        if len(dataset) < 2:
+            return None
+        else:
+            nn = NearestNeighbors(n_neighbors=2)
+            nn.fit(dataset)
+        return nn.kneighbors(dataset, return_distance=distance)
+
 
     def filter_contours(self, frame_contours):
         new_cont_list = []
