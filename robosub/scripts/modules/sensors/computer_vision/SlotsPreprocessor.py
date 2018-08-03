@@ -14,8 +14,8 @@ class SlotsPreprocessor:
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         ''' BGR color values '''
-        self.lower_bgr = np.array([175, 0, 0], 'uint8')
-        self.upper_bgr = np.array([255, 255, 255], 'uint8')
+        self.lower_bgr = np.array([252, 200, 200], 'uint8')
+        self.upper_bgr = np.array([253, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one
