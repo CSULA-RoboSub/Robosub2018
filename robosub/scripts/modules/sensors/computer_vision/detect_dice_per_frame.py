@@ -7,11 +7,15 @@ import numpy as np
 class DetectDicePerFrame:
     def __init__(self):
         self.sensitivity = 10
-        self.lower = np.array([0,0,240])
+        self.lower = np.array([0,0,220])
         self.upper = np.array([255,self.sensitivity,255])
 
         self.min_cont_size = 100
         self.max_cont_size = 1000
+
+    def dilate(self, img, iterations=1):
+        kernel = np.ones((5,5), np.uint8)
+        return cv2.dilate(img, kernel, iterations=iterations)
 
     def preprocess(self, img):
         die = 5
@@ -23,7 +27,9 @@ class DetectDicePerFrame:
         hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         mask = cv2.inRange(hsv_frame, self.lower, self.upper)
         color_filter_frame = cv2.bitwise_and(img, img, mask=mask)
-        grayscale_frame = cv2.cvtColor(color_filter_frame, cv2.COLOR_BGR2GRAY) # to grayscale
+        grayscale_frame = cv2.cvtColor(color_filter_frame, cv2.COLOR_BGR2GRAY) 
+        dilated_frame = self.dilate(grayscale_frame, iterations=1)
+        # to grayscale
         return grayscale_frame, mask
 
     def filter_contours(self, frame_contours):
@@ -83,16 +89,24 @@ class DetectDicePerFrame:
             return (0, 0, 0, 0)
 
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
-        return max_box
+        pips = self.find_pips(self.get_crop_from_bounding_box(img, max_box))
+        if len(pips) > 3:
+            return max_box
+        return (0,0,0,0)
 
     def get_bounding_box_with_second_most_pips(self, img):
         boxes = self.get_bounding_boxes(img)
-        if not boxes or boxes is None:
-            return (0, 0, 0, 0)
+        if self.find_pips(self.get_crop_from_bounding_box(img, max_box)) > 3:
+            return max_box
+        return (0,0,0,0)
 
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         boxes.remove(max_box)
         if not boxes:
             return 0,0,0,0
+
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
-        return max_box
+        pips = self.find_pips(self.get_crop_from_bounding_box(img, max_box))
+        if len(pips) > 3:
+            return max_box
+        return (0,0,0,0)
