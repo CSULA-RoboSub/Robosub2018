@@ -363,6 +363,22 @@ class GatePreprocessor:
     #     return interest_regions
     #     '''
 
+    def find_pips(self, img):
+    # Set up the detector with default parameters.
+        detector = cv2.SimpleBlobDetector_create()
+        # Detect blobs.
+        keypoints = detector.detect(img)
+
+        return keypoints
+
+    def get_crop_from_bounding_box(self, img, box):
+        x, y, w, h = box
+        return img[y:y+h, x:x+w]
+
+    def find_number_of_pips(self, box, img):
+        crop = self.get_crop_from_bounding_box(img, box)
+        return len(self.find_pips(crop))
+
     # new BGR color filter - only finds bars right now
     def get_interest_regions(self, frame):
 
@@ -388,13 +404,13 @@ class GatePreprocessor:
         boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
 
         # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and self.find_number_of_pips(b)>0]
 
         return interest_regions
 
     def detect_whole_gate(self, interest_regions, shape):
         ret = []
-        
+
         if interest_regions:
 
             area_max = 0
@@ -487,7 +503,7 @@ class GatePreprocessor:
         if float(w)/float(h) < ratio_lower:
             return self.shapes[1] # vertical
         #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
-        elif float(w)/float(h) > ratio_upper:    
+        elif float(w)/float(h) > ratio_upper:
             return self.shapes[2] # horizontal
         else:
             return self.shapes[3] # square
