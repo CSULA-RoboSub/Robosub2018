@@ -31,6 +31,12 @@ except:
 
 class CVController():
     def __init__(self):
+        ###########################################
+        # DEBUG MODE SHOW OUTPUT
+        self.is_debug = True
+        ###########################################
+        # CAMERA MODE
+        self.is_camera_640x480 = True
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
@@ -91,7 +97,7 @@ class CVController():
             'down' : '/dev/v4l/by-id/usb-The_Imaging_Source_Europe_GmbH_DFK_22AUC03_35710219-video-index0'
         }
 
-        self.exposure = 6
+        self.exposure = 10
         #############################
         self.sample = {
             'forward' : None,
@@ -124,9 +130,12 @@ class CVController():
         self.frame = None
         self.thread = None
         self.is_stop = False
+
+
+        self.is_camera = False
         try:
-            # self.loop = GLib.MainLoop()
-            self.loop = None
+            self.loop = GLib.MainLoop()
+            # self.loop = None
             self.sub_camera_found = 0
             print '*******initialize Glib.MainLoop() successful*******'
         except:
@@ -190,8 +199,10 @@ class CVController():
         now = datetime.datetime.now()
         timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
         if self.sub_camera_found == 1:
-            res = (744, 480)
-            # res = (640, 480)
+            if not self.is_camera_640x480:
+                res = (744, 480)
+            else:
+                res = (640, 480)
         else:
             res = (744, 480)
             # res = (640, 480)
@@ -217,33 +228,53 @@ class CVController():
     def opencv_camera_start(self, task_name):
 
         self.cap = None
-        self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
-        self.cap.set(cv2.CAP_PROP_FPS, 60)
-        self.start_camera_async()
+        # self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
+        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
+        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+        # self.cap.set(cv2.CAP_PROP_FPS, 60)
+
+        #--------------------------------------------
         # self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
         # self.cap.set(cv2.CAP_PROP_EXPOSURE, 1000.0)
-        #path
-        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
         
-        #dark gate
-        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
+        if self.is_camera:
+            self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+            self.cap.set(cv2.CAP_PROP_FPS, 60)
+            self.start_camera_async()
+        else:
+            #path
+            # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-2-18/a2/raw_path_follow_2018-8-2_9h49m1s_output.avi')
+            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
+            
 
-        #bright gate
-        # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
+            #dark gate
+            # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
 
-        #dice  
-        # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_17h47m39s_output.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h45m40s_output.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
-        # self.cap = cv2.VideoCapture('video_output/7-28-18/raw_dice_2018-7-28_15h38m38s_output.avi')
+            #bright gate
+            # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
 
-        
+            #dice  
+            # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_17h47m39s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h45m40s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/7-28-18/raw_dice_2018-7-28_15h38m38s_output.avi')
+
+            #green
+            # self.cap = cv2.VideoCapture('video_output/8-2-18/b2/raw_gate_2018-8-2_15h37m36s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-2-18/b2/raw_gate_2018-8-2_15h43m15s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-2-18/b2/raw_path_follow_2018-8-2_15h38m59s_output.avi')
+            
+            # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
+            # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+            # self.cap.set(cv2.CAP_PROP_FPS, 1)
+
         self.setup_video_output(task_name)
         self.setup_output_pipline(self.camera_direction)
         print 'laptop/default camera found'
@@ -302,6 +333,7 @@ class CVController():
 
             # Give the array the correct dimensions of the video image
             frame = img_array.reshape((height, width, 3))
+            # self.auto_exposure(camera_direction, frame)
             # print(type(frame))
 
             # self.outraw.write(frame)
@@ -309,13 +341,15 @@ class CVController():
             # self.outprocessed.write(frame)
 
             # self.last_reading.append(coordinates)
-            self.outraw.write(frame)
+            if self.is_debug:
+                self.outraw.write(frame)
             # self.current_raw_frame = copy.copy(frame)
             found, coordinates, shape, width_height = self.cv_task.detect(frame)
-            self.outprocessed.write(frame)
+            
             # self.current_processed_frame = copy.copy(frame)
-
-            self.show_img(camera_direction, frame)
+            if self.is_debug:
+                self.outprocessed.write(frame)
+                self.show_img(camera_direction, frame)
 
             # except KeyboardInterrupt:
             #     self.state.is_detect_done = True
@@ -330,6 +364,12 @@ class CVController():
     def opencv_camera_detect(self, task):
 
         self.cv_task = self.tasks[task]
+
+        if not self.is_camera:
+            check, frame = self.cap.read()
+            if check:
+                self.frame = frame
+
         frame = copy.copy(self.frame)
         if frame is not None:
             self.outraw.write(frame)
@@ -337,16 +377,14 @@ class CVController():
             found, directions, shape, width_height = self.cv_task.detect(frame)
             #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
             # print frame.shape
-            # cv2.imshow('task', frame)
 
-            self.show_img(self.camera_direction, frame)
+            if self.is_debug:
+                self.show_img(self.camera_direction, frame)
 
             self.outprocessed.write(frame)
             # self.current_processed_frame = copy.copy(frame)
             return found, directions, shape, width_height
         return False, None, None, None
-
-
     
     def start_camera_async(self):            
         self.thread = Thread(target=self.run_camera)
@@ -356,8 +394,11 @@ class CVController():
         while not self.is_stop:
             check, frame = self.cap.read()
             if check:
+                # self.frame = self.white_balance(frame)
+                # cv2.balanceWhite(frame, self,frame, cv2.WHITE_BALANCE_SIMPLE)
                 self.frame = frame
-                self.auto_exposure(self.camera_direction, self.frame)
+                if self.is_camera:
+                    self.auto_exposure(self.camera_direction, balanced_frame)
 
     # detect ##################################################################################
     def detect(self, task):
@@ -380,6 +421,9 @@ class CVController():
 
     # setup_pipeline ##################################################################################
     def setup_output_pipline(self, camera_direction):
+        if not self.is_debug:
+            return
+
         Gst.init(sys.argv)  # init gstreamer
 
         TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
@@ -438,8 +482,10 @@ class CVController():
         # print source.get_by_name('tcamwhitebalance')
         # print source.get_by_name('tcamautofocus')
         # Define the format of the video buffers that will get passed to opencv
-        TARGET_FORMAT = "video/x-raw,width=640,height=480,format=BGR"
-        # TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
+        if self.is_camera_640x480:
+            TARGET_FORMAT = "video/x-raw,width=640,height=480,format=BGR"
+        else:
+            TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
 
         # Ask the user for the format that should be used for capturing
         fmt =  self.select_format(source.get_by_name("tcambin-source")) #----------------------- replace
@@ -468,9 +514,9 @@ class CVController():
         output.set_property("emit-signals", True)
 
         # tcamautoexposure auto-exposure=true exposure-max=300000
-
-        # auto_exposure = Gst.ElementFactory.make("tcamautoexposure")
-        # auto_exposure.set_property('auto-exposure', 1)
+        if self.is_camera_640x480:
+            auto_exposure = Gst.ElementFactory.make("tcamautoexposure")
+            auto_exposure.set_property('auto-exposure', 1)
         # # auto_exposure.set_property('Gain Max', 1.1)
         # # auto_exposure.set_property('Exposure Max', 1)
         # # auto_exposure.set_property('Brightness Reference', 64)
@@ -496,8 +542,8 @@ class CVController():
 
         # Add all elements
         self.pipeline[camera_direction].add(source)
-
-        # self.pipeline[camera_direction].add(auto_exposure)
+        if self.is_camera_640x480:
+            self.pipeline[camera_direction].add(auto_exposure)
         # self.pipeline[camera_direction].add(auto_focus)
         # self.pipeline[camera_direction].add(white_balance)
 
@@ -517,7 +563,8 @@ class CVController():
         queue.link(convert)
         convert.link(scale)
         scale.link(output)
-        # output.link(auto_exposure)
+        if self.is_camera_640x480:
+            output.link(auto_exposure)
         # auto_exposure.link(auto_focus)
         # output.link(auto_exposure)
         
@@ -525,23 +572,30 @@ class CVController():
         # tends to hang in threaded environments. So we create a small display
         # pipeline which we could use to display the opencv buffers.
         src_name = "cam_" + camera_direction
-        self.display_pipeline[camera_direction] = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
-        self.display_input[camera_direction] = self.display_pipeline[camera_direction].get_by_name(src_name)
-        self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
-        output.connect("new-sample", self.camera_callbacks[camera_direction])
-        
+
+        if self.is_debug:
+            self.display_pipeline[camera_direction] = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
+            self.display_input[camera_direction] = self.display_pipeline[camera_direction].get_by_name(src_name)
+            self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
+            self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING) 
+
+        self.display_buffers[camera_direction] = []
+
         #source.get_by_name("tcambin-source")
         # pip_source = self.pipeline[camera_direction].get_by_name("source")
         # pip_source = self.pipeline[camera_direction].get_by_name("tcambin-source")
         # pip_source = source
         # PropertyName = 'Exposure Auto'
         # value = False
-        # pip_source.set_tcam_property(PropertyName,GObject.Value(type(value),value))
-        
-        self.display_buffers[camera_direction] = []
-        self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING)  
+        # pip_source.set_tcam_property(PropertyName,GObject.Value(type(value),value)) 
 
+        output.connect("new-sample", self.camera_callbacks[camera_direction])
         self.pipeline[camera_direction].set_state(Gst.State.PLAYING)
+        
+        # self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
+        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
+        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+        # self.cap.set(cv2.CAP_PROP_FPS, 60)
         # self.pipeline[camera_direction].set_state(Gst.State.NULL)
 
         # pip_source = self.pipeline[camera_direction].get_by_name("source")
@@ -601,44 +655,50 @@ class CVController():
     # callback ##################################################################################
     def camera_forward_callback(self, sink):
         # print("in forward callback")
-        sample = sink.emit("pull-sample")
-        
-        buf = sample.get_buffer()
+        if not self.is_camera_640x480:
+            self.sample['forward'] = sink.emit("pull-sample")
+        else:
+            sample = sink.emit("pull-sample")
 
-        caps = sample.get_caps()
-        width = caps[0].get_value("width")
-        height = caps[0].get_value("height")
-        # try:
-        res, mapinfo = buf.map(Gst.MapFlags.READ)
+            buf = sample.get_buffer()
 
-        # Create a numpy array from the data
-        img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+            caps = sample.get_caps()
+            width = caps[0].get_value("width")
+            height = caps[0].get_value("height")
+            # try:
+            res, mapinfo = buf.map(Gst.MapFlags.READ)
 
-        # Give the array the correct dimensions of the video image
-        frame = img_array.reshape((height, width, 3))
-        self.auto_exposure('forward', frame)
-        self.sample['forward'] = sample
+            # Create a numpy array from the data
+            img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+
+            # Give the array the correct dimensions of the video image
+            frame = img_array.reshape((height, width, 3))
+            self.auto_exposure('forward', frame)
+            self.sample['forward'] = sample
         return Gst.FlowReturn.OK
 
     def camera_down_callback(self, sink):
         # print("in down callback")
-        sample = sink.emit("pull-sample")
-        
-        buf = sample.get_buffer()
+        if not self.is_camera_640x480:
+            self.sample['down'] = sink.emit("pull-sample")
+        else:
+            sample = sink.emit("pull-sample")
+            
+            buf = sample.get_buffer()
 
-        caps = sample.get_caps()
-        width = caps[0].get_value("width")
-        height = caps[0].get_value("height")
-        # try:
-        res, mapinfo = buf.map(Gst.MapFlags.READ)
+            caps = sample.get_caps()
+            width = caps[0].get_value("width")
+            height = caps[0].get_value("height")
+            # try:
+            res, mapinfo = buf.map(Gst.MapFlags.READ)
 
-        # Create a numpy array from the data
-        img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+            # Create a numpy array from the data
+            img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
 
-        # Give the array the correct dimensions of the video image
-        frame = img_array.reshape((height, width, 3))
-        self.auto_exposure('down', frame)
-        self.sample['down'] = sample
+            # Give the array the correct dimensions of the video image
+            frame = img_array.reshape((height, width, 3))
+            self.auto_exposure('down', frame)
+            self.sample['down'] = sample
         return Gst.FlowReturn.OK
 
     # list_formats ##################################################################################
@@ -667,8 +727,10 @@ class CVController():
         Returns: Gst.Structure of format
         """
         formats = self.list_formats(source)
-        # fmt = formats[3]
-        fmt = formats[4]
+        if not self.is_camera_640x480:
+            fmt = formats[3]
+        else:
+            fmt = formats[4]
         print(fmt)
         frame_rates = self.get_frame_rate_list(fmt)
         rate = frame_rates[1]
@@ -712,12 +774,12 @@ class CVController():
         # exposure is a variable that is initialized to a value (usually around 40) and changes depending on brightness
         if brightness < 85:
             self.exposure = self.exposure + 1
-        elif brightness > 169.97:
+        elif brightness > 170.0:
             self.exposure = self.exposure - 1
         # self.exposure = 6
 
         os.system('v4l2-ctl -d %s -c exposure_absolute=%s' %(self.camera_ids[camera_direction], str(self.exposure)))
-
+        # self.cap.set(cv2.CAP_PROP_EXPOSURE, self.exposure)
     # def set_camera_auto_exposure_manual(self, camera_direction):
     #     #1 is manual exposure 3 is auto
     #     os.system('v4l2-ctl -d %s -c exposure_auto=1' %(self.camera_ids[camera_direction]))
@@ -727,3 +789,22 @@ class CVController():
         if is_center is None:
             is_center = True
         self.gatedetector.is_direction_center = is_center
+
+    def white_balance(self, img):
+        # result = cv.cvtColor(img, cv.COLOR_BGR2LAB)
+        img_int16 = img.astype(np.int16)
+        avg_g = np.average(img_int16[:, :, 1])
+        avg_b = np.average(img_int16[:, :, 2])
+        img_int16[:, :, 1] = img_int16[:, :, 1] - avg_g
+        # img_int16[:, :, 1] = img_int16[:, :, 1] - img_int16[:, :, 1].min()
+        # img[:, :, 1] = img[:, :, 1]/2
+        img_int16[:, :, 2] = img_int16[:, :, 2] - avg_b
+        # img[:, :, 2] = img[:, :, 2] - img[:, :, 2].min()
+        # img[:, :, 2] = img[:, :, 2]/1.5
+        # print img_int16[img_int16 < 0]  
+        img_int16[img_int16 < 0] = 0
+        # result = cv.cvtColor(result, cv.COLOR_LAB2BGR)
+
+        # avg_b = np.average(img[:, :, 0])
+        # img[:, :, 0] = img[:, :, 0] - avg_b
+        return img_int16.astype(np.uint8)

@@ -95,7 +95,7 @@ class Navigation():
         self.is_busy_waypoint = False
         self.w_distance_m = 0
         self.w_power_m = 140
-        self.r_power = 90
+        self.r_power = 85
         self.h_power = 100
         self.m_power = 140
         self.waypoint_state = 0
@@ -116,6 +116,7 @@ class Navigation():
 
         #var for saved heading
         self.saved_heading = 0
+        self.saved_heading_path1 = None
     def set_h_nav(self, hState, depth, hPower):
         """
         hState -- 'down': 0, 'staying': 1, 'up': 2

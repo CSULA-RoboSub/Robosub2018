@@ -64,7 +64,7 @@ class GatePreprocessor:
         #self.upper_bgr = np.array([200, 255, 255], 'uint8')
 
         self.lower_bgr = np.array([130, 150, 210], 'uint8')
-        self.upper_bgr = np.array([200, 255, 255], 'uint8')
+        self.upper_bgr = np.array([240, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one

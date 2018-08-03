@@ -121,6 +121,14 @@ class Path(Task):
 
         cvcontroller.stop()
         navigation.cancel_all_nav()
+        navigation.go_to_depth(9, self.h_power)
+        time.sleep(4)
+
+        #save waypoint for dice finish
+        navigation.clear_waypoints()
+        navigation.enqueue_current_waypoint()
+        navigation.saved_heading_path1 = navigation.waypoint.heading
+
         navigation.m_nav('power', 'forward', self.m_power)
 
         self.mutex.release()

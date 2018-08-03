@@ -52,7 +52,7 @@ class Dice(Task):
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power=100
+        self.r_power=85
         self.h_power=100
         self.m_power=100
 
@@ -93,7 +93,6 @@ class Dice(Task):
         self.local_cvcontroller = cvcontroller
         self.dice_maneuver.navigation = navigation
 
-        navigation.go_to_depth(9, self.h_power)
         cvcontroller.change_dice(6)
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
@@ -142,7 +141,12 @@ class Dice(Task):
             #     print 'dice detect error'
 
         cvcontroller.stop()
-        navigation.go_to_depth(5, self.h_power)
+        navigation.run_queue_waypoints()
+        time.sleep(2)
+        
+        direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading_path1)
+        navigation.cancel_and_r_nav(direction, degree, self.r_power)
+        time.sleep(5)
         navigation.m_nav('power', 'forward', self.m_power)
 
         self.mutex.release()
