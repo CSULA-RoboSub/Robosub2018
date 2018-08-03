@@ -1,15 +1,15 @@
 import utils
 import time
-import PathClassifier as pc
-import PathPreprocessor as pp
+# import GateClassifier as gc
+import PathFollowPreprocessor as pp
 import cv2
 import math
 
 class PathFollowDetector():
 
     def __init__(self):
-        self.classifier = pc.PathClassifier()
-        self.preprocess = pp.PathPreprocessor()
+        # self.classifier = gc.GateClassifier()
+        self.preprocess = pp.PathFollowPreprocessor()
         self.found = False
         self.directions = [0,0,0]
         self.isTaskComplete = False
@@ -45,23 +45,28 @@ class PathFollowDetector():
 
             if regions_of_interest:
                 try:
+                    ratio_filtered = [ [i for i in x if i>0] for x in regions_of_interest ]
+                    
                     max_cont = max(contours, key=lambda x: cv2.contourArea(x))
                     max_cont_area = cv2.contourArea(max_cont)
                     path = cv2.boundingRect(max_cont)
+                    # max_area = cv2.boundingRect(max_cont)
+                    # path = self.classifier.classify(frame, [max_area])
                     # path = utils.get_max_area(regions_of_interest)
-                    x, y, w, h = path
-                    split1 = frame[y : y + h/2, x : x+w]
-                    split2 = frame[y+h/2 : y+h, x : x+w]
+                    if path is not None:
+                        x, y, w, h = path
+                        split1 = frame[y : y + h/2, x : x+w]
+                        split2 = frame[y+h/2 : y+h, x : x+w]
 
-                    split1_rois, _ = self.preprocess.get_interest_regions(split1)
-                    split2_rois, _ = self.preprocess.get_interest_regions(split2)
+                        split1_rois, _ = self.preprocess.get_interest_regions(split1)
+                        split2_rois, _ = self.preprocess.get_interest_regions(split2)
 
-                    split1_path = utils.get_max_area(split1_rois)
-                    split2_path = utils.get_max_area(split2_rois)
+                        split1_path = utils.get_max_area(split1_rois)
+                        split2_path = utils.get_max_area(split2_rois)
 
-                    rotation_direction = self.get_rotation_direction(split1_path, split2_path)
+                        rotation_direction = self.get_rotation_direction(split1_path, split2_path)
 
-                    ratio = max_cont_area / (w*h)
+                        ratio = max_cont_area / (w*h)
                     # print(max_cont)
                     # print(path)
                     # print(ratio)

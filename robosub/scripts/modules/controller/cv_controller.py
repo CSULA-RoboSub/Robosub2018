@@ -2,6 +2,7 @@ import rospy
 import math
 import cv2
 import sys
+import os
 import time
 import gi
 import threading
@@ -17,6 +18,7 @@ from modules.sensors.computer_vision import DiceDetector
 from modules.sensors.computer_vision import PathDetector
 from modules.sensors.computer_vision import PathFollowDetector
 from modules.sensors.computer_vision import RouletteDetector
+from modules.sensors.computer_vision import SlotsDetector
 
 try:
     gi.require_version("Tcam", "0.1")
@@ -37,7 +39,7 @@ class CVController():
         self.dicedetector = DiceDetector.DiceDetector()
         # self.chipdetector = ChipDetector.ChipDetector()
         self.roulettedetector = RouletteDetector.RouletteDetector()
-        # self.slotsdetector = SlotsDetector.SlotsDetector()
+        self.slotsdetector = SlotsDetector.SlotsDetector()
         # self.pingerdetector = PingerDetector.PingerDetector()
         # self.cashindetector = CashInDetector.CashInDetector()
 
@@ -54,10 +56,11 @@ class CVController():
             'path': self.pathdetector,
             'path_follow': self.pathfollowdetector,
             'dice': self.dicedetector,
+            'slots': self.slotsdetector,
             'roulette': self.roulettedetector
         }
             # 'chip': self.chipdetector,
-            # 'slots': self.slotsdetector,
+
             # 'pinger_b': self.pingerdetector,
             # 'pinger_a': self.pingerdetector,
             # 'cash_in': self.cashindetector
@@ -83,6 +86,12 @@ class CVController():
             'forward' : '07714031',
             'down' : '35710219'
         }
+        self.camera_ids = {
+            'forward' : '/dev/v4l/by-id/usb-The_Imaging_Source_Europe_GmbH_DFK_22AUC03_07714031-video-index0',
+            'down' : '/dev/v4l/by-id/usb-The_Imaging_Source_Europe_GmbH_DFK_22AUC03_35710219-video-index0'
+        }
+
+        self.exposure = 6
         #############################
         self.sample = {
             'forward' : None,
@@ -112,11 +121,13 @@ class CVController():
         self.time_delay = 1.0
         self.camera_direction = 'forward'
         self.cap = None
-
+        self.frame = None
+        self.thread = None
+        self.is_stop = False
         try:
-            self.loop = GLib.MainLoop()
-            self.thread = None
-            self.sub_camera_found = 1
+            # self.loop = GLib.MainLoop()
+            self.loop = None
+            self.sub_camera_found = 0
             print '*******initialize Glib.MainLoop() successful*******'
         except:
             self.sub_camera_found = 0
@@ -124,6 +135,7 @@ class CVController():
 
     # start ##################################################################################
     def start(self, task_name):
+        self.is_stop = False
         if self.sub_camera_found == 1:
             self.camera_start_dictionary[self.sub_camera_found](task_name)
         #do not elif we want to check the 2nd one if first fails aswell
@@ -134,6 +146,7 @@ class CVController():
 
     # stop ##################################################################################
     def stop(self):
+        self.is_stop = True
         self.outraw.release()
         self.outprocessed.release()
         self.close_pipeline()
@@ -141,7 +154,7 @@ class CVController():
             self.cap.release()
             self.cap = None
             print 'laptop/default camera released'
-        #cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
     # set_lower_color ##################################################################################
@@ -178,8 +191,10 @@ class CVController():
         timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
         if self.sub_camera_found == 1:
             res = (744, 480)
+            # res = (640, 480)
         else:
-            res = (640, 480)
+            res = (744, 480)
+            # res = (640, 480)
 
         self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
         self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
@@ -200,16 +215,20 @@ class CVController():
 
     # opencv_camera_start ##################################################################################
     def opencv_camera_start(self, task_name):
+
         self.cap = None
-        # self.cap = cv2.VideoCapture(1)
-        
+        self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+        self.cap.set(cv2.CAP_PROP_FPS, 60)
+        self.start_camera_async()
         # self.cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
         # self.cap.set(cv2.CAP_PROP_EXPOSURE, 1000.0)
         #path
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
-        self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
+        # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
         
         #dark gate
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
@@ -226,6 +245,7 @@ class CVController():
 
         
         self.setup_video_output(task_name)
+        self.setup_output_pipline(self.camera_direction)
         print 'laptop/default camera found'
 
     def display_output(self, camera_direction):
@@ -290,10 +310,10 @@ class CVController():
 
             # self.last_reading.append(coordinates)
             self.outraw.write(frame)
-            self.current_raw_frame = copy.copy(frame)
+            # self.current_raw_frame = copy.copy(frame)
             found, coordinates, shape, width_height = self.cv_task.detect(frame)
             self.outprocessed.write(frame)
-            self.current_processed_frame = copy.copy(frame)
+            # self.current_processed_frame = copy.copy(frame)
 
             self.show_img(camera_direction, frame)
 
@@ -308,16 +328,37 @@ class CVController():
 
     # opencv_camera_detect ##################################################################################
     def opencv_camera_detect(self, task):
+
         self.cv_task = self.tasks[task]
-        _, frame = self.cap.read()
-        self.outraw.write(frame)
-        self.current_raw_frame = copy.copy(frame)
-        found, directions, shape, width_height = self.cv_task.detect(frame)
-        #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
-        self.outprocessed.write(frame)
-        self.current_processed_frame = copy.copy(frame)
-        return found, directions, shape, width_height
+        frame = copy.copy(self.frame)
+        if frame is not None:
+            self.outraw.write(frame)
+            # self.current_raw_frame = copy.copy(frame)
+            found, directions, shape, width_height = self.cv_task.detect(frame)
+            #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
+            # print frame.shape
+            # cv2.imshow('task', frame)
+
+            self.show_img(self.camera_direction, frame)
+
+            self.outprocessed.write(frame)
+            # self.current_processed_frame = copy.copy(frame)
+            return found, directions, shape, width_height
+        return False, None, None, None
+
+
     
+    def start_camera_async(self):            
+        self.thread = Thread(target=self.run_camera)
+        self.thread.start()
+
+    def run_camera(self):
+        while not self.is_stop:
+            check, frame = self.cap.read()
+            if check:
+                self.frame = frame
+                self.auto_exposure(self.camera_direction, self.frame)
+
     # detect ##################################################################################
     def detect(self, task):
         # try:
@@ -338,6 +379,19 @@ class CVController():
         self.display_input[camera_direction].emit("push-buffer", new_buf)
 
     # setup_pipeline ##################################################################################
+    def setup_output_pipline(self, camera_direction):
+        Gst.init(sys.argv)  # init gstreamer
+
+        TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
+
+        src_name = "cam_" + camera_direction
+        self.display_pipeline[camera_direction] = Gst.parse_launch("appsrc name=" + src_name + " ! videoconvert ! ximagesink")
+        self.display_input[camera_direction] = self.display_pipeline[camera_direction].get_by_name(src_name)
+        self.display_input[camera_direction].set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
+        
+        self.display_buffers[camera_direction] = []
+        self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING) 
+
     def setup_pipeline(self, camera_direction = None):
         if camera_direction == None:
             print 'need camera_direction to setup pipeline'
@@ -352,12 +406,14 @@ class CVController():
         # We create a source element to retrieve a device list through it
         source = Gst.ElementFactory.make("tcambin")
 
-        for name in source.get_tcam_property_names():
-            temp = source.get_tcam_property(name)
-            print( name + " " + str(temp))
+        # for name in source.get_tcam_property_names():
+        #     temp = source.get_tcam_property(name)
+        #     print( name + " " + str(temp))
 
         serial = self.camera_serials[camera_direction]
-        # source = Gst.ElementFactory.make("tcamsrc")
+
+        # source = Gst.ElementFactory.make("v4l2src")
+        # source.set_property('device', self.camera_ids[camera_direction])
 
         # retrieve all available serial numbers
         serials = source.get_device_serials()
@@ -375,19 +431,19 @@ class CVController():
         # print serial
         if serial is not None:
             source.set_property("serial", serial)
-            # source.set_property('anme', 'DFK 22UC03')
+            # source_tcambin.set_property('name', 'DFK 22UC03')
+            # source_tcambin.set_property('name', 'DFK 22UC03')
 
         # print source.get_by_name('tcamautoexposure')
         # print source.get_by_name('tcamwhitebalance')
         # print source.get_by_name('tcamautofocus')
         # Define the format of the video buffers that will get passed to opencv
-        # TARGET_FORMAT = "video/x-raw,width=640,height=480,format=GRAY8"
-        TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
+        TARGET_FORMAT = "video/x-raw,width=640,height=480,format=BGR"
+        # TARGET_FORMAT = "video/x-raw,width=744,height=480,format=BGR"
 
         # Ask the user for the format that should be used for capturing
         fmt =  self.select_format(source.get_by_name("tcambin-source")) #----------------------- replace
         # fmt =  self.select_format(source) #----------------------- replace
-        
         # If the user selected a bayer format, we change it to BGRx so that the
         # tcambin will decode the bayer pattern to a color image
         if fmt.get_name() == "video/x-bayer":
@@ -410,27 +466,48 @@ class CVController():
         output = Gst.ElementFactory.make("appsink")
         output.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         output.set_property("emit-signals", True)
+
+        # tcamautoexposure auto-exposure=true exposure-max=300000
+
+        # auto_exposure = Gst.ElementFactory.make("tcamautoexposure")
+        # auto_exposure.set_property('auto-exposure', 1)
+        # # auto_exposure.set_property('Gain Max', 1.1)
+        # # auto_exposure.set_property('Exposure Max', 1)
+        # # auto_exposure.set_property('Brightness Reference', 64)
+        # auto_exposure.set_property('exposure-max', 500)
+        # auto_exposure.set_property('gain-max', 1.1)
+        # auto_exposure.set_property('brightness-reference', 32)
+
+        # auto_focus = Gst.ElementFactory.make("tcamautofocus")
+        # auto_focus.set_property('auto-focus', False)
+
+        # white_balance = Gst.ElementFactory.make("tcamwhitebalance")
+        # # white_balance.set_property('value', False)
+        # auto_focus = Gst.ElementFactory.make("tcamautofocus")
+        # # auto_focus.set_property('value', False)
+
         self.pipeline[camera_direction] = Gst.Pipeline.new()
         #video/x-raw,format=BGR,width=744,height=480,framerate=60/1
-        # parse_str = 'tcambin serial=' + serial + ' ! capsfilter caps="video/x-raw,format=BGRx" ! videoconvert ! videoscale ! queue max-size-buffers=2 ! appsink caps="'+ TARGET_FORMAT +'" emit-signals=true'
+        # parse_str = 'tcambin serial=' + ser/ial + ' ! capsfilter caps="video/x-raw,format=BGRx" ! videoconvert ! videoscale ! queue max-size-buffers=2 ! appsink caps="'+ TARGET_FORMAT +'" emit-signals=true'
+        # parse_str = 'v4l2src device={} ! video/x-raw,format=BGRx,framerate=60/1,width=640,height=480 ! videoconvert ! videoscale ! queue max-size-buffers=2 ! appsink name=sink caps="{}" emit-signals=true'.format(self.camera_ids[camera_direction], TARGET_FORMAT)
         # print parse_str
         # self.pipeline[camera_direction] = Gst.parse_launch(parse_str)
 
-        # auto_exposure = Gst.ElementFactory.make("tcamautoexposure")
-        # white_balance = Gst.ElementFactory.make("tcamwhitebalance")
-        # auto_focus = Gst.ElementFactory.make("tcamautofocus")
 
         # Add all elements
         self.pipeline[camera_direction].add(source)
+
         # self.pipeline[camera_direction].add(auto_exposure)
         # self.pipeline[camera_direction].add(auto_focus)
         # self.pipeline[camera_direction].add(white_balance)
+
         self.pipeline[camera_direction].add(capsfilter)
         self.pipeline[camera_direction].add(queue)
         self.pipeline[camera_direction].add(convert)
         self.pipeline[camera_direction].add(scale)
         self.pipeline[camera_direction].add(output)
-        # output = self.pipeline[camera_direction].get_by_name("appsink")
+
+        # output = self.pipeline[camera_direction].get_by_name("sink")
         # output.set_property("caps", Gst.Caps.from_string(TARGET_FORMAT))
         # output.set_property("emit-signals", True)
 
@@ -440,6 +517,9 @@ class CVController():
         queue.link(convert)
         convert.link(scale)
         scale.link(output)
+        # output.link(auto_exposure)
+        # auto_exposure.link(auto_focus)
+        # output.link(auto_exposure)
         
         # Usually one would use cv2.imgshow(...) to display an image but this is
         # tends to hang in threaded environments. So we create a small display
@@ -462,6 +542,7 @@ class CVController():
         self.display_pipeline[camera_direction].set_state(Gst.State.PLAYING)  
 
         self.pipeline[camera_direction].set_state(Gst.State.PLAYING)
+        # self.pipeline[camera_direction].set_state(Gst.State.NULL)
 
         # pip_source = self.pipeline[camera_direction].get_by_name("source")
         # pip_source = Gst.Bin.get_by_name(Gst.Bin(self.pipeline[camera_direction]), "source")
@@ -473,6 +554,16 @@ class CVController():
         #     temp = pip_source.get_tcam_property(name)
         #     print( name + " " + str(temp))
 
+        # print self.pipeline[camera_direction].get_by_name('tcamautoexposure')
+        # print self.pipeline[camera_direction].get_by_name('tcamwhitebalance')
+        # print self.pipeline[camera_direction].get_by_name('tcamautofocus')
+        # Gst.Bin.remove(source.get_tcam_property('tcamautoexposure'))
+        # Gst.Bin.remove(source.get_tcam_property('tcamwhitebalance'))
+        # Gst.Bin.remove(source.get_tcam_property('tcamautofocus'))
+        # for name in source.get_tcam_property_names():
+        #     temp = source.get_tcam_property(name)
+        #     print( name + " " + str(temp))
+        # self.set_camera_auto_exposure_manual(camera_direction)
         print 'done setting up pipeline'
 
     # close_pipeline ##################################################################################
@@ -499,7 +590,8 @@ class CVController():
         #     print 'error in cvcontroller close_pipeline'
         # if self.loop:
         try:
-            self.loop.quit()
+            if self.loop is not None:
+                self.loop.quit()
         except:
             print 'unable to use self.loop.quit()'
         self.thread = None
@@ -509,14 +601,44 @@ class CVController():
     # callback ##################################################################################
     def camera_forward_callback(self, sink):
         # print("in forward callback")
-        self.sample['forward'] = sink.emit("pull-sample")
+        sample = sink.emit("pull-sample")
         
+        buf = sample.get_buffer()
+
+        caps = sample.get_caps()
+        width = caps[0].get_value("width")
+        height = caps[0].get_value("height")
+        # try:
+        res, mapinfo = buf.map(Gst.MapFlags.READ)
+
+        # Create a numpy array from the data
+        img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+
+        # Give the array the correct dimensions of the video image
+        frame = img_array.reshape((height, width, 3))
+        self.auto_exposure('forward', frame)
+        self.sample['forward'] = sample
         return Gst.FlowReturn.OK
 
     def camera_down_callback(self, sink):
         # print("in down callback")
-        self.sample['down'] = sink.emit("pull-sample")
+        sample = sink.emit("pull-sample")
         
+        buf = sample.get_buffer()
+
+        caps = sample.get_caps()
+        width = caps[0].get_value("width")
+        height = caps[0].get_value("height")
+        # try:
+        res, mapinfo = buf.map(Gst.MapFlags.READ)
+
+        # Create a numpy array from the data
+        img_array = np.asarray(bytearray(mapinfo.data), dtype=np.uint8)
+
+        # Give the array the correct dimensions of the video image
+        frame = img_array.reshape((height, width, 3))
+        self.auto_exposure('down', frame)
+        self.sample['down'] = sample
         return Gst.FlowReturn.OK
 
     # list_formats ##################################################################################
@@ -545,7 +667,8 @@ class CVController():
         Returns: Gst.Structure of format
         """
         formats = self.list_formats(source)
-        fmt = formats[3]
+        # fmt = formats[3]
+        fmt = formats[4]
         print(fmt)
         frame_rates = self.get_frame_rate_list(fmt)
         rate = frame_rates[1]
@@ -581,6 +704,24 @@ class CVController():
     # start_loop ##################################################################################
     def start_loop(self):
         self.loop.run()
+
+
+    def auto_exposure(self, camera_direction, frame):
+        hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
+        brightness = np.mean(hsv_frame[:,:,2]) # average brightness
+        # exposure is a variable that is initialized to a value (usually around 40) and changes depending on brightness
+        if brightness < 85:
+            self.exposure = self.exposure + 1
+        elif brightness > 169.97:
+            self.exposure = self.exposure - 1
+        # self.exposure = 6
+
+        os.system('v4l2-ctl -d %s -c exposure_absolute=%s' %(self.camera_ids[camera_direction], str(self.exposure)))
+
+    # def set_camera_auto_exposure_manual(self, camera_direction):
+    #     #1 is manual exposure 3 is auto
+    #     os.system('v4l2-ctl -d %s -c exposure_auto=1' %(self.camera_ids[camera_direction]))
+
 
     def change_gate_target(self, is_center = None):
         if is_center is None:

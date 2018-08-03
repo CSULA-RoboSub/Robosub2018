@@ -69,7 +69,7 @@ class GateManeuver():
 
         ################ AUV MOBILITY VARIABLES ################
         self.rotation_angle = 5
-        self.depth_change = 2.5
+        self.depth_change = 1
         self.depth = -1
         self.h_power = 100
         self.move_forward = 'forward'
@@ -184,10 +184,10 @@ class GateManeuver():
         else:
             navigation.cancel_m_nav()
 
-        if not coordinates[1] == 0:
-            navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
-        else:
-            navigation.cancel_h_nav()
+        # if not coordinates[1] == 0:
+        #     navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+        # else:
+        #     navigation.cancel_h_nav()
 
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
@@ -221,7 +221,8 @@ class GateManeuver():
             return
 
         self.heading_verify_count += 1
-        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0 and found:
+        #coordinates[1] == 0 and 
+        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and found:
             # self.getrotation.update_rot()
             self.is_heading_correct = True
 

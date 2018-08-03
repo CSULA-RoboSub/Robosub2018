@@ -48,14 +48,13 @@ class Houston():
         self.path_1 = Path(self)
         self.dice = Dice(self)
         self.path_2 = Path(self)
-        self.chip_1 = Chip(self)
-        self.chip_2 = Chip(self)
+        self.chip = Chip(self)
         self.roulette = Roulette(self)
         self.slots = Slots(self)
         self.pinger_a = PingerA(self)
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
-        #self.buoy = Buoy(self)
+        # self.buoy = Buoy(self)
         self.navigation = navigation
         self.cvcontroller = CVController()
         self.counts = Counter()
@@ -76,8 +75,8 @@ class Houston():
         ################ TASKS LIST ################
         """
         self.tasks values listed below
-        'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
-        'roulette', 'pinger_a', 'cash_in'
+        'pregate', 'gate', 'path', 'dice', 'path', 'slots', 'chip', 'pinger_a', 
+        'roulette', 'pinger_b', 'cash_in'
         """
         self.tasks = task_list
 
@@ -85,16 +84,15 @@ class Houston():
         self.state_num = 0
         self.states = [
             self.pregate,
-            self.gate, 
-            self.path_1, 
-            self.dice, 
-            self.chip_1, 
+            self.gate,
+            self.path_1,
+            self.dice,
             self.path_2,
-            self.slots, 
-            self.chip_2, 
-            self.pinger_a, 
-            self.roulette, 
-            self.pinger_b, 
+            self.slots,
+            self.pinger_a,
+            self.chip,
+            self.roulette,
+            self.pinger_b,
             self.cash_in
         ]
 
@@ -123,14 +121,13 @@ class Houston():
             'gate': 1,
             'path_1': 2,
             'dice': 3,
-            'chip_1': 4,
-            'path_2': 5,
-            'chip_2': 6,
-            'slots': 7,
-            'pinger_a': 8,
-            'roulette': 9,
-            'pinger_b': 10,
-            'cash_in': 11
+            'path_2': 4,
+            'slots': 5,
+            'pinger_a': 6,
+            'chip': 7,
+            'roulette': 8,
+            'pinger_b': 9,
+            'cash_in': 10
         }
 
         ################ AUV MOBILITY VARIABLES ################

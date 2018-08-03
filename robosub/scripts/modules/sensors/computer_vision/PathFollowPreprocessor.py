@@ -1,8 +1,15 @@
+# ffmpeg -ss 00:00:30 -i orginalfile -t 00:00:05 -vcodec copy -acodec copy newfile
+#
+#
+#
+#
+#
+
 import utils
 import cv2
 import numpy as np
 
-class PathPreprocessor():
+class PathFollowPreprocessor():
 
     def __init__(self):
         #bright 1
@@ -11,10 +18,10 @@ class PathPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 16, 29], 'uint8')
+        self.lower_red_orange = np.array([0, 20, 20], 'uint8')
         self.upper_red_orange = np.array([80, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([131, 16, 29], 'uint8')
+        self.lower_red_blue = np.array([130, 20, 20], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         self.roi_size = 2000
@@ -84,10 +91,8 @@ class PathPreprocessor():
         interest_regions = []
         for c in contours:
             box = cv2.boundingRect(c)
-            if (box[2]*box[3] > self.roi_size) and (cv2.contourArea(c)/(box[2]*box[3]) > self.ratio_threshold):
-                cont_len = len(c)
-                if self.min_cont_size < cont_len < self.max_cont_size:
-                    interest_regions.append(box)
+            if (box[2]*box[3] > self.roi_size) and (cv2.contourArea(c)/box[2]*box[3] > self.ratio_threshold):
+                interest_regions.append(box)
         # boxes = [cv2.boundingRect(c) for c in contours]
         # interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 

@@ -6,6 +6,8 @@ import modules.main.config as config
 from modules.control.motor import Motor
 from modules.control.navigation import Navigation
 from modules.control.keyboard import Keyboard
+import modules.servos.dropper as dropper
+import modules.servos.torpedo as torpedo
 import modules.main.status as status
 
 from houston import Houston
@@ -114,3 +116,18 @@ class AUV():
 
     def save_heading(self):
         self.navigation.save_current_heading()
+
+    def prime_torpedo(self, side):
+        if side.lower() == 'left' or side.lower() == 'right':
+            torpedo.prime_torpedo(side)
+        else:
+            print('Invalid side input. Please enter correct side.')
+
+    def fire_torpedo(self, side):
+        if side.lower() == 'left' or side.lower() == 'right':
+            torpedo.fire_torpedo(side)
+        else:
+            print('Invalid side input. Please enter correct side.')
+
+    def dropper_state(self, state):
+        dropper.drop_control(state)

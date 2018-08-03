@@ -4,7 +4,8 @@ import math
 import Detector
 import utils
 import DiceClassifier as dc
-import DicePreprocess as dpp
+# import DicePreprocess as dpp
+from detect_dice_per_frame import DetectDicePerFrame as dppf
 import cv2
 
 class DiceDetector:
@@ -14,7 +15,10 @@ class DiceDetector:
         later in documentation we should include which camera is which by number.
     '''
     def __init__(self):
-        self.preprocessor = dpp.DicePreprocessor()
+        # self.preprocessor = dpp.DicePreprocessor()
+        self.preprocessor = dppf()
+        self.is_dppf = True
+
         self.classifier = dc.DiceClassifier()
         self.directions = [None, None]
         self.dot_size = 100 
@@ -55,49 +59,76 @@ class DiceDetector:
 
     def detect(self, frame):
         if frame is not None:
-            interest_regions =  self.preprocessor.get_interest_regions(frame, self.die)
-            # die = [die for die in interest_regions if self.classifier.predict(die) > .1]
-            classified_rois = self.classifier.classify(frame, interest_regions)
-            
-            if self.die == 5:
-                dice = self.detect_five(classified_rois, self.shapes[3])
-            elif self.die == 6:
-                dice = self.detect_six(classified_rois, self.shapes[1], self.shapes[2])
-            else:
-                return False, None, None, None
-            #TODO we need to implement a way to use self.die_1 and self.die_2
-            # in the detect to return the right coordinates. we can check if the die
-            # is touched by the sub if the frame is equal to the region of interest (744x480)
-            # or (640x480) for the laptop camera
-
-            # we can also use the dictionary, whichever one is easier
-
-            for x, y, w, h in classified_rois:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
-
-            ht, wd, ch =  frame.shape
-
-            dice_shape = self.get_shape(dice)
-            # if dice_shape != self.shapes[1]:
-            #     dice = None
+            if not self.is_dppf:
+                interest_regions =  self.preprocessor.get_interest_regions(frame, self.die)
+                # die = [die for die in interest_regions if self.classifier.predict(die) > .1]
+                classified_rois = self.classifier.classify(frame, interest_regions)
                 
-            if not dice:
-                self.found = False
-                dice_shape = None
-                self.directions = [0,0]
-                w,h = 0,0
+                if self.die == 5:
+                    dice = self.detect_five(classified_rois, self.shapes[3])
+                elif self.die == 6:
+                    dice = self.detect_six(classified_rois, self.shapes[1], self.shapes[2])
+                else:
+                    return False, None, None, None
+                #TODO we need to implement a way to use self.die_1 and self.die_2
+                # in the detect to return the right coordinates. we can check if the die
+                # is touched by the sub if the frame is equal to the region of interest (744x480)
+                # or (640x480) for the laptop camera
+
+                # we can also use the dictionary, whichever one is easier
+
+                for x, y, w, h in classified_rois:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+
+                ht, wd, ch =  frame.shape
+
+                dice_shape = self.get_shape(dice)
+                # if dice_shape != self.shapes[1]:
+                #     dice = None
+                    
+                if not dice:
+                    self.found = False
+                    dice_shape = None
+                    self.directions = [0,0]
+                    w,h = 0,0
+                else:
+                    x, y, w, h  = dice
+                    # dice_shape = self.get_shape(dice, self.shape_buffer)
+                    # dice_shape = None
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
+                    self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
+                    self.found = True
+
+                #found, direction, shape, width, heightk
+                # return (self.found, self.directions, None, (0, 0)) 
+                return (self.found, self.directions, dice_shape, (w, h))
             else:
-                x, y, w, h  = dice
-                # dice_shape = self.get_shape(dice, self.shape_buffer)
-                # dice_shape = None
-                cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
-                self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
-                self.found = True
+                interest_regions = self.preprocessor.get_bounding_boxes(frame)
+                for x, y, w, h in interest_regions:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
 
-            #found, direction, shape, width, heightk
-            # return (self.found, self.directions, None, (0, 0)) 
-            return (self.found, self.directions, dice_shape, (w, h))
+                ht, wd, ch =  frame.shape
+                dice = utils.get_max_area(interest_regions)
+                dice_shape = self.get_shape(dice)
+                # if dice_shape != self.shapes[1]:
+                #     dice = None
+                    
+                if not dice:
+                    self.found = False
+                    dice_shape = None
+                    self.directions = [0,0]
+                    w,h = 0,0
+                else:
+                    x, y, w, h  = dice
+                    # dice_shape = self.get_shape(dice, self.shape_buffer)
+                    # dice_shape = None
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["blue"], 6)
+                    self.directions = utils.get_directions( (wd/2, ht/2), x, y, w, h) 
+                    self.found = True
 
+                #found, direction, shape, width, heightk
+                # return (self.found, self.directions, None, (0, 0)) 
+                return (self.found, self.directions, dice_shape, (w, h))
         else:
             print('error no frame')
             return False, None, None, None

@@ -1,13 +1,13 @@
 import utils
 import time
-import PathClassifier as pc
+import GateClassifier as gc
 import PathPreprocessor as pp
 import cv2
 
 class PathDetector():
 
     def __init__(self):
-        self.classifier = pc.PathClassifier()
+        self.classifier = gc.GateClassifier()
         self.found = False
         self.preprocess = pp.PathPreprocessor()
         self.directions = [0,0]
@@ -65,3 +65,5 @@ class PathDetector():
         else:
             print('error no frame')
             return False, None, None, None
+
+            
