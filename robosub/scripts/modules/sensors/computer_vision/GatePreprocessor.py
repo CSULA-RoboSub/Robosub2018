@@ -1,6 +1,7 @@
 import utils
 import cv2
 import numpy as np
+from sklearn.neighbors import NearestNeighbors
 from modules.sensors.computer_vision.utilities.filters import *
 
 class GatePreprocessor:
@@ -208,6 +209,42 @@ class GatePreprocessor:
 
         return green_blue
 
+
+    def create_dataset(self, contours):
+        X = []
+        y = []
+
+        for i, cont in enumerate(contours):
+            M = cv2.moments(cont)
+            #cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
+            cy = int(M["m01"] / M["m00"]) # add 1 to avoid division by zero
+            perimeter = cv2.arcLength(cont, True)
+            X.append([perimeter, cy])
+            y.append([i])
+
+        return (pd.DataFrame(X), pd.Series(y) )
+
+
+    def nearest_neighbors(self, dataset, distance=False):
+        if len(dataset) < 2:
+            return None
+        else:
+            nn = NearestNeighbors(n_neighbors=2)
+            nn.fit(dataset)
+        return nn.kneighbors(dataset, return_distance=distance)
+
+
+    # need to error check - converts nearest neighbor list to a better formated list for parsing
+    def create_pairs(self, conts):
+        new_list = []
+        for i in conts:
+            tmp_list = []
+            tmp_list.append(i[0])
+            tmp_list.append(i[1])
+            new_list.append(tmp_list)
+        return new_list
+
+
     def filter_contours(self, frame_contours):
         new_cont_list = []
         for cont in frame_contours:
@@ -216,6 +253,7 @@ class GatePreprocessor:
                 new_cont_list.append(cont)
         filtered_contours = np.array(new_cont_list)
         return filtered_contours
+
 
 
     # returns ROI
@@ -311,6 +349,10 @@ class GatePreprocessor:
         frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+
+        X_df, y_df = create_dataset(filtered_contours) # not using y_df
+
+        contour_pairs = nearest_neighbors(X_df)
 
         boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
