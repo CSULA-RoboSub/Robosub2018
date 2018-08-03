@@ -1,5 +1,7 @@
 import time
+import rospy
 
+from robosub.msg import MControl
 from threading import Thread, Lock
 from collections import Counter
 from itertools import combinations
@@ -84,6 +86,7 @@ class Gate(Task):
         self.thread_gate = None
         self.mutex = Lock()
 
+        rospy.Subscriber('movement_control_status', MControl, self.m_status_callback, queue_size=100)
     # reset ##################################################################################
     def reset(self):
         self.detectgate = None
@@ -92,6 +95,7 @@ class Gate(Task):
         # self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
+        self.is_reached_distance = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -126,14 +130,18 @@ class Gate(Task):
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
-            
-            if not self.gate_maneuver.is_moving_forward:
+            self.is_moving_forward_camera_changed = True
+            if not self.gate_maneuver.is_moving_forward and not self.is_moving_forward_camera_changed:
                 # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
                 # if directions:
                 if found:
                     self.direction_list.append(directions)
 
+                    if not self.is_found:
+                        self.is_found = True
+                        navigation.cancel_all_nav()
+                        
                 if (time.time()-self.last_time > 0.05):
                     count += 1
 
@@ -165,7 +173,7 @@ class Gate(Task):
             elif self.is_moving_forward_camera_changed and count < self.is_moving_forward_camera_changed_threshold:
                 found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
-                    print 'counter since camera change: {}'.format(count)
+                    # print 'counter since camera change: {}'.format(count)
                     count += 1
                     self.last_time = time.time()
 
@@ -174,7 +182,7 @@ class Gate(Task):
             elif self.is_moving_forward_camera_changed and count >= self.is_moving_forward_camera_changed_threshold:
                 found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
-                    print 'counter since camera change: {}'.format(count)     
+                    # print 'counter since camera change: {}'.format(count)     
                     count += 1
                     self.last_time = time.time()
                     if found and gate_shape:
@@ -268,4 +276,21 @@ class Gate(Task):
     # restart_task ##################################################################################
     def restart_task(self):
         print 'restart gate'
-        
+
+    #movement control status callback
+    def m_status_callback(self, movement_status):
+        # print(rotation_status)
+        # print('movement_status.power: {}, movement_status.mDirection: {}, movement_status.distance: {}, movement_status.state: {}, self.m_state_is_moving_forward: {}'.format(movement_status.power, movement_status.mDirection, movement_status.distance, movement_status.state, self.m_state_is_moving_forward))
+
+        if self.is_moving_forward:
+            # print('self.is_moving_forward')
+            if movement_status.state == 0 and self.m_state_is_moving_forward == 1 and abs(movement_status.distance - self.m_distance_forward) < 0.001 and movement_status.power == 0:
+                # print('in state 1')
+                self.navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward)
+                self.m_state_is_moving_forward = 2
+                # print("backward wp state 2")
+
+            elif movement_status.state == 0 and self.m_state_is_moving_forward == 2 and abs(movement_status.distance - self.m_distance_backward) < 0.001 and movement_status.power == 0:
+                self.dice_touched += 1
+                self.is_1st_die_touched = True
+                # print('in state 2')

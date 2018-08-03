@@ -1,3 +1,10 @@
+# ffmpeg -ss 00:00:30 -i orginalfile -t 00:00:05 -vcodec copy -acodec copy newfile
+#
+#
+#
+#
+#
+
 import utils
 import cv2
 import numpy as np
@@ -11,19 +18,19 @@ class PathFollowPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 0, 96], 'uint8')
-        self.upper_red_orange = np.array([80, 255, 255], 'uint8')
+        self.lower_red_orange = np.array([0, 0, 79], 'uint8')
+        self.upper_red_orange = np.array([81, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([130, 0, 96], 'uint8')
+        self.lower_red_blue = np.array([129, 0, 79], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
-        self.roi_size = 2000
-        self.ratio_threshold = 0.38
+        self.roi_size = 2200
+        self.ratio_threshold = 0.28
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
-        self.lower_bgr = np.array([196, 96, 96], 'uint8')
-        self.upper_bgr = np.array([255, 255, 255], 'uint8')
+        self.lower_bgr = np.array([196, 79, 79], 'uint8')
+        self.upper_bgr = np.array([254, 255, 255], 'uint8')
 
     def filter_contours(self, frame_contours):
         new_cont_list = []
@@ -57,24 +64,25 @@ class PathFollowPreprocessor():
 
     def get_interest_regions(self, frame):
 
-        img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask_bgr = cv2.inRange(frame, self.lower_bgr, self.upper_bgr)
+        bgr_frame = cv2.bitwise_and(frame, frame, mask=mask_bgr)
+
+        img_hsv = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
         img_color_filt, mask = self.preprocess(img_hsv)
 
         img_bgr = cv2.cvtColor(img_color_filt, cv2.COLOR_HSV2BGR)
-        mask_bgr = cv2.inRange(img_bgr, self.lower_bgr, self.upper_bgr)
-        bgr_frame = cv2.bitwise_and(img_bgr, img_bgr, mask=mask_bgr)
         
-        open_frame = cv2.morphologyEx(bgr_frame, cv2.MORPH_OPEN, self.kernel) # fill in
+        open_frame = cv2.morphologyEx(img_bgr, cv2.MORPH_OPEN, self.kernel) # fill in
 
         # blur_frame = cv2.GaussianBlur(open_frame,(7,7),0)
         blur_frame = cv2.medianBlur(open_frame, 7)
 
         # dilate_frame = cv2.dilate(blur_frame, self.kernel, iterations=5) # make chubby
-        close_frame = cv2.morphologyEx(blur_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
+        # close_frame = cv2.morphologyEx(blur_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
         # open_frame = cv2.morphologyEx(close_frame, cv2.MORPH_OPEN, self.kernel) # fill in
 
-        # bgr_from_hsv = cv2.cvtColor(close_frame, cv2.COLOR_HSV2BGR)
-        grayscale_frame = cv2.cvtColor(close_frame, cv2.COLOR_BGR2GRAY)
+        bgr_from_hsv = cv2.cvtColor(blur_frame, cv2.COLOR_HSV2BGR)
+        grayscale_frame = cv2.cvtColor(bgr_from_hsv, cv2.COLOR_RGB2GRAY)
         # clahe = cv2.createCLAHE(clipLimit=10.0, tileGridSize=(8,8))
         # clahe_applied = clahe.apply(grayscale_frame)
         im, contours, hierarchy = cv2.findContours(grayscale_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)

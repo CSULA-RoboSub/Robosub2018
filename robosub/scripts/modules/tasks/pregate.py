@@ -29,12 +29,19 @@ class PreGate(Task):
         ################ TIMER VARIABLES ################
 
         ################ DICTIONARIES ################
-        
+        self.headings = {
+            'a': 317.0,
+            'b': 5.0,
+            'c': 160.0,
+            'd': 167.5
+        }
 
         ################ AUV MOBILITY VARIABLES ################
+        self.selected_heading = 'b'
+
         self.r_power=80
         self.h_power=100
-        self.m_power=70
+        self.m_power=140
         self.h_depth = 5
 
         ################ THREAD VARIABLES ################
@@ -67,7 +74,7 @@ class PreGate(Task):
         self.is_busy = False
         self.is_running_rotation = False
 
-        navigation.h_nav('down', 5, self.h_power)
+        navigation.h_nav('down', 3.5, self.h_power)
         
         while not self.stop_task and not self.complete():
             if not self.is_busy and not self.is_running_rotation:
@@ -75,8 +82,14 @@ class PreGate(Task):
                 self.is_busy = True
                 self.is_running_rotation = True
                 #run rotation
-                print(navigation.saved_heading)
-                direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
+                if navigation.saved_heading is not None:
+                    print(navigation.saved_heading)
+                    direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
+
+                else:
+                    print(self.headings[self.selected_heading])
+                    direction, degree = navigation.waypoint.get_directions_with_heading(self.headings[self.selected_heading])
+                
                 # print('direction: {} degree: {}'.format(str(direction), str(degree)))
                 #set is running rotation
                 navigation.r_nav(direction, degree, self.r_power)
@@ -87,6 +100,10 @@ class PreGate(Task):
                 navigation.m_nav('power', 'forward', self.m_power)
                 #set complete
                 self.is_complete = True
+
+                #last ditch
+                # navigation.m_nav('distance', 'forward', self.m_power, 15.5)
+                # time.sleep(7)
             pass
         # cvcontroller.stop()
         print 'PreGate Finish'
