@@ -13,15 +13,21 @@ from modules.main.status import log
 
 """ Controls dropper"""
 
+DROP_OPTIONS = {
+    0: 'CLOSE BOTH GATES',
+    1: 'OPEN BOTH GATES',
+    2: 'DROP ONE BALL'
+}
+
+dropper = Dropper()
+pub = rospy.Publisher('dropper', Dropper, queue_size=100)
+
 def drop_control(state):
     """
     Changes dropper state
     """
     state = int(state)
-    
-    if state == 0:
-        print 'close both gates'
-    elif state == 1:
-        print 'open both gates'
-    elif state == 2:
-        print 'drop one ball'
+    if state in DROP_OPTIONS:
+        dropper.state = state
+        pub.publish(dropper)
+        print DROP_OPTIONS[state]

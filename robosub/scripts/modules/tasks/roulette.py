@@ -113,6 +113,7 @@ class Roulette(Task):
         self.mutex.acquire()
         while not self.stop_task and not self.complete():
             # try:
+            navigation.do_depth_cap(self.h_power)
             found, direction, shape, width_height = cvcontroller.detect(task_name)
             self.roi_area = width_height[0]*width_height[1]
 
@@ -127,12 +128,12 @@ class Roulette(Task):
                 except:
                     most_occur_coords = [0, 0]
 
-                print 'running {} task'.format(task_name)
-                print 'roi area: {}'.format(self.roi_area)
-                print 'current count: {}'.format(count)
-                print 'coordinates: {}'.format(most_occur_coords)
-                print '--------------------------------------------'
-                print 'type: navigation cv 0, or task to cancel task'
+                # print 'running {} task'.format(task_name)
+                # print 'roi area: {}'.format(self.roi_area)
+                # print 'current count: {}'.format(count)
+                # print 'coordinates: {}'.format(most_occur_coords)
+                # print '--------------------------------------------'
+                # print 'type: navigation cv 0, or task to cancel task'
                 self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, self.roi_area)
                 
                 self.last_time = time.time()

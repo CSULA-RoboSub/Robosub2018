@@ -26,7 +26,7 @@ class Slots(Task):
 
         ################ INSTANCES ################
         self.houston = Houston
-        self.slot_maneuver = SlotsManeuver()
+        self.slots_maneuver = SlotsManeuver()
         self.detectslots = None
 
         ################ THRESHOLD VARIABLES ################
@@ -56,12 +56,12 @@ class Slots(Task):
             'horizontal': 'backward'
         }
                                 
-        # self.slots_phases = {
-        #     None: self.slots_maneuver.no_shape_found,
-        #     'vertical': self.slots_maneuver.vertical,
-        #     'horizontal': self.slots_maneuver.horizontal,
-        #     'square': self.slots_maneuver.square
-        # }
+        self.slots_phases = {
+            None: self.slots_maneuver.no_shape_found,
+            'vertical': self.slots_maneuver.vertical,
+            'horizontal': self.slots_maneuver.horizontal,
+            'square': self.slots_maneuver.square
+        }
 
         ################ CONSTANTS ###########################  
 
@@ -107,29 +107,32 @@ class Slots(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        self.slot_maneuver.torpedo('prime', 'right')
         while not self.stop_task and not self.complete():
-            print 'looping slots for testing'
+            navigation.do_depth_cap(self.h_power)
+            found, directions, shape, width_height = cvcontroller.detect(task_name)
 
-            # found, directions, shape, width_height = cvcontroller.detect(task_name)
-            # TODO implement slots detector for CV controller
-            # if found:
-                # self.direction_list.append(directions)
-                # if (time.time()-self.last_time > 0.05):
-                #     count += 1
+            if found:
+                self.direction_list.append(directions)
 
-                #     try:
-                #         most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
-                #     except:
-                #         most_occur_coords = [0, 0]
+            if (time.time()-self.last_time > 0.05):
+                count += 1
 
-                    # print 'running {} task'.format(task_name)
-                    # print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
-                    # print 'current count: {}'.format(count)
-                    # print 'coordinates: {}'.format(most_occur_coords)
-                    # print '--------------------------------------------'
-                    # print 'type: navigation cv 0, or task to cancel task'
-                    # self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+                try:
+                    most_occur_coords = self.get_most_occur_coordinates(self.direction_list, self.counter)
+                except:
+                    most_occur_coords = [0, 0]
+
+                # print 'running {} task'.format(task_name)
+                # print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
+                # print 'current count: {}'.format(count)
+                # print 'coordinates: {}'.format(most_occur_coords)
+                # print '--------------------------------------------'
+                # print 'type: navigation cv 0, or task to cancel task'
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+
+                self.last_time = time.time()
+                self.counter = Counter()
+                self.direction_list = []
 
         self.mutex.release()
         cvcontroller.stop()
@@ -139,12 +142,24 @@ class Slots(Task):
         pass
 
     # navigation ##################################################################################
-    def navigate(self, navigation, found, coordinates, power, rotation):
-        pass
+    def navigate(self, navigation, found, coordinates, power, rotation, shape, width_height):
+        print 'testing slots navigate'
+        if not self.slots_maneuver.is_rotated_to_center and shape:
+            if coordinates[0] == 0:
+                self.rotated_to_center_verify += 1
+
+            elif coordinates[0] != 0:
+                self.rotated_to_center_verify = 0
+
+            if coordinates == 0 and self.rotated_to_center_verify >= rotated_to_center_verify_threshold:
+                self.slots_maneuver.is_rotated_to_center = True
+
+        else:
+            self.slots_phases[shape](navigation, found, coordinates, power, rotation, width_height)
 
     # complete ##################################################################################
     def complete(self):
-        return False
+        return self.slots_maneuver.completed_slots_check()
 
     # bail_task ##################################################################################
     def bail_task(self):
@@ -167,8 +182,12 @@ class Slots(Task):
         pass
 
     # get_most_occur_coordinates ##################################################################################
-    def get_most_occur_coordinates(self): 
-        pass 
+    def get_most_occur_coordinates(self, direction_list, counter):
+        for sublist in direction_list:
+            counter.update(combinations(sublist, 2))
+        for key, count in counter.most_common(1):
+            most_occur = key
+        return most_occur
 
     # reset ##################################################################################
     def reset(self):
