@@ -107,7 +107,6 @@ class Slots(Task):
         self.mutex.acquire()
         count = 0
         self.last_time = time.time()
-        self.slot_maneuver.torpedo('prime', 'right')
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
             found, directions, shape, width_height = cvcontroller.detect(task_name)

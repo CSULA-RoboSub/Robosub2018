@@ -13,7 +13,7 @@ class SlotsManeuver():
         self.is_red_square_found = False
         self.is_rotated_to_center = False
         self.is_lined_up_for_torpedo = False
-        self.is_torpedo_primed = True
+        self.is_torpedo_primed = False
         self.is_torpedo_fired = False
         self.is_task_complete = False
 
@@ -185,7 +185,8 @@ class SlotsManeuver():
             self.torpedo(self.prime, self.left)
             self.is_torpedo_primed = True
             return
-        if self.is_torpedo_primed:
+        elif self.is_torpedo_primed:
+            print 'torpedo ready to fire'
             self.torpedo(self.fire, self.right)
             self.torpedo(self.fire, self.left)
             self.is_torpedo_fired = True
