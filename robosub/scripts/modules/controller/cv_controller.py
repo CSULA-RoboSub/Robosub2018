@@ -250,7 +250,7 @@ class CVController():
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
             # self.cap = cv2.VideoCapture('video_output/8-2-18/a2/raw_path_follow_2018-8-2_9h49m1s_output.avi')
-            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
             
 
             #dark gate
@@ -265,6 +265,7 @@ class CVController():
             # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h45m40s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_19h42m13s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/7-28-18/raw_dice_2018-7-28_15h38m38s_output.avi')
+            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_dice_2018-8-1_9h42m44s_output.avi')
 
             #green
             # self.cap = cv2.VideoCapture('video_output/8-2-18/b2/raw_gate_2018-8-2_15h37m36s_output.avi')

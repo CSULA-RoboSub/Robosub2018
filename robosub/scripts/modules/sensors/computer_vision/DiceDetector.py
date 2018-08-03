@@ -42,6 +42,8 @@ class DiceDetector:
             return None
         else:
             x, y, w, h = roi
+            if w == 0 or h == 0:
+                return None
 
         if ratio_lower is None:
             ratio_lower = self.shape_ratio_lower
@@ -103,12 +105,22 @@ class DiceDetector:
                 # return (self.found, self.directions, None, (0, 0)) 
                 return (self.found, self.directions, dice_shape, (w, h))
             else:
-                interest_regions = self.preprocessor.get_bounding_boxes(frame)
-                for x, y, w, h in interest_regions:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+                # interest_regions = self.preprocessor.get_bounding_boxes(frame)
 
+                if self.die == 5:
+                    dice = self.preprocessor.get_bounding_box_with_second_most_pips(frame)
+                elif self.die == 6:
+                    dice = self.preprocessor.get_bounding_box_with_max_pips(frame)
+                else:
+                    return False, None, None, None
+
+                # for x, y, w, h in interest_regions:
+                #     cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
+
+                # self.preprocessor.draw_max_box_on_dice(frame)
+                # self.preprocessor.draw_second_max_box_on_dice(frame)
                 ht, wd, ch =  frame.shape
-                dice = utils.get_max_area(interest_regions)
+                # dice = utils.get_max_area(interest_regions)
                 dice_shape = self.get_shape(dice)
                 # if dice_shape != self.shapes[1]:
                 #     dice = None
