@@ -91,13 +91,15 @@ class SlotsManeuver():
         self.is_torpedo_fired = False
         self.is_task_complete = False
 
+    # offset_movement_after_square ##################################################################################
     def offset_movement_after_square(self, navigation):
         pass
 
-    # will be used for priming and firing of torpedos
+    # torpedo ##################################################################################
     def torpedo(self, state, side):
         self.torpedo_state[state](side)
 
+    # completed_slots_check ##################################################################################
     def completed_slots_check(self):
         check_head = self.is_heading_correct
         check_torpedo = self.is_torpedo_fired
@@ -107,10 +109,12 @@ class SlotsManeuver():
 
         return self.is_task_complete
 
+    # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
         self.is_rotated_to_center = False
         navigation.cancel_and_r_nav(self.rotation_direction, self.rotation_angle, self.rotation_power)
 
+    # square ##################################################################################
     def square(self, navigation, found, coordinates, power, rotation, width_height):
         print 'square'
         self.torpedo_check()
@@ -124,7 +128,7 @@ class SlotsManeuver():
         else:
             self.move_towards_red_square(navigation, coordinates, power, width_height)
 
-
+    # no_shape_found ##################################################################################
     def no_shape_found(self, navigation, found, coordinates, power, rotation, width_height):
         print 'no_shape_found'
         self.torpedo_check()
@@ -136,15 +140,17 @@ class SlotsManeuver():
         # self.offset_movement_after_square(navigation)
         # self.rotate(navigation, power, rotation)
 
-
+    # vertical ##################################################################################
     def vertical(self, navigation, found, coordinates, power, rotation, width_height):
         print 'vertical'
         self.torpedo_check()
 
+    # horizontal ##################################################################################
     def horizontal(self, navigation, found, coordinates, power, rotation, width_height):
         print 'horizontal'
         self.torpedo_check()
 
+    # center_red_square ##################################################################################
     def center_red_square(self, navigation, coordinates, power):
         self.nothing_found_counter = 0
         if not coordinates[0] == 0:
@@ -157,6 +163,7 @@ class SlotsManeuver():
         else:
             navigation.cancel_h_nav()
 
+    # move_towards_red_square ##################################################################################
     def move_towards_red_square(self, navigation, coordinates, power, width_height):
         self.nothing_found_counter = 0
         w_h_area = width_height[0] * width_height[1]
@@ -171,6 +178,7 @@ class SlotsManeuver():
             self.offset_movement_after_square(navigation)
             navigation.cancel_m_nav()
 
+    # torpedo_check ##################################################################################
     def torpedo_check(self):
         if self.is_lined_up_for_torpedo:
             self.torpedo(self.prime, self.right)
