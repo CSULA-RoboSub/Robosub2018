@@ -2,6 +2,7 @@ import utils
 import time
 # import GateClassifier as gc
 import PathFollowPreprocessor as pp
+# import PathPreprocessor as pp
 import cv2
 import math
 
@@ -10,6 +11,7 @@ class PathFollowDetector():
     def __init__(self):
         # self.classifier = gc.GateClassifier()
         self.preprocess = pp.PathFollowPreprocessor()
+        # self.preprocess = pp.PathPreprocessor()
         self.found = False
         self.directions = [0,0,0]
         self.isTaskComplete = False
