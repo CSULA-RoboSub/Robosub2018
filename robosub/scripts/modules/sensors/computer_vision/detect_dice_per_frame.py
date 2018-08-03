@@ -51,7 +51,7 @@ class DetectDicePerFrame:
         for x, y, w, h in boxes:
             cv2.rectangle(frame, (x,y),(x+w, y+h), (0, 255, 0), 2)
 
-    def draw_boxes_on_dice(self, frame):
+    def draw_max_box_on_dice(self, frame):
         x, y, w, h = self.get_bounding_box_with_max_pips(frame)
         cv2.rectangle(frame, (x,y),(x+w, y+h), (0, 255, 0), 2)
 
