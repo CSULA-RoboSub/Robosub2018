@@ -9,7 +9,7 @@ while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
-    detector.draw_boxes_on_dice(frame)
+    detector.draw_max_box_on_dice(frame)
 
     # Display the resulting frame
     cv2.imshow('frame', frame)
