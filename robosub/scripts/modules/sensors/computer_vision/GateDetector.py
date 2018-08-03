@@ -17,6 +17,7 @@ class GateDetector:
         self.shape_list = []
         self.is_direction_center = True
         self.is_red_left = False
+        self.frame_size = (744, 480)
 
     # takes a single-roi coordinate as (x, y, w, h) and a buffer as an int
     # returns the shape as a string
@@ -45,7 +46,9 @@ class GateDetector:
             for x, y, w, h in regions_of_interest:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), utils.colors["red"], 2)
 
-            gate = self.classifier.classify(frame, regions_of_interest)
+            classified_gate = self.classifier.classify(frame, regions_of_interest)
+
+            gate = self.detect_whole_gate(classified_gate, self.shapes[1])
 
             gate_shape = self.get_shape(gate, self.shape_buffer)
 
@@ -80,10 +83,9 @@ class GateDetector:
             return False, None, None, None
 
     def detect_whole_gate(self, interest_regions, shape):
-        print()
         if interest_regions:
-            min_x = shape[1]
-            min_y = shape[0]
+            min_x = self.frame_size[0]
+            min_y = self.frame_size[1]
             max_x = 0
             max_y = 0
             max_w = 0
