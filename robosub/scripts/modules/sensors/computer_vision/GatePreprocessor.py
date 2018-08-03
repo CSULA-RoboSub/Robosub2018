@@ -255,6 +255,17 @@ class GatePreprocessor:
         return filtered_contours
 
 
+    def return_box_pairs(self, filtered_contours, converted_pairs):
+        pair_tuple = []
+        counter = 0
+        for pair in converted_pairs:
+            first = filtered_contours[pair[0]]
+            second = filtered_contours[pair[1]]
+            first_box = cv2.boundingRect(first)
+            second_box = cv2.boundingRect(second)
+            pair_tuple.append((first_box, second_box))
+        return pair_tuples
+
 
     # returns ROI
     # def get_interest_regions(self, frame):
@@ -355,7 +366,11 @@ class GatePreprocessor:
 
         contour_pairs = nearest_neighbors(X_df)
 
+        converted_pairs = create_pairs(contour_pairs)
+
+        roi_pairs = return_box_pairs(filtered_contours, converted_pairs)
+
         boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
-        return interest_regions
+        return interest_regions, roi_pairs
