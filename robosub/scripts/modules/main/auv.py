@@ -50,14 +50,6 @@ class AUV():
         self.read_config()
         self.houston.cvcontroller.set_model()  # read and set all models from config
 
-    def update_color(self):
-        """ Update RGB/HSV for computer vision from config"""
-
-        lower_color = config.get_config('cv', 'lower_color')
-        upper_color = config.get_config('cv', 'upper_color')
-        self.houston.cvcontroller.set_lower_color(lower_color[0], lower_color[1:])
-        self.houston.cvcontroller.set_upper_color(upper_color[0], upper_color[1:])
-
     def read_config(self):
         """ Reads from config/config.ini"""
 
