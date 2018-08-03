@@ -36,6 +36,20 @@ class GateDetector:
         else:
             return self.shapes[3] # square
 
+    ## MARK's DICE METHOD
+    def find_pips(self, img):
+    # Set up the detector with default parameters.
+        detector = cv2.SimpleBlobDetector_create()
+        # Detect blobs.
+        keypoints = detector.detect(img)
+        
+        return keypoints
+
+    ## MARK's helper
+    def get_crop_from_bounding_box(self, img, box):
+        x, y, w, h = box
+        return img[y:y+h, x:x+w]
+
     # now returns (found, directions, shape-of-roi, size)
     def detect(self, frame):
         if frame is not None:
