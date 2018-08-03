@@ -10,27 +10,27 @@ class GatePreprocessor:
         # self.lower = np.array([0, 100, 0], 'uint8') # lower color value
         # self.upper = np.array([179, 200, 150], 'uint8') # upper color value
         #bright values
-        # self.lower = np.array([0, 99, 0], 'uint8') # lower color value    
+        # self.lower = np.array([0, 99, 0], 'uint8') # lower color value
         # self.upper = np.array([179, 200, 155], 'uint8') # upper color value
         #bright values 2
-        # self.lower = np.array([0, 89, 0], 'uint8') # lower color value    
+        # self.lower = np.array([0, 89, 0], 'uint8') # lower color value
         # self.upper = np.array([179, 254, 80], 'uint8') # upper color value
         #bright values 3
-        # self.lower = np.array([89, 89, 39], 'uint8') # lower color value    
+        # self.lower = np.array([89, 89, 39], 'uint8') # lower color value
         # self.upper = np.array([149, 200, 80], 'uint8') # upper color value
         #dark values--------------------------------
-        # self.lower = np.array([0, 69, 0], 'uint8') # lower color value  
+        # self.lower = np.array([0, 69, 0], 'uint8') # lower color value
         # self.upper = np.array([179, 254, 80], 'uint8') # upper color value
         #dark val 2
-        # self.lower = np.array([1, 69, 89], 'uint8') # lower color value  
+        # self.lower = np.array([1, 69, 89], 'uint8') # lower color value
         # self.upper = np.array([179, 254, 99], 'uint8') # upper color value
         #dark val 3 (best)
-        # self.lower = np.array([109, 71, 88], 'uint8') # lower color value  
+        # self.lower = np.array([109, 71, 88], 'uint8') # lower color value
         # self.upper = np.array([139, 169, 99], 'uint8') # upper color value
         #----------------------------------------------------------------
 
         #current values--------------------------------------------------
-        #orangeish red and blueish red vals 
+        #orangeish red and blueish red vals
         #bright 1
         # self.lower_red_orange = np.array([0, 87, 1], 'uint8')
         # self.upper_red_orange = np.array([31, 255, 254], 'uint8')
@@ -63,14 +63,21 @@ class GatePreprocessor:
         #self.lower_bgr = np.array([212, 0, 0], 'uint8')
         #self.upper_bgr = np.array([200, 255, 255], 'uint8')
 
-        self.lower_bgr = np.array([130, 150, 210], 'uint8')
-        self.upper_bgr = np.array([240, 255, 255], 'uint8')
+        #self.lower_bgr = np.array([130, 150, 210], 'uint8')
+        #self.upper_bgr = np.array([240, 255, 255], 'uint8')
+
+        # transdec
+        self.lower_hsv = np.array([0, 40, 150], 'uint8')
+        self.lower_hsv = np.array([10, 255, 255], 'uint8')
+        self.lower_bgr = np.array([130, 150, 190], 'uint8')
+        self.upper_bgr = np.array([254, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one
-        self.use_bgr = True
+        self.use_bgr = False
         self.use_hsv_and_bgr = False
         self.use_bgr_and_hsv = False
+        self.use_hsv2bgr = True
         #-------------------------------------------------
 
         self.min_cont_size = 100 # min contours size
@@ -104,6 +111,15 @@ class GatePreprocessor:
             mask = cv2.inRange(img, self.lower_bgr, self.upper_bgr)
             output = cv2.bitwise_and(img, img, mask=mask)
 
+        elif self.use_hsv2bgr:
+            mask_hsv = cv2.inRange(img, self.lower_hsv, self.upper_hsv)
+            output_hsv = cv2.bitwise_and(img, img, mask=mask_hsv)
+
+            hsv2bgr = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
+
+            mask = cv2.inRange(hsv2bgr, self.lower_bgr, self.upper_bgr)
+            output = cv2.bitwise_and(img, img, mask=mask_bgr)
+
         elif self.use_hsv_and_bgr:
             hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
 
@@ -130,20 +146,20 @@ class GatePreprocessor:
             mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
             mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
 
-            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)        
+            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
 
             close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
             dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
             output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
-            
+
         else:
             hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
 
             mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
             mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
             mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
-            
-            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)        
+
+            color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
 
             close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
             dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
@@ -154,11 +170,11 @@ class GatePreprocessor:
 
         return output, mask
 
-    
+
     def get_lower_color(self):
         return self.lower.tolist()
 
-    
+
     # expects a list - gets converted to a numpy array in setter
     def set_lower_color(self, task_name, lower):
         self.lower = np.array(lower, 'uint8')
@@ -168,22 +184,22 @@ class GatePreprocessor:
     def get_upper_color(self):
         return self.upper.tolist()
 
-    
+
     # expects a list - gets converted to a numpy array in setter
     def set_upper_color(self, task_name, upper):
         self.upper = np.array(upper, 'uint8')
         print 'upper is set to {} for {}'.format(upper, task_name)
 
-    
+
     def color_subtract(self, frame):
         blue = frame.copy()
         green = frame.copy()
         red = frame.copy()
-        
+
         blue[:, :, 0] = 255
         green[:, :, 1] = 255
         red[:, :, 2] = 255
-        
+
         blue_gray = cv2.cvtColor(blue, cv2.COLOR_BGR2GRAY)
         green_gray = cv2.cvtColor(green, cv2.COLOR_BGR2GRAY)
         red_gray = cv2.cvtColor(red, cv2.COLOR_BGR2GRAY)
@@ -204,9 +220,9 @@ class GatePreprocessor:
 
     # returns ROI
     # def get_interest_regions(self, frame):
-    
+
     #     hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # to HSV colorspace
-        
+
     #     color_filt_frame, mask = self.preprocess(hsv_frame) # color filtering
 
     #     close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
@@ -222,12 +238,12 @@ class GatePreprocessor:
 
     #     boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
     #     interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
-        
+
     #     return interest_regions
 
     '''
     def get_interest_regions(self, frame):
-        
+
         color_filt_frame, mask = self.preprocess(frame) # color filtering
 
         grayscale_frame = cv2.cvtColor(color_filt_frame, cv2.COLOR_BGR2GRAY) # to grayscale
@@ -239,7 +255,7 @@ class GatePreprocessor:
 
         boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
-        
+
         return interest_regions
     '''
 
@@ -271,7 +287,7 @@ class GatePreprocessor:
 
     #     grayscale_frame = cv2.cvtColor(dst_dp, cv2.COLOR_BGR2GRAY)
     #     #grayscale_frame = cv2.cvtColor(dst_dn, cv2.COLOR_BGR2GRAY)
-        
+
     #     ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     #     frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -285,13 +301,13 @@ class GatePreprocessor:
 
     # new BGR color filter - only finds bars right now
     def get_interest_regions(self, frame):
-        
-        blur_frame = cv2.medianBlur(frame, 9)
-        
-        color_filt_frame, mask = self.preprocess(blur_frame) # color filtering
-        
+
+        bgr2hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        color_filt_frame, mask = self.preprocess(bgr2hsv) # color filtering
+
         grayscale_frame = cv2.cvtColor(color_filt_frame, cv2.COLOR_BGR2GRAY)
-        
+
         ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -301,4 +317,3 @@ class GatePreprocessor:
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
         return interest_regions
-
