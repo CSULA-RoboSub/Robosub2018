@@ -90,7 +90,7 @@ class DetectDicePerFrame:
 
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         pips = self.find_pips(self.get_crop_from_bounding_box(img, max_box))
-        if len(pips) > 3:
+        if len(pips) > 4:
             return max_box
         return (0,0,0,0)
 
@@ -107,6 +107,6 @@ class DetectDicePerFrame:
 
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         pips = self.find_pips(self.get_crop_from_bounding_box(img, max_box))
-        if len(pips) > 3:
+        if len(pips) > 4:
             return max_box
         return (0,0,0,0)
