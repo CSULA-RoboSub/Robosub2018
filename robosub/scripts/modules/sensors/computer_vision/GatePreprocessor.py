@@ -255,7 +255,7 @@ class GatePreprocessor:
         return filtered_contours
 
 
-    def return_box_pairs(filtered_contours, converted_pairs):
+    def return_box_pairs(self, filtered_contours, converted_pairs):
         pair_tuple = []
         counter = 0
         for pair in converted_pairs:
