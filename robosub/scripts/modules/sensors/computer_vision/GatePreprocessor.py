@@ -234,6 +234,20 @@ class GatePreprocessor:
         return nn.kneighbors(dataset, return_distance=distance)
 
 
+    # need to error check - converts nearest neighbor list to a better formated list for parsing
+    def create_pairs(self, conts):
+        new_list = []
+        for i in conts:
+            tmp_list = []
+            tmp_list.append(i[0])
+            tmp_list.append(i[1])
+            new_list.append(tmp_list)
+    #cv2.rectangle(img,(384,0),(510,128),(0,255,0),3)
+    #x, y, w, h = cv2.boundingRect(img_contours)
+
+print(new_list)
+
+
     def filter_contours(self, frame_contours):
         new_cont_list = []
         for cont in frame_contours:
@@ -242,6 +256,7 @@ class GatePreprocessor:
                 new_cont_list.append(cont)
         filtered_contours = np.array(new_cont_list)
         return filtered_contours
+
 
 
     # returns ROI
