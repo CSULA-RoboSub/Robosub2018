@@ -210,7 +210,7 @@ class GatePreprocessor:
         return green_blue
 
 
-    def create_dataset(contours):
+    def create_dataset(self, contours):
         X = []
         y = []
 
@@ -225,7 +225,7 @@ class GatePreprocessor:
         return (pd.DataFrame(X), pd.Series(y) )
 
 
-    def nearest_neighbors(dataset, distance=False):
+    def nearest_neighbors(self, dataset, distance=False):
         if len(dataset) < 2:
             return None
         else:
