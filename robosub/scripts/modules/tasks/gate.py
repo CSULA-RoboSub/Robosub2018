@@ -36,7 +36,7 @@ class Gate(Task):
         self.kill_threshold = 220
 
         ################ FLAG VARIABLES ################
-        self.is_found = False
+        # self.is_found_once = False
         self.stop_task = False
         # self.is_complete = False
         self.is_camera_changed = False
@@ -93,7 +93,7 @@ class Gate(Task):
     def reset(self):
         self.detectgate = None
 
-        self.is_found = False
+        # self.is_found_once = False
         # self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
@@ -142,10 +142,10 @@ class Gate(Task):
                 if found:
                     self.direction_list.append(directions)
 
-                    if not self.is_found:
-                        self.is_found = True
+                    if not self.gate_maneuver.is_found_once:
+                        self.gate_maneuver.is_found_once = True
                         navigation.cancel_all_nav()
-                elif not found and not self.is_found:
+                elif not found and not self.gate_maneuver.is_found_once:
                     if count > self.kill_threshold:
                         self.is_killed = True
                         print 'is is_killed'

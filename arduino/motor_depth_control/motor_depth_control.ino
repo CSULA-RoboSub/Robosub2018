@@ -291,7 +291,7 @@ void writeMotors(){
   if(t8Power == motorBase)
     T8.writeMicroseconds(t8Power);  
   else
-    T8.writeMicroseconds(t8Power-11);
+    T8.writeMicroseconds(t8Power-10);
 }
 //reed switch helper function
 void killSwitch(){
