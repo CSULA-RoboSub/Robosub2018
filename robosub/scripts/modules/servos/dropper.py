@@ -13,9 +13,6 @@ from modules.main.status import log
 
 """ Controls dropper"""
 
-CLOSE_BOTH_GATES = 0
-OPEN_BOTH_GATES = 1
-DROP_ONE_BALL = 2
 DROP_OPTIONS = {
     0: 'CLOSE BOTH GATES',
     1: 'OPEN BOTH GATES',
