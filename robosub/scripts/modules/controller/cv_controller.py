@@ -211,7 +211,7 @@ class CVController():
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h0m36s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_path_follow_2018-7-25_18h11m40s_output.avi')
         # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
-        self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
+        self.cap = cv2.VideoCapture('video_output/raw_gate_3.avi')
         
         #dark gate
         # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_19h40m32s_output.avi')
