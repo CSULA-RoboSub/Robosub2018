@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import detect_dice_per_frame as ddpf
 
-cap = cv2.VideoCapture('/home/mark/Desktop/raw_dice_1.avi')
+cap = cv2.VideoCapture('/home/mark/Desktop/raw_dice_04.avi')
 detector = ddpf.DetectDicePerFrame()
 
 while(True):
