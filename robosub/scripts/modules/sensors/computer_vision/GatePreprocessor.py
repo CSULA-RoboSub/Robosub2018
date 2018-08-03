@@ -242,10 +242,7 @@ class GatePreprocessor:
             tmp_list.append(i[0])
             tmp_list.append(i[1])
             new_list.append(tmp_list)
-    #cv2.rectangle(img,(384,0),(510,128),(0,255,0),3)
-    #x, y, w, h = cv2.boundingRect(img_contours)
-
-print(new_list)
+        return new_list
 
 
     def filter_contours(self, frame_contours):
