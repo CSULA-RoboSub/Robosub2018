@@ -185,7 +185,7 @@ const double defaultHeightPower = 100;
 ///////////////////////////////////////////////
 
 /////////////////PID_heading constants and variables/////////////////
-const double kp_heading=10; //11;//3.55;//3.55
+const double kp_heading=11; //11;//3.55;//3.55
 const double kd_heading=0.4; //0.75;//2.05;//2.05
 const double ki_heading=0.003;
 
@@ -222,7 +222,7 @@ const double keepPositionRightThreshold = 0.5; //meters
 const double keepPositionMaxPowerForwardBackward = 200;
 const double keepPositionMaxPowerRightLeft = 200;
 const double keepCourseRightMult = 0.03;
-const double keepCourseForwardMult = 0.1;
+const double keepCourseForwardMult = 0.09;
 
 //----------------------------------------------------------------------------
 //---------------------------- helper functions ------------------------------

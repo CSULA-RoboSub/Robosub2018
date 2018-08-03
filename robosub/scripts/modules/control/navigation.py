@@ -115,7 +115,7 @@ class Navigation():
         self.depth_cap = 3.5
 
         #var for saved heading
-        self.saved_heading = 0
+        self.saved_heading = None
         self.saved_heading_path1 = None
     def set_h_nav(self, hState, depth, hPower):
         """

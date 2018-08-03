@@ -11,10 +11,10 @@ class PathPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([50, 1, 200], 'uint8')
-        self.upper_red_orange = np.array([90, 255, 255], 'uint8')
+        self.lower_red_orange = np.array([20, 2, 96], 'uint8')
+        self.upper_red_orange = np.array([34, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([170, 1, 200], 'uint8')
+        self.lower_red_blue = np.array([170, 2, 96], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         self.roi_size = 2400
@@ -22,8 +22,8 @@ class PathPreprocessor():
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size
         self.kernel = np.ones( (5, 5), np.uint8) # basic filter
-        self.lower_bgr = np.array([200, 96, 86], 'uint8')
-        self.upper_bgr = np.array([254, 254, 254], 'uint8')
+        self.lower_bgr = np.array([200, 97, 97], 'uint8')
+        self.upper_bgr = np.array([255, 255, 255], 'uint8')
 
     def filter_contours(self, frame_contours):
         new_cont_list = []

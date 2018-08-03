@@ -1,3 +1,4 @@
+import time
 
 class GateManeuver():
     def __init__(self):
@@ -72,6 +73,7 @@ class GateManeuver():
         self.depth_change = 1
         self.depth = -1
         self.h_power = 100
+        self.m_power = 100
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_direction = 'right'
@@ -128,7 +130,7 @@ class GateManeuver():
             navigation.cancel_r_nav()
             navigation.cancel_and_m_nav('power', self.move_forward, power)
             navigation.cancel_and_h_nav('down', self.depth_change, self.h_power)
-
+            
         if self.forward_movement_timer >= self.forward_movement_threshold:
             self.is_past_gate = True
             
@@ -256,7 +258,7 @@ class GateManeuver():
             if self.nothing_found_counter >= self.nothing_found_threashold:
                 # self.rotate(navigation, self.rotation_power, rotation)
                 #self.sweep(navigation, self.sweep_power, rotation)
-                pass
+                self.plan_b_movement(navigation, coordinates, self.m_power, rotation, width_height, found)
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)

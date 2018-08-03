@@ -98,6 +98,7 @@ class Dice(Task):
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
+        time.sleep(1)
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
             # try:

@@ -215,8 +215,8 @@ void loop() {
     // LcdWriteString(dtostrf(yaw, 5, 2, string));
 
     //read reed switch
-    reedVal = digitalRead(REED);
-    // reedVal = LOW;
+    // reedVal = digitalRead(REED);
+    reedVal = LOW;
     
     // nh.loginfo("--------------------------");
     // nh.loginfo(HIGH);
