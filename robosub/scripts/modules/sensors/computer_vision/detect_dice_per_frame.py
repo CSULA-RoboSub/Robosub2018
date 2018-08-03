@@ -51,3 +51,29 @@ class DetectDicePerFrame:
         for x, y, w, h in boxes:
             cv2.rectangle(frame, (x,y),(x+w, y+h), (0, 255, 0), 2)
 
+    def draw_boxes_on_dice(self, frame):
+        x, y, w, h = self.get_bounding_box_with_max_pips(frame)
+        cv2.rectangle(frame, (x,y),(x+w, y+h), (0, 255, 0), 2)
+
+    def find_pips(self, img):
+        # Set up the detector with default parameters.
+        detector = cv2.SimpleBlobDetector_create()
+
+        # Detect blobs.
+        keypoints = detector.detect(img)
+
+        return keypoints
+
+    def get_bounding_box_binary_images(self, img, boxes):
+        binary = self.preprocess(img.copy())[0]
+        imgs = [(binary[y:y+h,x:x+w], (x,y,w,h)) for (x, y, w, h) in boxes]
+        return imgs
+
+    def get_bounding_box_with_max_pips(self, img):
+        boxes = self.get_bounding_boxes(img)
+        if not boxes or boxes is None:
+            return (0, 0, 0, 0)
+        imgs = self.get_bounding_box_binary_images(img, boxes)
+        max_box = max(imgs, key=lambda box: len(self.find_pips(box[0])))
+        return max_box[1]
+
