@@ -36,6 +36,7 @@ class CVController():
         self.is_debug = True
         ###########################################
         # CAMERA MODE
+        self.is_camera = True
         self.is_camera_640x480 = False
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()
@@ -132,7 +133,6 @@ class CVController():
         self.is_stop = False
 
 
-        self.is_camera = True
         try:
             self.loop = GLib.MainLoop()
             # self.loop = None
@@ -239,9 +239,11 @@ class CVController():
         
         if self.is_camera:
             self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
+            # self.cap = cv2.VideoCapture(0)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
-            self.cap.set(cv2.CAP_PROP_FPS, 60)
+            # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            # self.cap.set(cv2.CAP_PROP_FPS, 60)
             self.start_camera_async()
         else:
             #path
@@ -595,7 +597,7 @@ class CVController():
         
         # self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
         # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
-        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         # self.cap.set(cv2.CAP_PROP_FPS, 60)
         # self.pipeline[camera_direction].set_state(Gst.State.NULL)
 

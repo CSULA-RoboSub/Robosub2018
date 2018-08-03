@@ -121,7 +121,7 @@ class Dice(Task):
                     most_occur_coords = [0, 0]
 
                 
-                # self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
+                self.navigate(navigation, found, most_occur_coords, m_power, rotation, shape, width_height)
 
                 # print 'running {} task'.format(task_name)
                 # print 'widthxheight: {}'.format(width_height)

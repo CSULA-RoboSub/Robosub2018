@@ -163,3 +163,18 @@ def draw_blue_box(frame, box):
 
 def dist(pt):
     return math.sqrt((pt[1][0] - pt[0][0])**2 + (pt[1][1] - pt[0][1])**2)
+
+def best_pair_index(_list, delta):
+    _list2 = sorted(_list, reverse=True)
+    list_idx = sorted(range(len(_list)), key=lambda k: _list[k], reverse=True)
+    last = 99999
+    idx = None
+    idx2 = None
+    for i, n in enumerate(_list2):
+        if last - n < delta:
+            idx2 = i
+            break
+        last = n
+        idx = i
+        
+    return (list_idx[idx2], list_idx[idx])

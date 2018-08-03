@@ -69,7 +69,7 @@ class GatePreprocessor:
 
         # transdec
         self.lower_hsv = np.array([0, 40, 150], 'uint8')
-        self.lower_hsv = np.array([10, 255, 255], 'uint8')
+        self.upper_hsv = np.array([10, 255, 255], 'uint8')
         self.lower_bgr = np.array([130, 150, 190], 'uint8')
         self.upper_bgr = np.array([254, 255, 255], 'uint8')
 
@@ -119,7 +119,7 @@ class GatePreprocessor:
             hsv2bgr = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
 
             mask = cv2.inRange(hsv2bgr, self.lower_bgr, self.upper_bgr)
-            output = cv2.bitwise_and(img, img, mask=mask_bgr)
+            output = cv2.bitwise_and(img, img, mask=mask)
 
         elif self.use_hsv_and_bgr:
             hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
@@ -211,22 +211,26 @@ class GatePreprocessor:
 
 
     def create_dataset(self, contours):
+        if contours is None:
+            return None, None
         X = []
         y = []
 
-        for i, cont in enumerate(contours):
-            M = cv2.moments(cont)
-            #cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
-            cy = int(M["m01"] / M["m00"]) # add 1 to avoid division by zero
-            perimeter = cv2.arcLength(cont, True)
-            X.append([perimeter, cy])
-            y.append([i])
+        for cont in contours:
+            if cont is not None:
+                M = cv2.moments(cont)
+                #cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
+                cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
+                perimeter = cv2.arcLength(cont, True)
+                X.append([perimeter, cy])
 
-        return (pd.DataFrame(X), pd.Series(y) )
+        return (pd.DataFrame(X), None )
 
 
     def nearest_neighbors(self, dataset, distance=False):
-        if len(dataset) < 2:
+        if dataset is None:
+            return None
+        elif len(dataset) < 2:
             return None
         else:
             nn = NearestNeighbors(n_neighbors=2)
@@ -236,6 +240,8 @@ class GatePreprocessor:
 
     # need to error check - converts nearest neighbor list to a better formated list for parsing
     def create_pairs(self, conts):
+        if conts is None:
+            return None
         new_list = []
         for i in conts:
             tmp_list = []
@@ -256,6 +262,8 @@ class GatePreprocessor:
 
 
     def return_box_pairs(self, filtered_contours, converted_pairs):
+        if converted_pairs is None:
+            return None
         pair_tuple = []
         counter = 0
         for pair in converted_pairs:
@@ -362,15 +370,7 @@ class GatePreprocessor:
 
         filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
 
-        X_df, y_df = create_dataset(filtered_contours) # not using y_df
-
-        contour_pairs = nearest_neighbors(X_df)
-
-        converted_pairs = create_pairs(contour_pairs)
-
-        roi_pairs = return_box_pairs(filtered_contours, converted_pairs)
-
         boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
         interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
 
-        return interest_regions, roi_pairs
+        return interest_regions

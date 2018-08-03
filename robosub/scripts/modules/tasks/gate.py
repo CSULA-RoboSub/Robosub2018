@@ -130,7 +130,7 @@ class Gate(Task):
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
-            self.is_moving_forward_camera_changed = True
+            # self.is_moving_forward_camera_changed = True
             if not self.gate_maneuver.is_moving_forward and not self.is_moving_forward_camera_changed:
                 # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
@@ -150,13 +150,14 @@ class Gate(Task):
                     except:
                         most_occur_coords = [0, 0]
 
+                    self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
+
                     # print 'running {} task'.format(task_name)
                     # print 'gate shape: {}, widthxheight: {}'.format(gate_shape, width_height)
                     # print 'current count: {}'.format(count)
                     # print 'coordinates: {}'.format(most_occur_coords)
                     # print '--------------------------------------------'
                     # print 'type: navigation cv 0, or task to cancel task'
-                    # self.navigate(navigation, found, most_occur_coords, m_power, rotation, gate_shape, width_height)
                     
                     self.last_time = time.time()
                     self.counter = Counter()

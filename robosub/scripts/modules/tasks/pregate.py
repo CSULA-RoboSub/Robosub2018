@@ -37,7 +37,7 @@ class PreGate(Task):
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.selected_heading = 'b'
+        self.selected_heading = 'c'
 
         self.r_power=80
         self.h_power=100
