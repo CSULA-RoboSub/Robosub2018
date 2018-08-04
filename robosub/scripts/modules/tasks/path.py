@@ -13,7 +13,6 @@ class Path(Task):
     def __init__(self, Houston):
         """ To initialize Path """
         super(Path, self).__init__()
-        self.reset()
         ################ INSTANCES ################
         self.houston = Houston
         self.path_maneuver = PathManeuver()
@@ -64,6 +63,7 @@ class Path(Task):
 
         ################ ROI VARIABLES ################
 
+        self.reset()
     # reset ##################################################################################
     def reset(self): 
         self.detectpath = None

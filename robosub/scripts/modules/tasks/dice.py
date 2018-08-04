@@ -14,7 +14,6 @@ class Dice(Task):
     def __init__(self, Houston):
         """ To initialize Dice """
         super(Dice, self).__init__()
-        self.reset()
         ################ INSTANCES ################
         self.houston = Houston
         self.dice_maneuver = DiceManeuver()
@@ -68,6 +67,7 @@ class Dice(Task):
         self.laptop_camera = (640, 480)
         self.sub_driver_camera = (744, 480)
 
+        self.reset()
     # reset ################################################################################## 
     def reset(self):
         self.is_found = False

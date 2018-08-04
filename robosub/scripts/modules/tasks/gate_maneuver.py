@@ -281,5 +281,5 @@ class GateManeuver():
     # plan_b_movement ##################################################################################
     def plan_b_movement(self, navigation, coordinates, power, rotation, width_height, found):
         # TODO implement gate.orientation_heading to set heading and go forward
-        navigation.cancel_and_m_nav('power', self.move_forward, 140)
+        navigation.cancel_and_m_nav('power', self.move_forward, 100)
 

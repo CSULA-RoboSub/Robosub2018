@@ -65,7 +65,7 @@ class Houston():
         ########## RUN ALL TASK QUEUE #############
         self.states_run_all = [
             self.pregate,
-            self.gate, 
+            # self.gate, 
             self.path_1, 
             self.dice,
             self.path_2,

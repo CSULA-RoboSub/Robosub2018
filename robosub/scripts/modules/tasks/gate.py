@@ -19,7 +19,6 @@ class Gate(Task):
     def __init__(self, Houston):
         """ To initialize Gate """
         super(Gate, self).__init__()
-        self.reset()
         
         ################ INSTANCES ################
         self.houston = Houston
@@ -36,7 +35,7 @@ class Gate(Task):
         self.cant_find_threshold = 2000
         self.is_moving_forward_camera_changed_threshold = 60
         self.rotated_to_center_verify_threshold = 20 
-        self.kill_threshold = 400
+        self.kill_threshold = 300
 
         ################ FLAG VARIABLES ################
         # self.is_found_once = False
@@ -89,6 +88,9 @@ class Gate(Task):
         ################ THREAD VARIABLES ################    
         self.thread_gate = None
         self.mutex = Lock()
+
+        self.reset()
+
 
         rospy.Subscriber('movement_control_status', MControl, self.m_status_callback, queue_size=100)
     # reset ##################################################################################

@@ -33,7 +33,7 @@ class CVController():
     def __init__(self):
         ###########################################
         # DEBUG MODE SHOW OUTPUT
-        self.is_debug = False
+        self.is_debug = True
         ###########################################
         # CAMERA MODE
         self.is_camera = True
