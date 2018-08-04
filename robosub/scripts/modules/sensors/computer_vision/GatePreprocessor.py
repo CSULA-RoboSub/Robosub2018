@@ -55,10 +55,10 @@ class GatePreprocessor:
         # self.upper_red_blue = np.array([180, 255, 254])
 
         #dark 1
-        self.lower_red_orange = np.array([0, 16, 29], 'uint8')
-        self.upper_red_orange = np.array([31, 255, 255], 'uint8')
+        self.lower_red_orange = np.array([0, 30, 29], 'uint8')
+        self.upper_red_orange = np.array([81, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([130, 16, 29], 'uint8')
+        self.lower_red_blue = np.array([130, 30, 29], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         ''' BGR color values '''
@@ -71,6 +71,7 @@ class GatePreprocessor:
         # transdec
         self.lower_hsv = np.array([0, 40, 150], 'uint8')
         self.upper_hsv = np.array([10, 255, 255], 'uint8')
+
         self.lower_bgr = np.array([130, 150, 190], 'uint8')
         self.upper_bgr = np.array([254, 255, 255], 'uint8')
 
@@ -88,13 +89,13 @@ class GatePreprocessor:
         self.morph_ops = True # testing
 
         ''' KERNEL '''
-        #self.kernel = np.ones( (5, 5), np.uint8) # basic filter
+        self.kernel_dil = np.ones( (5, 5), np.uint8) # basic filter
         self.kernel = kernel_diag_pos
         self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
         self.shape_buffer = 15
         self.frame_size = (744, 480)
-        self.shape_ratio_lower = 0.50
-        self.shape_ratio_upper = 1.50
+        self.shape_ratio_lower = 0.20
+        self.shape_ratio_upper = 1.80
 
         # self.kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
         # self.kernel = np.array([[0, 1, 1, 1, 0],
@@ -137,8 +138,8 @@ class GatePreprocessor:
 
             color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask_hsv)
 
-            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel_dil) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel_dil, iterations=3) # make chubby
             output_hsv = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
             mask = cv2.inRange(output_hsv, self.lower_bgr, self.upper_bgr)
@@ -156,8 +157,8 @@ class GatePreprocessor:
 
             color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
 
-            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel_dil) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel_dil, iterations=3) # make chubby
             output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
         else:
@@ -169,8 +170,8 @@ class GatePreprocessor:
 
             color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
 
-            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel_dil) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel_dil, iterations=3) # make chubby
             output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
         # mask_inv = cv2.bitwise_not(mask)
@@ -363,6 +364,22 @@ class GatePreprocessor:
     #     return interest_regions
     #     '''
 
+    def find_pips(self, img):
+    # Set up the detector with default parameters.
+        detector = cv2.SimpleBlobDetector_create()
+        # Detect blobs.
+        keypoints = detector.detect(img)
+
+        return keypoints
+
+    def get_crop_from_bounding_box(self, img, box):
+        x, y, w, h = box
+        return img[y:y+h, x:x+w]
+
+    def find_number_of_pips(self, box, img):
+        crop = self.get_crop_from_bounding_box(img, box)
+        return len(self.find_pips(crop))
+
     # new BGR color filter - only finds bars right now
     def get_interest_regions(self, frame):
 
@@ -388,13 +405,13 @@ class GatePreprocessor:
         boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
 
         # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and self.find_number_of_pips(b)>0]
 
         return interest_regions
 
     def detect_whole_gate(self, interest_regions, shape):
         ret = []
-        
+
         if interest_regions:
 
             area_max = 0
@@ -487,7 +504,7 @@ class GatePreprocessor:
         if float(w)/float(h) < ratio_lower:
             return self.shapes[1] # vertical
         #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
-        elif float(w)/float(h) > ratio_upper:    
+        elif float(w)/float(h) > ratio_upper:
             return self.shapes[2] # horizontal
         else:
             return self.shapes[3] # square

@@ -36,7 +36,7 @@ class CVController():
         self.is_debug = True
         ###########################################
         # CAMERA MODE
-        self.is_camera = False
+        self.is_camera = True
         self.is_camera_640x480 = False
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()
@@ -152,7 +152,6 @@ class CVController():
             self.camera_start_dictionary[self.sub_camera_found](task_name)
         # time.sleep(self.time_delay)
         print 'start cvcontroller'
-
     # stop ##################################################################################
     def stop(self):
         self.is_stop = True
@@ -253,6 +252,7 @@ class CVController():
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
             # self.cap = cv2.VideoCapture('video_output/8-2-18/a2/raw_path_follow_2018-8-2_9h49m1s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_path.avi')
             
 
             #dark gate

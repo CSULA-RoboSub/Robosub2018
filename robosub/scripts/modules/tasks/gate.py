@@ -33,13 +33,15 @@ class Gate(Task):
         self.cant_find_threshold = 2000
         self.is_moving_forward_camera_changed_threshold = 100
         self.rotated_to_center_verify_threshold = 20 
-        
+        self.kill_threshold = 220
+
         ################ FLAG VARIABLES ################
-        self.is_found = False
+        # self.is_found_once = False
         self.stop_task = False
         # self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
+        self.is_killed = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.not_found_timer = 0
@@ -91,11 +93,12 @@ class Gate(Task):
     def reset(self):
         self.detectgate = None
 
-        self.is_found = False
+        # self.is_found_once = False
         # self.is_complete = False
         self.is_camera_changed = False
         self.is_moving_forward_camera_changed = False
         self.is_reached_distance = False
+        self.is_killed = False
 
         self.not_found_timer = 0
         self.found_timer = 0
@@ -126,11 +129,12 @@ class Gate(Task):
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         self.mutex.acquire()
+        time.sleep(1)
         count = 0
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
-            # self.is_moving_forward_camera_changed = True
+            self.is_moving_forward_camera_changed = True
             if not self.gate_maneuver.is_moving_forward and not self.is_moving_forward_camera_changed:
                 # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
@@ -138,10 +142,14 @@ class Gate(Task):
                 if found:
                     self.direction_list.append(directions)
 
-                    if not self.is_found:
-                        self.is_found = True
+                    if not self.gate_maneuver.is_found_once:
+                        self.gate_maneuver.is_found_once = True
                         navigation.cancel_all_nav()
-                        
+                elif not found and not self.gate_maneuver.is_found_once:
+                    if count > self.kill_threshold:
+                        self.is_killed = True
+                        print 'is is_killed'
+
                 if (time.time()-self.last_time > 0.05):
                     count += 1
 
@@ -165,7 +173,7 @@ class Gate(Task):
                 # except:
                 #     print('gate task error')
 
-            elif not self.is_moving_forward_camera_changed:
+            elif (not self.is_moving_forward_camera_changed or self.is_killed):
                 self.is_moving_forward_camera_changed = True
                 # self.is_moving_forward_camera_changed_counter = 0
                 count = 0
@@ -180,7 +188,7 @@ class Gate(Task):
 
                     # self.is_moving_forward_camera_changed_counter += 1
 
-            elif self.is_moving_forward_camera_changed and count >= self.is_moving_forward_camera_changed_threshold:
+            elif (self.is_moving_forward_camera_changed or self.is_killed) and count >= self.is_moving_forward_camera_changed_threshold:
                 found, directions, gate_shape, width_height = cvcontroller.detect(self.path_task_name)
                 if (time.time()-self.last_time > 0.05):
                     # print 'counter since camera change: {}'.format(count)     
@@ -193,7 +201,7 @@ class Gate(Task):
 
             else:
                 print 'logic error in gate.py start'
-
+        # navigation.cancel_and_m_nav('power', 'forward', self.m_power)
         # TODO we can implement a plan_b from gate_maneuver if detection does not work
         # will need to keep heading from orientation
         cvcontroller.stop()     
@@ -258,6 +266,7 @@ class Gate(Task):
     def complete(self):
         # if self.gate_maneuver.completed_gate() and self.is_camera_changed and self.found:
         #     self.is_complete = True
+        # ret = self.is_killed or 
         return self.gate_maneuver.completed_gate_check()
 
     # get_most_occur_coordinates ##################################################################################
@@ -283,7 +292,7 @@ class Gate(Task):
         # print(rotation_status)
         # print('movement_status.power: {}, movement_status.mDirection: {}, movement_status.distance: {}, movement_status.state: {}, self.m_state_is_moving_forward: {}'.format(movement_status.power, movement_status.mDirection, movement_status.distance, movement_status.state, self.m_state_is_moving_forward))
 
-        if self.is_moving_forward:
+        if self.gate_maneuver.is_moving_forward:
             # print('self.is_moving_forward')
             if movement_status.state == 0 and self.m_state_is_moving_forward == 1 and abs(movement_status.distance - self.m_distance_forward) < 0.001 and movement_status.power == 0:
                 # print('in state 1')
