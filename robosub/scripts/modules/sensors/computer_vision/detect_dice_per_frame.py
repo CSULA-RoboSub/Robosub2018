@@ -7,7 +7,7 @@ import numpy as np
 class DetectDicePerFrame:
     def __init__(self):
         self.sensitivity = 10
-        self.lower = np.array([0,0,220])
+        self.lower = np.array([0,0,100])
         self.upper = np.array([255,self.sensitivity,255])
 
         self.min_cont_size = 100
@@ -50,7 +50,7 @@ class DetectDicePerFrame:
 
     def get_bounding_boxes(self, frame):
         boxes = self.get_interest_regions(self.preprocess(frame)[0])
-        return [b for b in boxes if b[2]*b[3] > 300]
+        return [b for b in boxes if b[2]*b[3] > 300 and b[2] < 300 and b[3] < 300]
 
     def draw_boxes_on_dice(self, frame):
         boxes = self.get_bounding_boxes(frame)
