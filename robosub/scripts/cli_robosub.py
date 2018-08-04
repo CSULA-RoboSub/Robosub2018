@@ -125,12 +125,16 @@ class CLI(cmd.Cmd):
         '\nto start please enter\
          \n[task] <0-10>\
          \nstop task by entering [task]\
+         \n[task] [next] to go to next task\
          \n'
 
         print('type: [task ?] to see all options')
 
         if arg.lower() == 'stop' or arg.lower() == '':
             AUV.stop_task()
+        if arg.lower() == 'next':
+            AUV.houston.state.stop_task = True
+            AUV.houston.state_num += 1
         elif arg.lower() == 'all':
             AUV.perform_tasks()
         elif arg.lower() == 'heading' or arg.lower() == 'h':
@@ -140,6 +144,7 @@ class CLI(cmd.Cmd):
                    \n[task] (0-{})\
                    \nstop task by entering [task] or [task stop]\
                    \nrun all tasks by entering [task all]\
+                   \ngo to next task by entering [task next]\
                    \nsave current heading by entering [task heading]\
                    \n'.format(len(AUV.houston.tasks)-1))
 
@@ -151,7 +156,7 @@ class CLI(cmd.Cmd):
                 print '\nINVALID NUMBER INPUT'
                 pass
 
-            if arg >= 0 and arg <= len(AUV.houston.tasks):
+            if arg >= 0 and arg <= len(AUV.houston.tasks)-1:
                 AUV.specific_task(arg)
                 # AUV.display_tasks()
         else:
@@ -159,6 +164,7 @@ class CLI(cmd.Cmd):
                    \n[task] (0-{})\
                    \nstop task by entering [task] or [task stop]\
                    \nrun all tasks by entering [task all]\
+                   \ngo to next task by entering [task next]\
                    \nsave current heading by entering [task heading]\
                    \n'.format(len(AUV.houston.tasks)))
 
