@@ -166,7 +166,7 @@ class CLI(cmd.Cmd):
                    \nrun all tasks by entering [task all]\
                    \ngo to next task by entering [task next]\
                    \nsave current heading by entering [task heading]\
-                   \n'.format(len(AUV.houston.tasks)))
+                   \n'.format(len(AUV.houston.tasks)-1))
 
             AUV.display_tasks()
 
