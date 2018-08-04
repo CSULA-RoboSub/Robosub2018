@@ -7,7 +7,7 @@ import numpy as np
 class DetectDicePerFrame:
     def __init__(self):
         self.sensitivity = 10
-        self.lower = np.array([0,0,220])
+        self.lower = np.array([0,0,100])
         self.upper = np.array([255,self.sensitivity,255])
 
         self.min_cont_size = 100
@@ -50,7 +50,7 @@ class DetectDicePerFrame:
 
     def get_bounding_boxes(self, frame):
         boxes = self.get_interest_regions(self.preprocess(frame)[0])
-        return [b for b in boxes if b[2]*b[3] > 300]
+        return [b for b in boxes if b[2]*b[3] > 300 and b[2] < 300 and b[3] < 300]
 
     def draw_boxes_on_dice(self, frame):
         boxes = self.get_bounding_boxes(frame)
@@ -96,15 +96,13 @@ class DetectDicePerFrame:
 
     def get_bounding_box_with_second_most_pips(self, img):
         boxes = self.get_bounding_boxes(img)
-        if self.find_pips(self.get_crop_from_bounding_box(img, max_box)) > 3:
-            return max_box
-        return (0,0,0,0)
-
+        #need at least two boxes
+        if len(boxes) < 2:
+            return 0,0,0,0
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         boxes.remove(max_box)
-        if not boxes:
-            return 0,0,0,0
-
+        
+        #do it again with max removed to get second max
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         pips = self.find_pips(self.get_crop_from_bounding_box(img, max_box))
         if len(pips) > 4:
