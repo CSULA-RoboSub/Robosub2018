@@ -96,15 +96,13 @@ class DetectDicePerFrame:
 
     def get_bounding_box_with_second_most_pips(self, img):
         boxes = self.get_bounding_boxes(img)
-        if self.find_pips(self.get_crop_from_bounding_box(img, max_box)) > 3:
-            return max_box
-        return (0,0,0,0)
-
+        #need at least two boxes
+        if len(boxes) < 2:
+            return 0,0,0,0
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         boxes.remove(max_box)
-        if not boxes:
-            return 0,0,0,0
-
+        
+        #do it again with max removed to get second max
         max_box = max(boxes, key=lambda box: len(self.find_pips(self.get_crop_from_bounding_box(img, box))))
         pips = self.find_pips(self.get_crop_from_bounding_box(img, max_box))
         if len(pips) > 4:
