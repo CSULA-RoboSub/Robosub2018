@@ -13,7 +13,7 @@ class Slots(Task):
     def __init__(self, Houston):
         """ To initialize Slots """
         super(Slots, self).__init__()
-
+        self.task_name = 'slots'
         self.detectslots = None
         self.coordinates = []
         self.is_found = False

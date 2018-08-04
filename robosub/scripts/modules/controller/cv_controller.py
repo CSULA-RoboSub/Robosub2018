@@ -36,7 +36,7 @@ class CVController():
         self.is_debug = True
         ###########################################
         # CAMERA MODE
-        self.is_camera = True
+        self.is_camera = False
         self.is_camera_640x480 = False
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()
@@ -253,6 +253,7 @@ class CVController():
             # self.cap = cv2.VideoCapture('video_output/8-2-18/a2/raw_path_follow_2018-8-2_9h49m1s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_path.avi')
+            self.cap = cv2.VideoCapture('video_output/8-1-18/a1/raw_path_follow_2018-8-1_13h45m32s_output.avi')
             
 
             #dark gate
@@ -261,7 +262,7 @@ class CVController():
             #bright gate
             # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
-            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_gate_2018-8-1_9h37m34s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_gate_2018-8-1_9h37m34s_output.avi')
 
 
             #dice  

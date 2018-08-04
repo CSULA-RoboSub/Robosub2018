@@ -1,7 +1,7 @@
 
 class PathManeuver():
     def __init__(self):
-        
+        self.reset()
         ################ THRESHOLD VARIABLES ################
         self.follow_path_threshold = 200
 
@@ -86,6 +86,7 @@ class PathManeuver():
         self.is_frame_height_max = False
         self.is_no_longer_frame_height_max = False
         self.is_initial_centered = False
+        self.is_running_task = False
 
         self.follow_path_counter = 0
 

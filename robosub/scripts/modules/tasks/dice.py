@@ -18,7 +18,7 @@ class Dice(Task):
         ################ INSTANCES ################
         self.houston = Houston
         self.dice_maneuver = DiceManeuver()
-
+        self.task_name = 'dice'
         ################ THRESHOLD VARIABLES ################
         #self.found_threshold = 300
         self.back_up_threshold = 200
@@ -98,6 +98,7 @@ class Dice(Task):
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
+        self.dice_maneuver.is_running_task = True
         time.sleep(1)
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
@@ -149,7 +150,7 @@ class Dice(Task):
         navigation.cancel_and_r_nav(direction, degree, self.r_power)
         time.sleep(5)
         navigation.m_nav('power', 'forward', self.m_power)
-
+        self.dice_maneuver.is_running_task = False
         self.mutex.release()
     
     # stop ##################################################################################
@@ -215,3 +216,5 @@ class Dice(Task):
         for key, count in counter.most_common(1):
             most_occur = key
         return most_occur 
+
+

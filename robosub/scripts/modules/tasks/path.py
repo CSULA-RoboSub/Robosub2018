@@ -18,6 +18,7 @@ class Path(Task):
         self.houston = Houston
         self.path_maneuver = PathManeuver()
         self.detectpath = None
+        self.task_name = 'path_follow'
         
         ################ THRESHOLD VARIABLES ################
 
@@ -87,10 +88,11 @@ class Path(Task):
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
         cvcontroller.camera_direction = 'down'
-        task_name = 'path_follow' 
+        # task_name = 'path_follow' 
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
+        self.path_maneuver.is_running_task = True
         time.sleep(1)
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
@@ -113,12 +115,12 @@ class Path(Task):
                 self.counter = Counter()
                 self.direction_list = []
 
-                # print 'running {} task'.format(task_name)
-                # print 'widthxheight: {}'.format(width_height_ratio)
-                # print 'current count: {}'.format(count)
-                # print 'coordinates: {}'.format(most_occur_coords)
-                # print '--------------------------------------------'
-                # print 'type: navigation cv 0, or task to cancel task'
+            #     # print 'running {} task'.format(task_name)
+            #     # print 'widthxheight: {}'.format(width_height_ratio)
+            #     # print 'current count: {}'.format(count)
+            #     # print 'coordinates: {}'.format(most_occur_coords)
+            #     # print '--------------------------------------------'
+            #     # print 'type: navigation cv 0, or task to cancel task'
 
         cvcontroller.stop()
         navigation.cancel_all_nav()
@@ -132,6 +134,7 @@ class Path(Task):
 
         navigation.m_nav('power', 'forward', self.m_power)
 
+        self.path_maneuver.is_running_task = False
         self.mutex.release()
     
     # stop ##################################################################################
@@ -233,3 +236,7 @@ class Path(Task):
         for key, count in counter.most_common(1):
             most_occur = key
         return most_occur
+
+    def is_running_task(self):
+        return self.path_maneuver.is_running_task
+

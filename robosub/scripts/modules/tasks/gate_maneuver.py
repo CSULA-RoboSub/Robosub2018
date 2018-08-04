@@ -2,7 +2,7 @@ import time
 
 class GateManeuver():
     def __init__(self):
-
+        self.reset()
         ################ THRESHOLD VARIABLES ################
         self.sweep_timer = 60
         self.nothing_found_threashold = 100
@@ -280,3 +280,5 @@ class GateManeuver():
     def plan_b_movement(self, navigation, coordinates, power, rotation, width_height, found):
         # TODO implement gate.orientation_heading to set heading and go forward
         navigation.cancel_and_m_nav('power', self.move_forward, power)
+
+        

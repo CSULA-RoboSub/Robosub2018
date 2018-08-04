@@ -4,6 +4,7 @@ from robosub.msg import MControl
 
 class DiceManeuver():
     def __init__(self):
+        self.reset()
         ################ THRESHOLD VARIABLES ################
         self.touching_die_threshold = 100
         self.nothing_found_threshold = 120
@@ -84,6 +85,7 @@ class DiceManeuver():
         self.is_1st_die_touched = False
         self.is_2nd_die_touched = False
         self.is_task_complete = False
+        self.is_running_task = False
 
         self.touching_die_counter = 0
         self.nothing_found_counter = 0
@@ -181,6 +183,8 @@ class DiceManeuver():
     def m_status_callback(self, movement_status):
         # print(rotation_status)
         # print('movement_status.power: {}, movement_status.mDirection: {}, movement_status.distance: {}, movement_status.state: {}, self.m_state_is_moving_forward: {}'.format(movement_status.power, movement_status.mDirection, movement_status.distance, movement_status.state, self.m_state_is_moving_forward))
+        if not self.is_running_task:
+            return
 
         if self.is_moving_forward:
             # print('self.is_moving_forward')
@@ -194,3 +198,4 @@ class DiceManeuver():
                 self.dice_touched += 1
                 self.is_1st_die_touched = True
                 # print('in state 2')
+                

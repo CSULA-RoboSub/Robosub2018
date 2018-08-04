@@ -25,13 +25,15 @@ class Gate(Task):
         self.gate_maneuver = GateManeuver()
         self.getrotation = GetRotation()
         self.detectgate = None
+        self.task_name = 'gate'
+        self.path_task_name = 'path'
 
         ################ THRESHOLD VARIABLES ################
         self.phase_threshold = 100
         # self.heading_verify_threshold = 100
         self.under_threshold = 100
         self.cant_find_threshold = 2000
-        self.is_moving_forward_camera_changed_threshold = 100
+        self.is_moving_forward_camera_changed_threshold = 60
         self.rotated_to_center_verify_threshold = 20 
         self.kill_threshold = 220
 
@@ -69,7 +71,6 @@ class Gate(Task):
         }
 
         ################ CONSTANTS ###########################  
-        self.path_task_name = 'path'
         self.path_camera_direction = 'down'
         
         ################ AUV MOBILITY VARIABLES ################
@@ -129,6 +130,8 @@ class Gate(Task):
         cvcontroller.camera_direction = 'forward'
         cvcontroller.start(task_name)
         self.mutex.acquire()
+
+        self.gate_maneuver.is_running_task = True
         time.sleep(1)
         count = 0
         self.last_time = time.time()
@@ -206,6 +209,7 @@ class Gate(Task):
         # will need to keep heading from orientation
         cvcontroller.stop()     
 
+        self.gate_maneuver.is_running_task = True
         self.mutex.release()
 
     # stop ##################################################################################
@@ -292,6 +296,9 @@ class Gate(Task):
         # print(rotation_status)
         # print('movement_status.power: {}, movement_status.mDirection: {}, movement_status.distance: {}, movement_status.state: {}, self.m_state_is_moving_forward: {}'.format(movement_status.power, movement_status.mDirection, movement_status.distance, movement_status.state, self.m_state_is_moving_forward))
 
+        if not self.is_running_task():
+            return
+            
         if self.gate_maneuver.is_moving_forward:
             # print('self.is_moving_forward')
             if movement_status.state == 0 and self.m_state_is_moving_forward == 1 and abs(movement_status.distance - self.m_distance_forward) < 0.001 and movement_status.power == 0:
@@ -304,3 +311,7 @@ class Gate(Task):
                 self.dice_touched += 1
                 self.is_1st_die_touched = True
                 # print('in state 2')
+
+    def is_running_task(self):
+        return self.gate_maneuver.is_running_task
+

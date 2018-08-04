@@ -12,7 +12,7 @@ class Roulette(Task):
     def __init__(self, Houston):
         """ To initialize Roulette """
         super(Roulette, self).__init__()
-
+        self.task_name = 'roulette'
         ################ INSTANCES ################
         self.houston = Houston
         self.roulette_maneuver = RouletteManeuver()

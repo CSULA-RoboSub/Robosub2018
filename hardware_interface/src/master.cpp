@@ -187,11 +187,12 @@ const double defaultHeightPower = 100;
 /////////////////PID_heading constants and variables/////////////////
 const double kp_heading=11; //11;//3.55;//3.55
 const double kd_heading=0.4; //0.75;//2.05;//2.05
-const double ki_heading=0.003;
+const double ki_heading=0.028;
 
 double pid_i_heading = 0;
 // double headingTimePrev = 0;
 double prev_error_heading = 0;
+double rotation_ki_threshold = 7;
 double rotationThreshold = 3;
 ///////////////////////////////////////////////
 
@@ -221,7 +222,7 @@ const double keepPositionForwardThreshold = 0.9; //meters
 const double keepPositionRightThreshold = 0.5; //meters
 const double keepPositionMaxPowerForwardBackward = 200;
 const double keepPositionMaxPowerRightLeft = 200;
-const double keepCourseRightMult = 0.03;
+const double keepCourseRightMult = 0.028;
 const double keepCourseForwardMult = 0.09;
 
 //----------------------------------------------------------------------------
@@ -396,7 +397,7 @@ double rotationPID(double error_heading){
   // double error_heading = degreeToTurn();
   // double rotationElapsedTime = (loopTime - headingTimePrev)/base_thrust;
   // headingTimePrev = loopTime;
-  if(-rotationThreshold <= error_heading && error_heading <= rotationThreshold)
+  if(-rotation_ki_threshold <= error_heading && error_heading <= rotation_ki_threshold)
     pid_i_heading = pid_i_heading+(ki_heading*error_heading);
   else
     pid_i_heading = 0;

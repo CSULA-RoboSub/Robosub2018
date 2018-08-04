@@ -405,7 +405,7 @@ class GatePreprocessor:
         boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
 
         # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and self.find_number_of_pips(b)>0]
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and (self.find_number_of_pips(b) > 5)]
 
         return interest_regions
 

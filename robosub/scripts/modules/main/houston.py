@@ -61,6 +61,17 @@ class Houston():
         
         self.orientation = Orientation()
 
+        ###########################################
+        ########## RUN ALL TASK QUEUE #############
+        self.states_run_all = [
+            self.pregate,
+            self.gate, 
+            self.path_1, 
+            self.dice,
+            self.path_2
+            # self.slots
+        ]
+
         ################ THRESHOLD VARIABLES ################
         self.task_timer = 300
         self.break_timer = 600
@@ -94,14 +105,6 @@ class Houston():
             self.roulette,
             self.pinger_b,
             self.cash_in
-        ]
-
-        self.states_run_all = [
-            self.pregate,
-            self.gate, 
-            self.path_1, 
-            self.dice,
-            self.path_2
         ]
 
         self.gui_states = {
@@ -206,8 +209,8 @@ class Houston():
                 self.state = self.states_run_all[self.state_num]
 
                 self.state.reset()
-                print 'doing task: {}'.format(self.tasks[self.state_num])
-                self.state.start(self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+                print 'doing task: {}'.format(self.state.task_name)
+                self.state.start(self.state.task_name, self.navigation, self.cvcontroller, self.power, self.rotation)
 
                 if self.state.complete():
                     self.state_num += 1
@@ -281,7 +284,7 @@ class Houston():
         self.tasks = config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
-
+        
     # start ##################################################################################
     def start(self):
         #self.get_task()
