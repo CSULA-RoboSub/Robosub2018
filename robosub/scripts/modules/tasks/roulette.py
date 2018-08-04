@@ -86,6 +86,7 @@ class Roulette(Task):
         self.roi_width = 0
         self.roi_area = 0
 
+        self.reset()
     # reset ##################################################################################
     def reset(self):
         self.is_found = False

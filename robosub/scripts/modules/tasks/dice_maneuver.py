@@ -49,9 +49,9 @@ class DiceManeuver():
         }
 
         self.m_power_forward_horizontal = {
-            -1: 85,
+            -1: 100,
              0: 140,
-             1: 85
+             1: 100
         }
 
         ################ AUV MOBILITY VARIABLES ################

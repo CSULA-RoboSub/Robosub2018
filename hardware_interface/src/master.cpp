@@ -187,12 +187,12 @@ const double defaultHeightPower = 100;
 /////////////////PID_heading constants and variables/////////////////
 const double kp_heading=11; //11;//3.55;//3.55
 const double kd_heading=0.4; //0.75;//2.05;//2.05
-const double ki_heading=0.028;
+const double ki_heading=0.008;
 
 double pid_i_heading = 0;
 // double headingTimePrev = 0;
 double prev_error_heading = 0;
-double rotation_ki_threshold = 7;
+double rotation_ki_threshold = 5;
 double rotationThreshold = 3;
 ///////////////////////////////////////////////
 
@@ -385,7 +385,7 @@ void setRotationPower(double rotatePower){
   rotatePower = motorPowerCap(rotatePower);
   
   if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust - (rotatePower*0.5), -1, base_thrust - (rotatePower*0.5));
+    setMHorizontal(-1, base_thrust - (rotatePower*0.4), -1, base_thrust - (rotatePower*0.4));
   }
   else{
     setMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);

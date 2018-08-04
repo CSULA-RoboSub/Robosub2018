@@ -18,13 +18,13 @@ class PathFollowPreprocessor():
         # self.lower_thresh = np.array([0, 49, 39], 'uint8')
         # self.upper_thresh = np.array([18, 255, 255], 'uint8')
 
-        self.lower_red_orange = np.array([0, 1, 66], 'uint8')
+        self.lower_red_orange = np.array([0, 0, 96], 'uint8')
         self.upper_red_orange = np.array([64, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([160, 1, 66], 'uint8')
+        self.lower_red_blue = np.array([150, 0, 96], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
-        self.roi_size = 2200
+        self.roi_size = 2000
         self.ratio_threshold = 0.28
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size

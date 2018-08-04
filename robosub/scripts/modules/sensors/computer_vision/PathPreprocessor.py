@@ -17,7 +17,7 @@ class PathPreprocessor():
         self.lower_red_blue = np.array([160, 2, 66], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
-        self.roi_size = 2200
+        self.roi_size = 2400
         self.ratio_threshold = 0.50
         self.min_cont_size = 100 # min contours size
         self.max_cont_size = 2000 # max contours size

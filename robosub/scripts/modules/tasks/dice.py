@@ -51,9 +51,9 @@ class Dice(Task):
         }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power=85
+        self.r_power=100
         self.h_power=100
-        self.m_power=100
+        self.m_power=120
 
         ################ THREAD VARIABLES ################  
         self.thread_dice = None
@@ -66,6 +66,16 @@ class Dice(Task):
         ################ FRAME VARIABLES ################
         self.laptop_camera = (640, 480)
         self.sub_driver_camera = (744, 480)
+
+
+        self.m_distance_forward_dock = 18.5 
+        # self.m_distance_forward_dock = 3 
+        self.m_distance_forward_path = 9.5
+        # self.m_distance_forward_path = 0.7
+        self.m_distance_forward_ram_dice = 2.1
+        self.m_distance_backward_ram_dice = 2
+        # self.m_distance_forward_ram_dice = 1.1
+        # self.m_distance_backward_ram_dice = 1
 
         self.reset()
     # reset ################################################################################## 
@@ -145,13 +155,14 @@ class Dice(Task):
         cvcontroller.stop()
         navigation.run_queue_waypoints()
         time.sleep(2)
-        navigation.go_to_depth(5.5, self.h_power)
-
         direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading_path1)
         navigation.cancel_and_r_nav(direction, degree, self.r_power)
-        time.sleep(5)
-        navigation.m_nav('distance', 'forward', self.m_power, 11.5)
-        time.sleep(10)
+
+        navigation.go_to_depth(3.5, self.h_power)
+        time.sleep(17)
+
+        navigation.m_nav('distance', 'forward', self.m_power, 12.3)
+        time.sleep(20)
         # navigation.m_nav('power', 'forward', self.m_power)
         self.dice_maneuver.is_running_task = False
         self.mutex.release()

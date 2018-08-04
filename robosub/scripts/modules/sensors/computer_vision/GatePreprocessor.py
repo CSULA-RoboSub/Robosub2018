@@ -410,33 +410,33 @@ class GatePreprocessor:
     
 
     # new BGR color filter - only finds bars right now
-    def get_interest_regions(self, frame):
+    # def get_interest_regions(self, frame):
 
-        bgr2hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    #     bgr2hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        color_filt_frame, mask = self.preprocess(bgr2hsv) # color filtering
+    #     color_filt_frame, mask = self.preprocess(bgr2hsv) # color filtering
 
-        grayscale_frame = cv2.cvtColor(color_filt_frame, cv2.COLOR_BGR2GRAY)
+    #     grayscale_frame = cv2.cvtColor(color_filt_frame, cv2.COLOR_BGR2GRAY)
 
-        ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    #     ret, thresh_frame = cv2.threshold(grayscale_frame, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    #     frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+    #     filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
 
-        X_df, y_df = self.create_dataset(filtered_contours) # not using y_df
+    #     X_df, y_df = self.create_dataset(filtered_contours) # not using y_df
 
-        contour_pairs = self.nearest_neighbors(X_df)
+    #     contour_pairs = self.nearest_neighbors(X_df)
 
-        converted_pairs = self.create_pairs(contour_pairs)
+    #     converted_pairs = self.create_pairs(contour_pairs)
 
-        roi_pairs = self.return_box_pairs(filtered_contours, converted_pairs)
+    #     roi_pairs = self.return_box_pairs(filtered_contours, converted_pairs)
 
-        boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
+    #     boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
 
-        # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and (self.find_number_of_pips(b) > 0)]
+    #     # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+    #     interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and (self.find_number_of_pips(b) > 0)]
 
-        return interest_regions
+    #     return interest_regions
 
     def detect_whole_gate(self, interest_regions, shape):
         ret = []

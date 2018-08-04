@@ -79,7 +79,7 @@ class Gate(Task):
         self.is_heading_correct = False
         self.previous_width_height = (0,0)
         self.direction_list = []
-        self.r_power=70
+        self.r_power=100
         self.h_power=100
         self.m_power=120   
         self.found = False
@@ -91,6 +91,14 @@ class Gate(Task):
 
         self.reset()
 
+        self.m_distance_forward_dock = 18.5 
+        # self.m_distance_forward_dock = 3 
+        self.m_distance_forward_path = 9.5
+        # self.m_distance_forward_path = 0.7
+        self.m_distance_forward_ram_dice = 2.1
+        self.m_distance_backward_ram_dice = 2
+        # self.m_distance_forward_ram_dice = 1.1
+        # self.m_distance_backward_ram_dice = 1
 
         rospy.Subscriber('movement_control_status', MControl, self.m_status_callback, queue_size=100)
     # reset ##################################################################################
@@ -215,6 +223,47 @@ class Gate(Task):
         # TODO we can implement a plan_b from gate_maneuver if detection does not work
         # will need to keep heading from orientation
         cvcontroller.stop()     
+
+        # ########## last ditch ###################################          
+#         navigation.go_to_depth(11, self.h_power)
+
+#         time.sleep(10)
+# ##############################################
+#         navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_path)
+#         navigation.r_nav('left', 45, 90)
+#         navigation.go_to_depth(9, self.h_power)
+
+#         time.sleep(24)
+#         #save waypoint for dice finish
+#         navigation.clear_waypoints()
+#         navigation.enqueue_current_waypoint()
+#         navigation.saved_heading_path1 = navigation.waypoint.heading
+# ###############################################
+
+#         navigation.m_nav('distance', 'forward', self.m_power, 9.5)
+
+#         time.sleep(15)
+
+#         navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_ram_dice)
+#         navigation.r_nav('left', 4, 90)
+
+#         time.sleep(10)
+# ###############################################
+#         navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward_ram_dice)
+
+#         time.sleep(10)
+# ###############################################
+#         self.is_running_dice2_forward = True
+#         navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_ram_dice)
+#         navigation.r_nav('right', 8, 90)
+
+#         time.sleep(10)
+# ###############################################
+#         self.is_running_dice2_backward = True
+#         navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward_ram_dice)
+
+#         time.sleep(10)
+###############################################
 
         self.gate_maneuver.is_running_task = True
         self.mutex.release()

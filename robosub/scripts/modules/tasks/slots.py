@@ -81,6 +81,7 @@ class Slots(Task):
         self.thread_slots = None
         self.mutex = Lock()
 
+        self.reset()
     # detect ##################################################################################
     def detect(self, frame):
         print('detect_dice')

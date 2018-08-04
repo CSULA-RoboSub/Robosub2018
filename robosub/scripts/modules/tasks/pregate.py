@@ -23,8 +23,8 @@ class PreGate(Task):
         ###########################################
         ############ IMPORTANT VARIABLES ##########
         self.selected_heading = 'c'
-        self.coin = 'tails'
-        self.coin_direction = 'left'
+        self.coin = 'heads'
+        self.coin_direction = 'right'
         # self.coin_direction = 'right'
         ################ INSTANCES ################
         self.houston = Houston
@@ -49,8 +49,8 @@ class PreGate(Task):
         }
 
         self.coin_headings = {
-            'tails' : 81.5,
-            'heads' : (81.5 + 90)
+            'tails' : 81.6,
+            'heads' : (81.6 + 90)
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -114,6 +114,7 @@ class PreGate(Task):
                 self.is_busy = True
                 self.is_running_rotation = True
                 #run rotation
+                # navigation.saved_heading = 
                 if navigation.saved_heading is not None:
                     print(str(navigation.saved_heading))
                     direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
@@ -123,6 +124,7 @@ class PreGate(Task):
                     direction = self.coin_direction
                     degree = self.coin_headings[self.coin]
                     print(str(degree))
+
                 print('direction: {} degree: {}'.format(str(direction), str(degree)))
                 #set is running rotation
                 navigation.r_nav(direction, degree, self.r_power)
@@ -134,43 +136,43 @@ class PreGate(Task):
                 self.is_complete = True
 
         # cvcontroller.stop()
-        time.sleep(7)
+        # time.sleep(12)
+        # time.sleep(17)
         navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_dock)
-        # time.sleep(30)
-        time.sleep(15)
-        # if not self.is_do_last_resort:
+        time.sleep(30)
+        # time.sleep(15)
 
-        # ########## last ditch ###################################
-        # if self.is_do_last_resort:
-        #     self.is_running_move_forward_from_dock = True
-        #     navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_dock)
+        ########## last ditch ###################################
+#         if self.is_do_last_resort:
+#             self.is_running_move_forward_from_dock = True
+#             navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_dock)
 
-        #     navigation.go_to_depth(5.5, self.h_power)
-        #     while not self.stop_task and self.is_running_move_forward_from_dock:                
-        #         navigation.do_depth_cap(self.h_power)
+#             navigation.go_to_depth(5.5, self.h_power)
+#             while not self.stop_task and self.is_running_move_forward_from_dock:                
+#                 navigation.do_depth_cap(self.h_power)
 
-        #     time.sleep(2)
-###############################################            
-            # navigation.go_to_depth(11, self.h_power)
-            # while not self.stop_task and not navigation.is_at_assigned_depth():
-            #     navigation.do_depth_cap(self.h_power)
+#             time.sleep(2)
+# ##############################################            
+#             navigation.go_to_depth(11, self.h_power)
+#             while not self.stop_task and not navigation.is_at_assigned_depth():
+#                 navigation.do_depth_cap(self.h_power)
 
-            # time.sleep(2)
-###############################################
+#             time.sleep(2)
+# ##############################################
 #             self.is_running_path = True
 #             navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_path)
-#             navigation.r_nav('left', 45, 90)
+#             navigation.r_nav('left', 10, 90)
 #             navigation.go_to_depth(9, self.h_power)
 
 #             while not self.stop_task and self.is_running_path:
 #                 navigation.do_depth_cap(self.h_power)
 
 #             time.sleep(2)
-# ###############################################
 #             #save waypoint for dice finish
 #             navigation.clear_waypoints()
 #             navigation.enqueue_current_waypoint()
 #             navigation.saved_heading_path1 = navigation.waypoint.heading
+# ###############################################
 
 #             self.is_running_dice1_forward = True
 #             navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_ram_dice)
@@ -270,9 +272,6 @@ class PreGate(Task):
     def h_status_callback(self, height_status):
         if not self.is_running_task_pregate:
             return
-
-        if height_status.state == 1:
-            self.is_complete = True
 
     def m_status_callback(self, movement_status):
         if not self.is_running_task_pregate:
