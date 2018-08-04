@@ -65,22 +65,22 @@ class GatePreprocessor:
         #self.lower_bgr = np.array([212, 0, 0], 'uint8')
         #self.upper_bgr = np.array([200, 255, 255], 'uint8')
 
-        #self.lower_bgr = np.array([130, 150, 210], 'uint8')
-        #self.upper_bgr = np.array([240, 255, 255], 'uint8')
+        self.lower_bgr = np.array([130, 150, 210], 'uint8')
+        self.upper_bgr = np.array([240, 255, 255], 'uint8')
 
         # transdec
         self.lower_hsv = np.array([0, 40, 150], 'uint8')
         self.upper_hsv = np.array([10, 255, 255], 'uint8')
 
-        self.lower_bgr = np.array([130, 150, 190], 'uint8')
-        self.upper_bgr = np.array([254, 255, 255], 'uint8')
+        #self.lower_bgr = np.array([130, 150, 190], 'uint8')
+        #self.upper_bgr = np.array([254, 255, 255], 'uint8')
 
         #----------------------------------------------------------------
         #flags only enable one
-        self.use_bgr = False
+        self.use_bgr = True
         self.use_hsv_and_bgr = False
         self.use_bgr_and_hsv = False
-        self.use_hsv2bgr = True
+        self.use_hsv2bgr = False
         #-------------------------------------------------
 
         self.min_cont_size = 100 # min contours size
@@ -283,6 +283,33 @@ class GatePreprocessor:
         return pair_tuples
 
 
+    def get_interest_regions(self, frame):
+
+        color_filt_frame, mask = self.preprocess(frame) # color filtering
+
+        grayscale_frame = cv2.cvtColor(color_filt_frame, cv2.COLOR_BGR2GRAY) # to grayscale
+
+        ret, thresh_frame = cv2.threshold(grayscale_frame, 100, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        frame_c, frame_contours, frame_heirarchy = cv2.findContours(thresh_frame, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
+
+        X_df, y_df = self.create_dataset(filtered_contours) # not using y_df
+
+        contour_pairs = self.nearest_neighbors(X_df)
+
+        converted_pairs = self.create_pairs(contour_pairs)
+
+        roi_pairs = self.return_box_pairs(filtered_contours, converted_pairs)
+
+        boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
+
+        # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and self.find_number_of_pips(b)>0]
+
+        return interest_regions
+
+
     # returns ROI
     # def get_interest_regions(self, frame):
 
@@ -379,6 +406,8 @@ class GatePreprocessor:
     def find_number_of_pips(self, box, img):
         crop = self.get_crop_from_bounding_box(img, box)
         return len(self.find_pips(crop))
+
+    
 
     # new BGR color filter - only finds bars right now
     def get_interest_regions(self, frame):
