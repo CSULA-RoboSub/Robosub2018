@@ -58,6 +58,34 @@ def get_directions(center, x, y, w, h):
     # print('x: %d, y: %d' %(directions[0],directions[1]))
     return directions
 
+
+def get_directions_large_center(center, x, y, w, h):
+    directions = [0,0]
+    w_pad = w / 3
+    h_pad = h / 3
+    cx = center[0]
+    cy = center[1]
+    # print('x range: %d to %d, y range: %d to %d' %(x + (3*w_pad),x + (4 * w_pad), y + (3*h_pad),y + (4 * h_pad)))
+    # print('cx: %d, cy: %d' %(cx,cy))
+    if x + (1*w_pad) < cx:
+        if cx < x + (2 * w_pad):
+            directions[0] = 0
+        else:
+            directions[0] = -1
+    else:
+        directions[0] = 1
+
+    if y + (1*h_pad) < cy:
+        if cy < y + (2 * h_pad):
+            directions[1] = 0
+        else:
+            directions[1] = 1
+    else:
+        directions[1] = -1
+    
+    # print('x: %d, y: %d' %(directions[0],directions[1]))
+    return directions
+
 def get_directions_right(center, x, y, w, h):
     directions = [0,0]
     w_pad = w / 7

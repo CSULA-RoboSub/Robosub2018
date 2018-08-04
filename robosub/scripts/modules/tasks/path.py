@@ -20,7 +20,7 @@ class Path(Task):
         self.task_name = 'path_follow'
         
         ################ THRESHOLD VARIABLES ################
-        self.path_kill_threshold = 400
+        self.path_kill_threshold = 600
         self.path_kill_direction = ''
         ################ FLAG VARIABLES ################
         self.is_found = False
