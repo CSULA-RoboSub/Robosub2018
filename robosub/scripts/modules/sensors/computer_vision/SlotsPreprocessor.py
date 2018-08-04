@@ -117,7 +117,7 @@ class SlotsPreprocessor:
     def get_upper_color(self):
         return self.upper.tolist()
 
-    
+
     # expects a list - gets converted to a numpy array in setter
     def set_upper_color(self, task_name, upper):
         self.upper = np.array(upper, 'uint8')
