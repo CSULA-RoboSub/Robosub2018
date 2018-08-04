@@ -36,6 +36,7 @@ class CVController():
         self.is_debug = True
         ###########################################
         # CAMERA MODE
+        self.is_camera = True
         self.is_camera_640x480 = False
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()
@@ -133,7 +134,6 @@ class CVController():
         self.is_stop = False
 
 
-        self.is_camera = True
         try:
             self.loop = GLib.MainLoop()
             # self.loop = None
@@ -153,7 +153,6 @@ class CVController():
             self.camera_start_dictionary[self.sub_camera_found](task_name)
         # time.sleep(self.time_delay)
         print 'start cvcontroller'
-
     # stop ##################################################################################
     def stop(self):
         self.is_stop = True
@@ -240,9 +239,11 @@ class CVController():
         
         if self.is_camera:
             self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
+            # self.cap = cv2.VideoCapture(0)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
-            self.cap.set(cv2.CAP_PROP_FPS, 60)
+            # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            # self.cap.set(cv2.CAP_PROP_FPS, 60)
             self.start_camera_async()
         else:
             #path
@@ -251,7 +252,8 @@ class CVController():
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
             # self.cap = cv2.VideoCapture('video_output/8-2-18/a2/raw_path_follow_2018-8-2_9h49m1s_output.avi')
-            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
+            # self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_path.avi')
             
 
             #dark gate
@@ -260,6 +262,8 @@ class CVController():
             #bright gate
             # self.cap = cv2.VideoCapture('video_output/7-25-18/raw_gate_2018-7-25_16h48m45s_output.avi')
             # self.cap = cv2.VideoCapture('video_output/7-20-18/raw_gate_2018-7-20_16h38m23s_output.avi')
+            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_gate_2018-8-1_9h37m34s_output.avi')
+
 
             #dice  
             # self.cap = cv2.VideoCapture('video_output/7-27-18/raw_dice_2018-7-27_17h47m39s_output.avi')
@@ -596,7 +600,7 @@ class CVController():
         
         # self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
         # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
-        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         # self.cap.set(cv2.CAP_PROP_FPS, 60)
         # self.pipeline[camera_direction].set_state(Gst.State.NULL)
 

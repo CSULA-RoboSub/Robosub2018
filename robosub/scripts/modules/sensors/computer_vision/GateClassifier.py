@@ -104,6 +104,7 @@ class GateClassifier:
     '''
     def classify(self, frame, roi): #roi = regions of interest
         gate = None
+        max_prob = 0.0
         max_val = 0
         if self.lsvm is None:
             print 'error lsvm not trained'
@@ -120,4 +121,5 @@ class GateClassifier:
             # if(prediction > 0 and gate_class > self.min_prob and gate_class > max_val):
             if (gate_class > self.min_prob and gate_class > max_val):
                 gate = box
+                max_val = gate_class
         return gate

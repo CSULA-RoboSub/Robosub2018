@@ -1,6 +1,7 @@
 import utils
 import cv2
 import numpy as np
+import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from modules.sensors.computer_vision.utilities.filters import *
 
@@ -54,10 +55,10 @@ class GatePreprocessor:
         # self.upper_red_blue = np.array([180, 255, 254])
 
         #dark 1
-        self.lower_red_orange = np.array([0, 16, 29], 'uint8')
-        self.upper_red_orange = np.array([31, 255, 255], 'uint8')
+        self.lower_red_orange = np.array([0, 30, 29], 'uint8')
+        self.upper_red_orange = np.array([81, 255, 255], 'uint8')
 
-        self.lower_red_blue = np.array([130, 16, 29], 'uint8')
+        self.lower_red_blue = np.array([130, 30, 29], 'uint8')
         self.upper_red_blue = np.array([180, 255, 255], 'uint8')
 
         ''' BGR color values '''
@@ -69,7 +70,8 @@ class GatePreprocessor:
 
         # transdec
         self.lower_hsv = np.array([0, 40, 150], 'uint8')
-        self.lower_hsv = np.array([10, 255, 255], 'uint8')
+        self.upper_hsv = np.array([10, 255, 255], 'uint8')
+
         self.lower_bgr = np.array([130, 150, 190], 'uint8')
         self.upper_bgr = np.array([254, 255, 255], 'uint8')
 
@@ -87,8 +89,14 @@ class GatePreprocessor:
         self.morph_ops = True # testing
 
         ''' KERNEL '''
-        #self.kernel = np.ones( (5, 5), np.uint8) # basic filter
+        self.kernel_dil = np.ones( (5, 5), np.uint8) # basic filter
         self.kernel = kernel_diag_pos
+        self.shapes = {1: "vertical", 2: "horizontal", 3: "square"} # so we can change names quicker
+        self.shape_buffer = 15
+        self.frame_size = (744, 480)
+        self.shape_ratio_lower = 0.20
+        self.shape_ratio_upper = 1.80
+
         # self.kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(5,5))
         # self.kernel = np.array([[0, 1, 1, 1, 0],
         #                         [0, 1, 1, 1, 0],
@@ -119,19 +127,19 @@ class GatePreprocessor:
             hsv2bgr = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
 
             mask = cv2.inRange(hsv2bgr, self.lower_bgr, self.upper_bgr)
-            output = cv2.bitwise_and(img, img, mask=mask_bgr)
+            output = cv2.bitwise_and(img, img, mask=mask)
 
         elif self.use_hsv_and_bgr:
             hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) # to HSV colorspace
 
             mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
             mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
-            mask_hsv = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+            mask_hsv = cv2.bitwise_or(mask_red_orange, mask_red_blue)
 
             color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask_hsv)
 
-            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel_dil) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel_dil, iterations=3) # make chubby
             output_hsv = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
             mask = cv2.inRange(output_hsv, self.lower_bgr, self.upper_bgr)
@@ -145,12 +153,12 @@ class GatePreprocessor:
 
             mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
             mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
-            mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+            mask = cv2.bitwise_or(mask_red_orange, mask_red_blue)
 
             color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
 
-            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel_dil) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel_dil, iterations=3) # make chubby
             output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
         else:
@@ -158,12 +166,12 @@ class GatePreprocessor:
 
             mask_red_orange = cv2.inRange(hsv_frame, self.lower_red_orange, self.upper_red_orange)
             mask_red_blue = cv2.inRange(hsv_frame, self.lower_red_blue, self.upper_red_blue)
-            mask = cv2.addWeighted(mask_red_orange, 1.0, mask_red_blue, 1.0, 0)
+            mask = cv2.bitwise_or(mask_red_orange, mask_red_blue)
 
             color_filt_frame = cv2.bitwise_and(hsv_frame, hsv_frame, mask=mask)
 
-            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel) # fill in
-            dilate_frame = cv2.dilate(close_frame, self.kernel, iterations=3) # make chubby
+            close_frame = cv2.morphologyEx(color_filt_frame, cv2.MORPH_CLOSE, self.kernel_dil) # fill in
+            dilate_frame = cv2.dilate(close_frame, self.kernel_dil, iterations=3) # make chubby
             output = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
         # mask_inv = cv2.bitwise_not(mask)
@@ -211,22 +219,26 @@ class GatePreprocessor:
 
 
     def create_dataset(self, contours):
+        if contours is None:
+            return None, None
         X = []
         y = []
 
-        for i, cont in enumerate(contours):
-            M = cv2.moments(cont)
-            #cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
-            cy = int(M["m01"] / M["m00"]) # add 1 to avoid division by zero
-            perimeter = cv2.arcLength(cont, True)
-            X.append([perimeter, cy])
-            y.append([i])
+        for cont in contours:
+            if cont is not None:
+                M = cv2.moments(cont)
+                #cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
+                cy = int(M["m01"] / M["m00"] + 1) # add 1 to avoid division by zero
+                perimeter = cv2.arcLength(cont, True)
+                X.append([perimeter, cy])
 
-        return (pd.DataFrame(X), pd.Series(y) )
+        return (pd.DataFrame(X), None )
 
 
     def nearest_neighbors(self, dataset, distance=False):
-        if len(dataset) < 2:
+        if dataset is None:
+            return None
+        elif len(dataset) < 2:
             return None
         else:
             nn = NearestNeighbors(n_neighbors=2)
@@ -236,6 +248,8 @@ class GatePreprocessor:
 
     # need to error check - converts nearest neighbor list to a better formated list for parsing
     def create_pairs(self, conts):
+        if conts is None:
+            return None
         new_list = []
         for i in conts:
             tmp_list = []
@@ -256,14 +270,16 @@ class GatePreprocessor:
 
 
     def return_box_pairs(self, filtered_contours, converted_pairs):
-        pair_tuple = []
+        if converted_pairs is None:
+            return None
+        pair_tuples = []
         counter = 0
         for pair in converted_pairs:
             first = filtered_contours[pair[0]]
             second = filtered_contours[pair[1]]
             first_box = cv2.boundingRect(first)
             second_box = cv2.boundingRect(second)
-            pair_tuple.append((first_box, second_box))
+            pair_tuples.append((first_box, second_box))
         return pair_tuples
 
 
@@ -347,6 +363,22 @@ class GatePreprocessor:
     #     return interest_regions
 
 
+    def find_pips(self, img):
+    # Set up the detector with default parameters.
+        detector = cv2.SimpleBlobDetector_create()
+        # Detect blobs.
+        keypoints = detector.detect(img)
+
+        return keypoints
+
+    def get_crop_from_bounding_box(self, img, box):
+        x, y, w, h = box
+        return img[y:y+h, x:x+w]
+
+    def find_number_of_pips(self, box, img):
+        crop = self.get_crop_from_bounding_box(img, box)
+        return len(self.find_pips(crop))
+
     # new BGR color filter - only finds bars right now
     def get_interest_regions(self, frame):
 
@@ -361,15 +393,117 @@ class GatePreprocessor:
 
         filtered_contours = self.filter_contours(frame_contours) # filter the contours based on size
 
-        X_df, y_df = create_dataset(filtered_contours) # not using y_df
+        X_df, y_df = self.create_dataset(filtered_contours) # not using y_df
 
-        contour_pairs = nearest_neighbors(X_df)
+        contour_pairs = self.nearest_neighbors(X_df)
 
-        converted_pairs = create_pairs(contour_pairs)
+        converted_pairs = self.create_pairs(contour_pairs)
 
-        roi_pairs = return_box_pairs(filtered_contours, converted_pairs)
+        roi_pairs = self.return_box_pairs(filtered_contours, converted_pairs)
 
-        boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
-        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size]
+        boxes = self.detect_whole_gate(roi_pairs, self.shapes[1])
 
-        return interest_regions, roi_pairs
+        # boxes = [cv2.boundingRect(c) for c in filtered_contours] # make boxes around contours
+        interest_regions = [b for b in boxes if b[2]*b[3] > self.roi_size and self.find_number_of_pips(b)>0]
+
+        return interest_regions
+
+    def detect_whole_gate(self, interest_regions, shape):
+        ret = []
+
+        if interest_regions:
+
+            area_max = 0
+            area_max2 = 0
+            len_rois = len(interest_regions)
+
+            if len_rois > 0:
+                counted_rois = None
+                for i in range(0, len_rois):
+                    area_mult = 0.4
+
+                    cx, cy, cw, ch = interest_regions[i][0]
+                    cx2, cy2, cw2, ch2 = interest_regions[i][1]
+
+                    carea = float(cw) * float(ch)
+                    neighbor_area_buffer = carea * area_mult
+                    area_check_upper = carea + neighbor_area_buffer
+                    area_check_lower = carea - neighbor_area_buffer
+                    carea2 = float(cw2) * float(ch2)
+                    neighbor_area_buffer2 = carea2 * area_mult
+                    area_check_upper2 = carea2 + neighbor_area_buffer2
+                    area_check_lower2 = carea2 - neighbor_area_buffer2
+
+                    # max_carea = max(carea, carea2)
+
+                    if (area_check_lower2 <= (cw*ch) <= area_check_upper2) and self.get_shape(interest_regions[i][0]) == shape and self.get_shape(interest_regions[i][1]) == shape:
+                        # neighbor_count += 1
+                        counted_rois = interest_regions[0]
+
+                        min_x = self.frame_size[0]
+                        min_y = self.frame_size[1]
+                        max_x = 0
+                        max_y = 0
+                        max_w = 0
+                        max_h = 0
+
+                        for cr in counted_rois:
+                            if min_x > cr[0]:
+                                min_x = cr[0]
+                            if min_y > cr[1]:
+                                min_y = cr[1]
+                            if max_x + max_w < cr[0] + cr[2]:
+                                max_x = cr[0]
+                                max_w = cr[2]
+                            if max_y + max_h < cr[1] + cr[3]:
+                                max_y = cr[1]
+                                max_h = cr[3]
+
+                        if counted_rois is not None:
+                            w_ret = max_x - min_x + max_w
+                            h_ret = max_y - min_y + max_h
+
+                            ret.append((min_x, min_y, w_ret, h_ret))
+                # if len(ret) > 0:
+                #     return ret
+
+        return ret
+
+
+    # def get_shape(self, roi, buff):
+    #     if roi == None:
+    #         return None
+    #     else:
+    #         x, y, w, h = roi
+
+    #     #if ( (h >= (w + buff) ) or (h >= (w - buff) )):
+    #     if h - w > buff:
+    #         return self.shapes[1] # vertical
+    #     #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
+    #     elif w - h > buff:
+    #         return self.shapes[2] # horizontal
+    #     else:
+    #         return self.shapes[3] # square
+
+
+    def get_shape(self, roi, ratio_lower = None, ratio_upper = None):
+        if roi == None:
+            return None
+        else:
+            x, y, w, h = roi
+            if w == 0 or h == 0:
+                return None
+
+        if ratio_lower is None:
+            ratio_lower = self.shape_ratio_lower
+        if ratio_upper is None:
+            ratio_upper = self.shape_ratio_upper
+
+        #if ( (h >= (w + buff) ) or (h >= (w - buff) )):
+        if float(w)/float(h) < ratio_lower:
+            return self.shapes[1] # vertical
+        #elif ( (h <= (w + buff) ) or (h <= (w - buff) )):
+        elif float(w)/float(h) > ratio_upper:
+            return self.shapes[2] # horizontal
+        else:
+            return self.shapes[3] # square

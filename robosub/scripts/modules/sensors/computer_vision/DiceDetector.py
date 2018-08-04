@@ -315,7 +315,7 @@ class DiceDetector:
                 if neighbor_count >= 1:
                     w_ret = max_x - min_x + max_w
                     h_ret = max_y - min_y + max_h
-                    return min_x, min_y, w_ret, h_ret 
+                    return (min_x, min_y, w_ret, h_ret) 
             
         return None
 
@@ -342,3 +342,8 @@ class DiceDetector:
     #     dots = [d for d in dots if d[2] * d[3] < self.dot_size]
 
     #     return len(dots)
+
+# def test_code(self):
+
+    # counted_rois.append(interest_regions[0])
+

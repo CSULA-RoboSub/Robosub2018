@@ -36,9 +36,14 @@ class PreGate(Task):
             'd': 167.5
         }
 
-        ################ AUV MOBILITY VARIABLES ################
-        self.selected_heading = 'b'
+        self.coin_headings = {
+            'tails' : 77.7,
+            'heads' : (77.7 + 90)
+        }
 
+        ################ AUV MOBILITY VARIABLES ################
+        self.selected_heading = 'c'
+        self.coin = 'heads'
         self.r_power=80
         self.h_power=100
         self.m_power=140
@@ -67,7 +72,7 @@ class PreGate(Task):
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
         # cvcontroller.camera_direction = 'forward'
-        # cvcontroller.start(task_name)
+        # cvcontroller.start('gate')
         # count = 0
         self.mutex.acquire()
 
@@ -83,29 +88,32 @@ class PreGate(Task):
                 self.is_running_rotation = True
                 #run rotation
                 if navigation.saved_heading is not None:
-                    print(navigation.saved_heading)
+                    print(str(navigation.saved_heading))
                     direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading)
 
                 else:
-                    print(self.headings[self.selected_heading])
-                    direction, degree = navigation.waypoint.get_directions_with_heading(self.headings[self.selected_heading])
-                
-                # print('direction: {} degree: {}'.format(str(direction), str(degree)))
+                    # direction, degree = navigation.waypoint.get_directions_with_heading(self.headings[self.selected_heading])
+                    direction = 'left'
+                    degree = self.coin_headings[self.coin]
+                    print(str(degree))
+                print('direction: {} degree: {}'.format(str(direction), str(degree)))
                 #set is running rotation
                 navigation.r_nav(direction, degree, self.r_power)
 
             elif self.is_busy and not self.is_running_rotation:
                 # print('in move')
                 #run forward
-                navigation.m_nav('power', 'forward', self.m_power)
                 #set complete
                 self.is_complete = True
 
-                #last ditch
-                # navigation.m_nav('distance', 'forward', self.m_power, 15.5)
-                # time.sleep(7)
             pass
         # cvcontroller.stop()
+
+        # navigation.m_nav('power', 'forward', self.m_power)
+        # time.sleep(3)
+        #last ditch
+        navigation.m_nav('distance', 'forward', self.m_power, 15.5)
+        # time.sleep(7)
         print 'PreGate Finish'
         self.mutex.release()
     
