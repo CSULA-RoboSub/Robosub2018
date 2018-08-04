@@ -60,8 +60,8 @@ class CVController():
         self.tasks = {
             'gate': self.gatedetector,
             'path': self.pathdetector,
-            'path_1': self.pathfollowdetector,
             'path_follow': self.pathfollowdetector,
+            'path_1': self.pathfollowdetector,
             'dice': self.dicedetector,
             'slots': self.slotsdetector,
             'roulette': self.roulettedetector
@@ -157,8 +157,8 @@ class CVController():
     # stop ##################################################################################
     def stop(self):
         self.is_stop = True
-        # self.outraw.release()
-        # self.outprocessed.release()
+        self.outraw.release()
+        self.outprocessed.release()
         self.close_pipeline()
         if self.cap:
             self.cap.release()
@@ -208,8 +208,8 @@ class CVController():
             res = (744, 480)
             # res = (640, 480)
 
-        # self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
-        # self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
+        self.outraw = cv2.VideoWriter('video_output/raw_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
+        self.outprocessed = cv2.VideoWriter('video_output/processed_' + task_name + '_' + timestamp + '_output.avi', self.fourcc, self.fps_output, res)
 
     # sub_driver_camera_start ##################################################################################
     def sub_driver_camera_start(self, task_name):
@@ -239,8 +239,7 @@ class CVController():
         # self.cap.set(cv2.CAP_PROP_EXPOSURE, 1000.0)
         
         if self.is_camera:
-            # self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
-            self.cap = cv2.VideoCapture('video_output/raw_dice_1.avi')
+            self.cap = cv2.VideoCapture(self.camera_ids[self.camera_direction])
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 744)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
             self.cap.set(cv2.CAP_PROP_FPS, 60)
@@ -252,7 +251,7 @@ class CVController():
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path1.avi')
             # self.cap = cv2.VideoCapture('video_output/7-31-18/d1/raw_path_follow_2018-7-31_path2.avi')
             # self.cap = cv2.VideoCapture('video_output/8-2-18/a2/raw_path_follow_2018-8-2_9h49m1s_output.avi')
-            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi') 
+            self.cap = cv2.VideoCapture('video_output/8-1-18/b1/raw_path_follow_2018-8-1_9h39m50s_output.avi')
             
 
             #dark gate
@@ -345,14 +344,13 @@ class CVController():
 
             # self.last_reading.append(coordinates)
             if self.is_debug:
-                # self.outraw.write(frame)
-                pass
+                self.outraw.write(frame)
             # self.current_raw_frame = copy.copy(frame)
             found, coordinates, shape, width_height = self.cv_task.detect(frame)
             
             # self.current_processed_frame = copy.copy(frame)
             if self.is_debug:
-                # self.outprocessed.write(frame)
+                self.outprocessed.write(frame)
                 self.show_img(camera_direction, frame)
 
             # except KeyboardInterrupt:
@@ -376,7 +374,7 @@ class CVController():
 
         frame = copy.copy(self.frame)
         if frame is not None:
-            # self.outraw.write(frame)
+            self.outraw.write(frame)
             # self.current_raw_frame = copy.copy(frame)
             found, directions, shape, width_height = self.cv_task.detect(frame)
             #found, directions, gate_shape, width_height = self.gatedetector.detect(frame)
@@ -385,7 +383,7 @@ class CVController():
             if self.is_debug:
                 self.show_img(self.camera_direction, frame)
 
-            # self.outprocessed.write(frame)
+            self.outprocessed.write(frame)
             # self.current_processed_frame = copy.copy(frame)
             return found, directions, shape, width_height
         return False, None, None, None
@@ -401,8 +399,8 @@ class CVController():
                 # self.frame = self.white_balance(frame)
                 # cv2.balanceWhite(frame, self,frame, cv2.WHITE_BALANCE_SIMPLE)
                 self.frame = frame
-                # if self.is_camera:
-                #     self.auto_exposure(self.camera_direction, balanced_frame)
+                if self.is_camera:
+                    self.auto_exposure(self.camera_direction, balanced_frame)
 
     # detect ##################################################################################
     def detect(self, task):
