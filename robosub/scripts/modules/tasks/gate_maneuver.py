@@ -107,6 +107,8 @@ class GateManeuver():
         self.rotated_to_center = False
         self.is_strafed_to_square = False
         self.is_found_once = False
+        self.is_running_task = False
+
         self.nothing_found_counter = 0
         self.heading_verify_count = 0
     
@@ -259,8 +261,8 @@ class GateManeuver():
             if self.nothing_found_counter >= self.nothing_found_threashold:
                 # self.rotate(navigation, self.rotation_power, rotation)
                 #self.sweep(navigation, self.sweep_power, rotation)
-                if self.is_found_once:
-                    self.plan_b_movement(navigation, coordinates, self.m_power, rotation, width_height, found)
+                # if self.is_found_once:
+                self.plan_b_movement(navigation, coordinates, self.m_power, rotation, width_height, found)
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)
@@ -279,6 +281,5 @@ class GateManeuver():
     # plan_b_movement ##################################################################################
     def plan_b_movement(self, navigation, coordinates, power, rotation, width_height, found):
         # TODO implement gate.orientation_heading to set heading and go forward
-        navigation.cancel_and_m_nav('power', self.move_forward, power)
+        navigation.cancel_and_m_nav('power', self.move_forward, 140)
 
-        

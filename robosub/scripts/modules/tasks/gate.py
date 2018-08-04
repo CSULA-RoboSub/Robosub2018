@@ -19,6 +19,7 @@ class Gate(Task):
     def __init__(self, Houston):
         """ To initialize Gate """
         super(Gate, self).__init__()
+        self.reset()
         
         ################ INSTANCES ################
         self.houston = Houston
@@ -35,7 +36,7 @@ class Gate(Task):
         self.cant_find_threshold = 2000
         self.is_moving_forward_camera_changed_threshold = 60
         self.rotated_to_center_verify_threshold = 20 
-        self.kill_threshold = 220
+        self.kill_threshold = 400
 
         ################ FLAG VARIABLES ################
         # self.is_found_once = False
@@ -137,7 +138,7 @@ class Gate(Task):
         self.last_time = time.time()
         while not self.stop_task and not self.complete():
             navigation.do_depth_cap(self.h_power)
-            self.is_moving_forward_camera_changed = True
+            # self.is_moving_forward_camera_changed = True
             if not self.gate_maneuver.is_moving_forward and not self.is_moving_forward_camera_changed:
                 # try:
                 found, directions, gate_shape, width_height = cvcontroller.detect(task_name)
@@ -149,9 +150,10 @@ class Gate(Task):
                         self.gate_maneuver.is_found_once = True
                         navigation.cancel_all_nav()
                 elif not found and not self.gate_maneuver.is_found_once:
-                    if count > self.kill_threshold:
+                    if count > self.kill_threshold and not self.is_killed:
                         self.is_killed = True
-                        print 'is is_killed'
+                        # self.is_found_once = True
+                        # print 'is is_killed'
 
                 if (time.time()-self.last_time > 0.05):
                     count += 1
@@ -178,6 +180,7 @@ class Gate(Task):
 
             elif (not self.is_moving_forward_camera_changed or self.is_killed):
                 self.is_moving_forward_camera_changed = True
+                print 'changing camera'
                 # self.is_moving_forward_camera_changed_counter = 0
                 count = 0
                 cvcontroller.change_camera_to(self.path_camera_direction, self.path_task_name)
@@ -188,6 +191,7 @@ class Gate(Task):
                     # print 'counter since camera change: {}'.format(count)
                     count += 1
                     self.last_time = time.time()
+                    navigation.cancel_and_m_nav('power', 'forward', self.m_power)
 
                     # self.is_moving_forward_camera_changed_counter += 1
 
@@ -204,6 +208,7 @@ class Gate(Task):
 
             else:
                 print 'logic error in gate.py start'
+
         # navigation.cancel_and_m_nav('power', 'forward', self.m_power)
         # TODO we can implement a plan_b from gate_maneuver if detection does not work
         # will need to keep heading from orientation

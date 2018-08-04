@@ -68,8 +68,8 @@ class Houston():
             self.gate, 
             self.path_1, 
             self.dice,
-            self.path_2
-            # self.slots
+            self.path_2,
+            self.slots
         ]
 
         ################ THRESHOLD VARIABLES ################
@@ -227,12 +227,13 @@ class Houston():
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
-        print '\nattempting to run task number: {}\
-               \ntask: {}'.format(task_num, self.tasks[task_num])
-
         self.state = self.states[task_num]
+        
+        print '\nattempting to run task number: {}\
+               \ntask: {}'.format(task_num, self.state.task_name)
+
         self.state.reset()
-        self.state.start(self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+        self.state.start(self.state.task_name, self.navigation, self.cvcontroller, self.power, self.rotation)
         
         self.is_task_running = False
 
@@ -284,7 +285,7 @@ class Houston():
         self.tasks = config.get_config('auv', 'tasks')
         # ['gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
         # 'roulette', 'pinger_a', 'cash_in']
-        
+
     # start ##################################################################################
     def start(self):
         #self.get_task()

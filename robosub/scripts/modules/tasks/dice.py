@@ -14,7 +14,7 @@ class Dice(Task):
     def __init__(self, Houston):
         """ To initialize Dice """
         super(Dice, self).__init__()
-
+        self.reset()
         ################ INSTANCES ################
         self.houston = Houston
         self.dice_maneuver = DiceManeuver()
@@ -145,11 +145,14 @@ class Dice(Task):
         cvcontroller.stop()
         navigation.run_queue_waypoints()
         time.sleep(2)
-        
+        navigation.go_to_depth(5.5, self.h_power)
+
         direction, degree = navigation.waypoint.get_directions_with_heading(navigation.saved_heading_path1)
         navigation.cancel_and_r_nav(direction, degree, self.r_power)
         time.sleep(5)
-        navigation.m_nav('power', 'forward', self.m_power)
+        navigation.m_nav('distance', 'forward', self.m_power, 11.5)
+        time.sleep(10)
+        # navigation.m_nav('power', 'forward', self.m_power)
         self.dice_maneuver.is_running_task = False
         self.mutex.release()
     

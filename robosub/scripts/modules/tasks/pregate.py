@@ -48,8 +48,8 @@ class PreGate(Task):
         }
 
         self.coin_headings = {
-            'tails' : 81.5,
-            'heads' : (81.5 + 90)
+            'tails' : 81.1,
+            'heads' : (81.1 + 90)
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -64,14 +64,14 @@ class PreGate(Task):
         ################ PREGATE VARIABLES ################
 
         ################ PREGATE CONSTANTS ################
-        # self.m_distance_forward_dock = 15.9 
-        self.m_distance_forward_dock = 3 
-        # self.m_distance_forward_path = 9.3
-        self.m_distance_forward_path = 0.7
-        # self.m_distance_forward_ram_dice = 2.1
-        # self.m_distance_backward_ram_dice = 2
-        self.m_distance_forward_ram_dice = 1.1
-        self.m_distance_backward_ram_dice = 1
+        self.m_distance_forward_dock = 15.9 
+        # self.m_distance_forward_dock = 3 
+        self.m_distance_forward_path = 9.3
+        # self.m_distance_forward_path = 0.7
+        self.m_distance_forward_ram_dice = 2.1
+        self.m_distance_backward_ram_dice = 2
+        # self.m_distance_forward_ram_dice = 1.1
+        # self.m_distance_backward_ram_dice = 1
         
         ################ PREGATE ROS VARIABLES ################
         rospy.Subscriber('rotation_control_status', RControl, self.r_status_callback, queue_size=100)
@@ -143,6 +143,7 @@ class PreGate(Task):
             self.is_running_move_forward_from_dock = True
             navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_dock)
 
+            navigation.go_to_depth(5.5, self.h_power)
             while not self.stop_task and self.is_running_move_forward_from_dock:                
                 navigation.do_depth_cap(self.h_power)
 
@@ -150,7 +151,7 @@ class PreGate(Task):
             while not self.stop_task and not navigation.is_at_assigned_depth():
                 navigation.do_depth_cap(self.h_power)
 
-            time.sleep(1)
+            time.sleep(2)
 
             self.is_running_path = True
             navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_path)
@@ -160,7 +161,7 @@ class PreGate(Task):
             while not self.stop_task and self.is_running_path:
                 navigation.do_depth_cap(self.h_power)
 
-            time.sleep(1)
+            time.sleep(2)
             #save waypoint for dice finish
             navigation.clear_waypoints()
             navigation.enqueue_current_waypoint()
@@ -172,7 +173,7 @@ class PreGate(Task):
             while not self.stop_task and self.is_running_dice1_forward:
                 navigation.do_depth_cap(self.h_power)
 
-            time.sleep(1)
+            time.sleep(2)
 
             self.is_running_dice1_backward = True
             navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward_ram_dice)
@@ -180,7 +181,7 @@ class PreGate(Task):
             while not self.stop_task and self.is_running_dice1_backward:
                 navigation.do_depth_cap(self.h_power)
 
-            time.sleep(1)
+            time.sleep(2)
 
             self.is_running_dice2_forward = True
             navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_ram_dice)
@@ -189,7 +190,7 @@ class PreGate(Task):
             while not self.stop_task and self.is_running_dice2_forward:
                 navigation.do_depth_cap(self.h_power)
 
-            time.sleep(1)
+            time.sleep(2)
 
             self.is_running_dice2_backward = True
             navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward_ram_dice)
@@ -197,7 +198,7 @@ class PreGate(Task):
             while not self.stop_task and self.is_running_dice2_backward:
                 navigation.do_depth_cap(self.h_power)
 
-            time.sleep(1)
+            time.sleep(2)
 
         print 'PreGate Finish'
 

@@ -33,10 +33,10 @@ class CVController():
     def __init__(self):
         ###########################################
         # DEBUG MODE SHOW OUTPUT
-        self.is_debug = True
+        self.is_debug = False
         ###########################################
         # CAMERA MODE
-        self.is_camera = False
+        self.is_camera = True
         self.is_camera_640x480 = False
         ################ INSTANCES ################
         # self.buoydetector = BuoyDetector.BuoyDetector()

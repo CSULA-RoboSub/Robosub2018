@@ -13,7 +13,7 @@ class Path(Task):
     def __init__(self, Houston):
         """ To initialize Path """
         super(Path, self).__init__()
-
+        self.reset()
         ################ INSTANCES ################
         self.houston = Houston
         self.path_maneuver = PathManeuver()
@@ -125,7 +125,7 @@ class Path(Task):
         cvcontroller.stop()
         navigation.cancel_all_nav()
         navigation.go_to_depth(9, self.h_power)
-        time.sleep(4)
+        time.sleep(3)
 
         #save waypoint for dice finish
         navigation.clear_waypoints()
