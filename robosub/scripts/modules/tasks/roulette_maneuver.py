@@ -8,6 +8,7 @@ class RouletteManeuver():
         self.is_coin_aquired = False
         self.is_moving_forward = False
         self.is_coin_dropped = False
+        self.is_centered = False
 
         ################ TIMER/COUNTER VARIABLES ################
 
@@ -24,7 +25,7 @@ class RouletteManeuver():
              0: 'staying',
              1: 'up'
         }
-                                
+
         self.rotation_movement = {
             -1: 'left',
              0: 'staying',
@@ -37,16 +38,16 @@ class RouletteManeuver():
              1: 'right'
         }
 
-        self.coord_boxes = {
-            (-1, 1): 'top left',
-            ( 0, 1): 'top center',
-            ( 1, 1): 'top right',
-            (-1, 0): 'left',
-            ( 0, 0): 'center',
-            ( 1, 0): 'right',
-            (-1,-1): 'bottom left',
-            ( 0,-1): 'bottom center',
-            ( 1,-1): 'bottom right'
+        self.forward_backward_move = {
+            -1: 'backward',
+             0: 'staying',
+             1: 'forward'
+        }
+
+        self.left_right_move = {
+            -1: 'left',
+             0: 'staying',
+             1: 'right'
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -64,6 +65,7 @@ class RouletteManeuver():
     # reset ##################################################################################
     def reset(self):
         self.is_moving_forward = False
+        self.is_centered = False
 
     # go_over_black ##################################################################################
     def go_over_black(self, navigation, found, most_occur_coords, m_power, rotation, shape):
@@ -82,3 +84,13 @@ class RouletteManeuver():
     def completed_roulette_check(self):
         
         return False
+
+    def center_color(self, navigation, coordinates, power):
+        if coordinates[0] != 0:
+            navigation.cancel_and_m_nav('power', self.left_right_move[coordinates[0]], power)
+        elif coordinates[1] != 0:
+            navigation.cancel_and_m_nav('power', self.forward_backward_move[coordinates[1]], power)
+        else:
+            navigation.cancel_m_nav()
+
+        self.nothing_found_counter = 0

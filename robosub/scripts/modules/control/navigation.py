@@ -95,7 +95,7 @@ class Navigation():
         self.is_busy_waypoint = False
         self.w_distance_m = 0
         self.w_power_m = 140
-        self.r_power = 90
+        self.r_power = 85
         self.h_power = 100
         self.m_power = 140
         self.waypoint_state = 0
@@ -115,7 +115,8 @@ class Navigation():
         self.depth_cap = 3.5
 
         #var for saved heading
-        self.saved_heading = 0
+        self.saved_heading = None
+        self.saved_heading_path1 = None
     def set_h_nav(self, hState, depth, hPower):
         """
         hState -- 'down': 0, 'staying': 1, 'up': 2
@@ -304,6 +305,14 @@ class Navigation():
 
     def ros_rate(self, hz = 100):
         rospy.Rate(hz)
+
+
+    def go_to_depth(self, depth, h_power = None):
+        if h_power is None:
+            h_power = 100
+            
+        direction, depth_change = self.waypoint.get_depth_directions(depth)
+        self.h_nav(direction, depth_change, h_power)
 
 ############################### Waypoint Functions ######################################################################################
     

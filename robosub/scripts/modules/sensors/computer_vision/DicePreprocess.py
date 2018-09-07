@@ -49,16 +49,24 @@ class DicePreprocessor:
         return filtered_contours
     
 
-    def get_interest_regions(self, frame):
+    def get_interest_regions(self, frame, die = None):
+        if die is None:
+            die = 5
+        elif die != 5 and die != 6:
+            return None
+
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         color_filter_frame, mask = self.preprocess(hsv_frame)
 
         close_frame = cv2.morphologyEx(color_filter_frame, cv2.MORPH_CLOSE, self.kernel)
         erode_frame = cv2.erode(close_frame, self.kernel, iterations=1)
-        # dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=3)
+        
+        if die == 6:
+            dilate_frame = cv2.dilate(erode_frame, self.kernel, iterations=1)
+            hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
+        else:
+            hsv2bgr_frame = cv2.cvtColor(erode_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
 
-        # hsv2bgr_frame = cv2.cvtColor(dilate_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
-        hsv2bgr_frame = cv2.cvtColor(erode_frame, cv2.COLOR_HSV2BGR) # change color space to BGR
         grayscale_frame = cv2.cvtColor(hsv2bgr_frame, cv2.COLOR_BGR2GRAY) # to grayscale
 
         thresh_frame = cv2.adaptiveThreshold(grayscale_frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 11, 3)

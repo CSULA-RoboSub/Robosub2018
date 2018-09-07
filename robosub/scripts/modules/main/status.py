@@ -1,14 +1,15 @@
 import rospy
 from datetime import datetime
+import os
 from robosub.msg import HControl
 from robosub.msg import RControl
 from robosub.msg import MControl
 
 """ Prints and logs status to file"""
 
-is_logging = True
-
-file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
+is_logging = False
+file_name = ('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt')
+file = open(file_name, 'a')
 
 
 def log(data):
@@ -17,11 +18,12 @@ def log(data):
     data -- str
     """
 
-    print(data)
-    try:
-        file.write(data + '\n')
-    except ValueError:
-        pass
+    if is_logging:
+        print(data)
+        try:
+            file.write(data + '\n')
+        except ValueError:
+            return
 
 
 def printHControl(data):
@@ -50,7 +52,7 @@ def printHControl(data):
         try:
             file.write(text + '\n')
         except ValueError:
-            pass
+            return
 
 
 def printRControl(data):
@@ -78,7 +80,7 @@ def printRControl(data):
         try:
             file.write(text + '\n')
         except ValueError:
-            pass
+            return
 
 
 def printMControl(data):
@@ -116,18 +118,24 @@ def printMControl(data):
         try:
             file.write(text + '\n')
         except ValueError:
-            pass
+            return
 
 
-rospy.Subscriber('height_control', HControl, printHControl)
-rospy.Subscriber('rotation_control', RControl, printRControl)
-rospy.Subscriber('movement_control', MControl, printMControl)
+# rospy.Subscriber('height_control', HControl, printHControl)
+# rospy.Subscriber('rotation_control', RControl, printRControl)
+# rospy.Subscriber('movement_control', MControl, printMControl)
 
 
 def start():
-    # self.file = open('logs/' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_log.txt', 'a')
-    pass
+    return
 
 
 def stop():
     file.close()
+    try:
+        if os.stat(file_name).st_size == 0:
+            os.remove(file_name)
+        else:
+            print(file_name + ' created.')
+    except OSError:
+        return

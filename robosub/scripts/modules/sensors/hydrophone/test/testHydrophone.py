@@ -78,6 +78,7 @@ def h_status_callback(data):
     freq4 = []
     print('times1')
     print('{}, {}, {}, {}'.format(times1[0], times1[1], times1[2], times1[3]))
+    
     print('times2')
     print('{}, {}, {}, {}'.format(times2[0], times2[1], times2[2], times2[3]))
     print('times3')
@@ -162,7 +163,7 @@ def h_status_callback(data):
             else:
                 #directly behind auv
                 direction.append(r_states[0])
-            
+    
     # print('freq1: %.2f, freq2: %.2f, freq3: %.2f, freq4: %.2f' %(freq1,freq2,freq3,freq4))
     # print('direction: {}, turn_degree: {}\n'.format(direction, turn_degree))
     # print('------------------------------------------------------')

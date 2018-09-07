@@ -1,15 +1,17 @@
 import utils
 import time
-import PathClassifier as pc
-import PathPreprocessor as pp
+# import GateClassifier as gc
+import PathFollowPreprocessor as pp
+# import PathPreprocessor as pp
 import cv2
 import math
 
 class PathFollowDetector():
 
     def __init__(self):
-        self.classifier = pc.PathClassifier()
-        self.preprocess = pp.PathPreprocessor()
+        # self.classifier = gc.GateClassifier()
+        self.preprocess = pp.PathFollowPreprocessor()
+        # self.preprocess = pp.PathPreprocessor()
         self.found = False
         self.directions = [0,0,0]
         self.isTaskComplete = False
@@ -38,74 +40,83 @@ class PathFollowDetector():
 
 
     def detect(self, frame):
-        height, width, ch = frame.shape
-        center = (width / 2, height / 2)
-        regions_of_interest, contours = self.preprocess.get_interest_regions(frame)
+        if frame is not None:
+            height, width, ch = frame.shape
+            center = (width / 2, height / 2)
+            regions_of_interest, contours = self.preprocess.get_interest_regions(frame)
 
-        if regions_of_interest:
-            try:
-                max_cont = max(contours, key=lambda x: cv2.contourArea(x))
-                max_cont_area = cv2.contourArea(max_cont)
-                path = cv2.boundingRect(max_cont)
-                # path = utils.get_max_area(regions_of_interest)
-                x, y, w, h = path
-                split1 = frame[y : y + h/2, x : x+w]
-                split2 = frame[y+h/2 : y+h, x : x+w]
+            if regions_of_interest:
+                try:
+                    ratio_filtered = [ [i for i in x if i>0] for x in regions_of_interest ]
+                    
+                    max_cont = max(contours, key=lambda x: cv2.contourArea(x))
+                    max_cont_area = cv2.contourArea(max_cont)
+                    path = cv2.boundingRect(max_cont)
+                    # max_area = cv2.boundingRect(max_cont)
+                    # path = self.classifier.classify(frame, [max_area])
+                    # path = utils.get_max_area(regions_of_interest)
+                    if path is not None:
+                        x, y, w, h = path
+                        split1 = frame[y : y + h/2, x : x+w]
+                        split2 = frame[y+h/2 : y+h, x : x+w]
 
-                split1_rois, _ = self.preprocess.get_interest_regions(split1)
-                split2_rois, _ = self.preprocess.get_interest_regions(split2)
+                        split1_rois, _ = self.preprocess.get_interest_regions(split1)
+                        split2_rois, _ = self.preprocess.get_interest_regions(split2)
 
-                split1_path = utils.get_max_area(split1_rois)
-                split2_path = utils.get_max_area(split2_rois)
+                        split1_path = utils.get_max_area(split1_rois)
+                        split2_path = utils.get_max_area(split2_rois)
 
-                rotation_direction = self.get_rotation_direction(split1_path, split2_path)
+                        rotation_direction = self.get_rotation_direction(split1_path, split2_path)
 
-                ratio = max_cont_area / (w*h)
-                # print(max_cont)
-                # print(path)
-                # print(ratio)
-            except:
+                        ratio = max_cont_area / (w*h)
+                    # print(max_cont)
+                    # print(path)
+                    # print(ratio)
+                except:
+                    path = None
+
+            else:
                 path = None
 
+            for roi in regions_of_interest:
+                utils.draw_red_box(frame, roi)        
+                
+            path_shape = self.get_shape(path, self.shape_buffer)
+            
+            if path == None:
+                self.directions = [0, 0, 0]
+                self.found = False
+                w, h = 0, 0
+                rotation_direction = 0
+                ratio = 0
+            else:
+                # x, y, w, h = path
+                # split1 = frame[y : y + h/2, x : x+w]
+                # split2 = frame[y+h/2 : y+h, x : x+w]
+
+                # split1_rois, _ = self.preprocess.get_interest_regions(split1)
+                # split2_rois, _ = self.preprocess.get_interest_regions(split2)
+
+                # split1_path = utils.get_max_area(split1_rois)
+                # split2_path = utils.get_max_area(split2_rois)
+
+                # rotation_direction = self.get_rotation_direction(split1_path, split2_path)
+
+                # ratio = max_cont_area / (w*h)
+                
+                split1_path = (split1_path[0] + x, split1_path[1] + y, split1_path[2], split1_path[3])
+                split2_path = (split2_path[0] + x, split2_path[1] + y+h/2, split2_path[2], split2_path[3])
+                
+                utils.draw_blue_box(frame, path)
+                utils.draw_green_box(frame, split1_path)
+                utils.draw_green_box(frame, split2_path)
+                self.directions = utils.get_directions_bottom(center, x, y, w, h)
+                self.directions.append(rotation_direction)
+                self.found = True
+            return (self.found, self.directions, path_shape, (w, h, ratio))
         else:
-            path = None
-
-        for roi in regions_of_interest:
-            utils.draw_red_box(frame, roi)        
-            
-        path_shape = self.get_shape(path, self.shape_buffer)
-        
-        if path == None:
-            self.directions = [0, 0, 0]
-            self.found = False
-            w, h = 0, 0
-            rotation_direction = 0
-            ratio = 0
-        else:
-            # x, y, w, h = path
-            # split1 = frame[y : y + h/2, x : x+w]
-            # split2 = frame[y+h/2 : y+h, x : x+w]
-
-            # split1_rois, _ = self.preprocess.get_interest_regions(split1)
-            # split2_rois, _ = self.preprocess.get_interest_regions(split2)
-
-            # split1_path = utils.get_max_area(split1_rois)
-            # split2_path = utils.get_max_area(split2_rois)
-
-            # rotation_direction = self.get_rotation_direction(split1_path, split2_path)
-
-            # ratio = max_cont_area / (w*h)
-            
-            split1_path = (split1_path[0] + x, split1_path[1] + y, split1_path[2], split1_path[3])
-            split2_path = (split2_path[0] + x, split2_path[1] + y+h/2, split2_path[2], split2_path[3])
-            
-            utils.draw_blue_box(frame, path)
-            utils.draw_green_box(frame, split1_path)
-            utils.draw_green_box(frame, split2_path)
-            self.directions = utils.get_directions_bottom(center, x, y, w, h)
-            self.directions.append(rotation_direction)
-            self.found = True
-        return (self.found, self.directions, path_shape, (w, h, ratio))
+            print('error no frame')
+            return False, None, None, None
 
     def get_rotation_direction(self, split1_path, split2_path):
         s1_xl, s1_y, s1_w, s1_h = split1_path

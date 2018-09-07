@@ -57,7 +57,7 @@ class Waypoint():
         
         return True
 
-    def clear_all():
+    def clear_all(self):
         self.waypoint_list = []
 
     #operate waypoint_queue like a queue using slot 0 as front
@@ -128,6 +128,8 @@ class Waypoint():
         return self.heading
 
     def get_depth_directions(self, new_depth):
+        if new_depth is None or self.depth is None:
+            return 'staying', 0
         direction_val = new_depth - self.depth
         if direction_val > 0:
             direction = 'down'
@@ -213,14 +215,17 @@ class Waypoint():
 
         heading_diff = to_heading - self.heading
         # print('heading_diff: {}'.format(heading_diff))
+        direction = self.directions[1]
+
         if heading_diff > 180:
+            direction = self.directions[0]
             heading_diff = 360 - heading_diff
         elif heading_diff <= -180:
+            direction = self.directions[2]
             heading_diff = 360 + heading_diff
 
         #default no direction
-        direction = self.directions[1]
-        if heading_diff < 0:
+        elif heading_diff < 0:
             #direction left
             direction = self.directions[0]
         elif heading_diff > 0:
@@ -228,3 +233,5 @@ class Waypoint():
             direction = self.directions[2]
 
         return direction, abs(heading_diff)
+
+        

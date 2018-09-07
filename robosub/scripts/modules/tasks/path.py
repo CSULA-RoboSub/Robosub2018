@@ -13,14 +13,15 @@ class Path(Task):
     def __init__(self, Houston):
         """ To initialize Path """
         super(Path, self).__init__()
-
         ################ INSTANCES ################
         self.houston = Houston
         self.path_maneuver = PathManeuver()
         self.detectpath = None
+        self.task_name = 'path_follow'
         
         ################ THRESHOLD VARIABLES ################
-
+        self.path_kill_threshold = 600
+        self.path_kill_direction = ''
         ################ FLAG VARIABLES ################
         self.is_found = False
         self.stop_task = False
@@ -44,7 +45,7 @@ class Path(Task):
         # }
 
         ################ AUV MOBILITY VARIABLES ################
-        self.r_power = 75
+        self.r_power = 100
         self.h_power = 100
         self.m_power = 120
 
@@ -58,11 +59,20 @@ class Path(Task):
         self.frame_height_max = 480
         self.frame_width_max = 744
         self.frame_area = self.frame_width_max * self.frame_height_max
-        self.close_enough_area = 54000
+        self.close_enough_area = 56000
         self.area_ratio = 0.50
 
         ################ ROI VARIABLES ################
 
+        self.m_distance_forward_dock = 18.5 
+        # self.m_distance_forward_dock = 3 
+        self.m_distance_forward_path = 9.5
+        # self.m_distance_forward_path = 0.7
+        self.m_distance_forward_ram_dice = 2.1
+        self.m_distance_backward_ram_dice = 2
+        # self.m_distance_forward_ram_dice = 1.1
+        # self.m_distance_backward_ram_dice = 1
+        self.reset()
     # reset ##################################################################################
     def reset(self): 
         self.detectpath = None
@@ -87,11 +97,13 @@ class Path(Task):
     def start(self, task_name, navigation, cvcontroller, m_power=120, rotation=15):
         self.local_cvcontroller = cvcontroller
         cvcontroller.camera_direction = 'down'
-        task_name = 'path_follow' 
+        # task_name = 'path_follow' 
         cvcontroller.start(task_name)
         count = 0
         self.mutex.acquire()
-        while not self.stop_task and not self.complete():
+        self.path_maneuver.is_running_task = True
+        time.sleep(1)
+        while not self.stop_task and not self.complete() and count <= self.path_kill_threshold:
             navigation.do_depth_cap(self.h_power)
 
             found, directions, shape, width_height_ratio = cvcontroller.detect(task_name)
@@ -112,16 +124,51 @@ class Path(Task):
                 self.counter = Counter()
                 self.direction_list = []
 
-                print 'running {} task'.format(task_name)
-                print 'widthxheight: {}'.format(width_height_ratio)
-                print 'current count: {}'.format(count)
-                print 'coordinates: {}'.format(most_occur_coords)
-                print '--------------------------------------------'
-                print 'type: navigation cv 0, or task to cancel task'
+            #     # print 'running {} task'.format(task_name)
+            #     # print 'widthxheight: {}'.format(width_height_ratio)
+            #     # print 'current count: {}'.format(count)
+            #     # print 'coordinates: {}'.format(most_occur_coords)
+            #     # print '--------------------------------------------'
+            #     # print 'type: navigation cv 0, or task to cancel task'
 
         cvcontroller.stop()
-        navigation.m_nav('power', 'forward', self.m_power)
+        navigation.cancel_all_nav()
+        # navigation.cancel_and_r_nav(self.path_kill_direction, 10, 90)
+        navigation.go_to_depth(9, self.h_power)
+        time.sleep(3)
 
+        #save waypoint for dice finish
+        navigation.clear_waypoints()
+        navigation.enqueue_current_waypoint()
+        navigation.saved_heading_path1 = navigation.waypoint.heading
+
+        navigation.m_nav('distance', 'forward', self.m_power, 9.5)
+
+        # ########## last ditch ################################### 
+#         #save waypoint for dice finish
+
+#         navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_ram_dice)
+        # navigation.r_nav('left', 10, 90)
+
+#         time.sleep(10)
+# ###############################################
+#         navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward_ram_dice)
+
+#         time.sleep(10)
+# ###############################################
+#         self.is_running_dice2_forward = True
+#         navigation.m_nav('distance', 'forward', self.m_power, self.m_distance_forward_ram_dice)
+#         navigation.r_nav('right', 8, 90)
+
+#         time.sleep(10)
+# ###############################################
+#         self.is_running_dice2_backward = True
+#         navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward_ram_dice)
+
+#         time.sleep(10)
+# ###############################################
+
+        self.path_maneuver.is_running_task = False
         self.mutex.release()
     
     # stop ##################################################################################
@@ -223,3 +270,7 @@ class Path(Task):
         for key, count in counter.most_common(1):
             most_occur = key
         return most_occur
+
+    def is_running_task(self):
+        return self.path_maneuver.is_running_task
+

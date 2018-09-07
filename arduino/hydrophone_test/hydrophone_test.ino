@@ -92,6 +92,11 @@ void loop() {
       readStatus[3] = true;
       // nh.loginfo("type d");
     }
+    else{
+      while(mySerial.available()){
+        mySerial.read();
+      }
+    }
   }
 
   int check = 0;

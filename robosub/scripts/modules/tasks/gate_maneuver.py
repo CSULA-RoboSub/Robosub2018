@@ -1,7 +1,8 @@
+import time
 
 class GateManeuver():
     def __init__(self):
-
+        self.reset()
         ################ THRESHOLD VARIABLES ################
         self.sweep_timer = 60
         self.nothing_found_threashold = 100
@@ -15,6 +16,7 @@ class GateManeuver():
         self.is_task_complete = False
         self.rotated_to_center = False
         self.is_strafed_to_square = False
+        self.is_found_once = False
 
         ################ TIMER/COUNTER VARIABLES ################
         self.sweep_forward_counter = 0
@@ -69,9 +71,10 @@ class GateManeuver():
 
         ################ AUV MOBILITY VARIABLES ################
         self.rotation_angle = 5
-        self.depth_change = 2.5
+        self.depth_change = 1
         self.depth = -1
         self.h_power = 100
+        self.m_power = 100
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_direction = 'right'
@@ -103,6 +106,8 @@ class GateManeuver():
         self.is_task_complete = False
         self.rotated_to_center = False
         self.is_strafed_to_square = False
+        self.is_found_once = False
+        self.is_running_task = False
 
         self.nothing_found_counter = 0
         self.heading_verify_count = 0
@@ -184,10 +189,10 @@ class GateManeuver():
         else:
             navigation.cancel_m_nav()
 
-        if not coordinates[1] == 0:
-            navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
-        else:
-            navigation.cancel_h_nav()
+        # if not coordinates[1] == 0:
+        #     navigation.cancel_and_h_nav(self.vertical_movement[coordinates[1]], self.depth_change, self.h_power)
+        # else:
+        #     navigation.cancel_h_nav()
 
     # rotate ##################################################################################
     def rotate(self, navigation, power, rotation):
@@ -221,7 +226,8 @@ class GateManeuver():
             return
 
         self.heading_verify_count += 1
-        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and coordinates[1] == 0 and found:
+        #coordinates[1] == 0 and 
+        if not self.is_heading_correct and self.heading_verify_count >= self.heading_verify_threshold and coordinates[0] == 0 and found:
             # self.getrotation.update_rot()
             self.is_heading_correct = True
 
@@ -253,8 +259,10 @@ class GateManeuver():
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height, found):
         if not self.is_heading_correct:
             if self.nothing_found_counter >= self.nothing_found_threashold:
-                self.rotate(navigation, self.rotation_power, rotation)
+                # self.rotate(navigation, self.rotation_power, rotation)
                 #self.sweep(navigation, self.sweep_power, rotation)
+                # if self.is_found_once:
+                self.plan_b_movement(navigation, coordinates, self.m_power, rotation, width_height, found)
             self.nothing_found_counter += 1
         else:
             self.move_to_gate(navigation, coordinates, power)
@@ -273,4 +281,5 @@ class GateManeuver():
     # plan_b_movement ##################################################################################
     def plan_b_movement(self, navigation, coordinates, power, rotation, width_height, found):
         # TODO implement gate.orientation_heading to set heading and go forward
-        navigation.cancel_and_m_nav('power', self.move_forward, power)
+        navigation.cancel_and_m_nav('power', self.move_forward, 100)
+

@@ -103,7 +103,7 @@ class RunDVL:
         pubTimePrev = loop_time
         # pubTimeInterval = 0.01
         heading_time_prev = loop_time
-        heading_time_interval = 0.021
+        heading_time_interval = 0.014
         mod_val = 0
         while not rospy.is_shutdown():
             loop_time = time.time()
@@ -111,7 +111,7 @@ class RunDVL:
             if loop_time - heading_time_prev > heading_time_interval:
                 heading_time_prev = loop_time
                 #and mod_val % 2 == 0
-                if self.yaw :
+                if self.yaw and mod_val % 2 == 0:
                     mod_val = 1
                     heading = self.yaw #put heading info ** heree from IMU
                     heading *= 100 #heading needs to go from 0 to 35999 (see Heading Alignment Pathfinder p.118)
@@ -119,8 +119,7 @@ class RunDVL:
                     if (heading - heading_int) >= 0.5:
                         heading_int += 1
                     dvl.write("EH " + str(heading_int) + ", 1\r") #Update Heading
-                #and mod_val % 2 == 1
-                if self.pitch and self.roll :
+                if self.pitch and self.roll and mod_val % 2 == 1:
                     mod_val = 0
                     pitch = self.pitch 
                     pitch *= 100 

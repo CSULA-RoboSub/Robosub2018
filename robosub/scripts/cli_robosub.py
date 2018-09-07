@@ -141,7 +141,7 @@ class CLI(cmd.Cmd):
                    \nstop task by entering [task] or [task stop]\
                    \nrun all tasks by entering [task all]\
                    \nsave current heading by entering [task heading]\
-                   \n'.format(len(AUV.houston.tasks)))
+                   \n'.format(len(AUV.houston.tasks)-1))
 
             AUV.display_tasks()
         elif not arg == '':
@@ -164,6 +164,48 @@ class CLI(cmd.Cmd):
 
             AUV.display_tasks()
 
+    # drop ###########################################################################################################
+    def do_drop(self, arg):
+        '\nSets state of dropper\
+         \n[0] to close both gates\
+         \n[1] to open both gates\
+         \n[2] to drop one ball'
+        # \n[state] or no argument to print current state\
+
+        if arg == '0' or arg == '1' or arg == '2':
+            AUV.dropper_state(arg)
+        else:
+            print('\nSets state of dropper\
+                   \n[0] to close both gates\
+                   \n[1] to open both gates\
+                   \n[2] to drop one ball')
+
+    # torpedo ###########################################################################################################
+    def do_torpedo(self, arg):
+        '\nPrime or Fire torpedo\
+         \n[prime] [side] Prime the torpedo with given side/s\
+         \n[fire] [side] Fire the torpedo with given side/s\
+         \nside -- (str) left, right'
+
+        try:
+            arg1, arg2 = parse_torpedo(arg)
+
+            if arg1.lower() == 'prime':
+                AUV.prime_torpedo(arg2)
+            elif arg1.lower() == 'fire':
+                AUV.fire_torpedo(arg2)
+            else:
+                print('\nPrime or Fire torpedo\
+                       \n[prime] [side] Prime the torpedo with given side/s\
+                       \n[fire] [side] Fire the torpedo with given side/s\
+                       \nside -- (str) left, right')
+        except ValueError:
+            print('\nIncorrect number of arguments.\
+                   \nTorpedo takes [prime/fire] [side]\
+                   \nside -- (str) left, right')
+
+
+
     # config ###########################################################################################################
     def do_config(self, arg):
         '\nOpens the config file and updates the parameters'
@@ -178,14 +220,12 @@ class CLI(cmd.Cmd):
 
         if arg.lower() == 'on' or arg == '1':
             status.is_logging = True
-            # AUV.status_logger.toggle_logging(1)
+            print('status logging turned on.')
         elif arg.lower() == 'off' or arg == '0':
             status.is_logging = False
-            # AUV.status_logger.toggle_logging(0)
-        # elif arg.lower() == 'toggle':
-            # AUV.status_logger.toggle_logging()
+            print('status logging turned off.')
         else:
-            print('\nstatus logging state: %d' % AUV.status_logger.is_logging)
+            print('\nstatus logging state: %d' % status.is_logging)
 
     # auto-complete status logger
     def complete_logging(self, text, line, start_index, end_index):
@@ -218,6 +258,10 @@ def parse_color(arg):
             i = 255
         list.append(int(i))
     return arg1, list
+
+def parse_torpedo(arg):
+    arg1, arg2 = arg.split()
+    return arg1, arg2
 
 
 def parse(arg):

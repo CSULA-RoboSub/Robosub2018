@@ -1,7 +1,7 @@
 
 class PathManeuver():
     def __init__(self):
-        
+        self.reset()
         ################ THRESHOLD VARIABLES ################
         self.follow_path_threshold = 200
 
@@ -53,9 +53,9 @@ class PathManeuver():
         }
 
         self.m_power_horizontal_move_with_forward = {
-            -1: 70,
-             0: 80,
-             1: 70
+            -1: 100,
+             0: 140,
+             1: 100
         }
 
         self.forward_backward_move = {
@@ -68,11 +68,11 @@ class PathManeuver():
         self.move_forward = 'forward'
         self.move_backward = 'backward'
         self.rotation_angle = 5
-        self.r_power=90
+        self.r_power=100
         self.h_power=100
-        self.m_power=80
+        self.m_power=140
         self.m_power_strafe=self.m_power_horizontal_move_with_forward[1]
-        self.no_shape_m_power = 60
+        # self.no_shape_m_power = 60
         self.depth_change = 0.2
         
     # reset ##################################################################################
@@ -86,6 +86,7 @@ class PathManeuver():
         self.is_frame_height_max = False
         self.is_no_longer_frame_height_max = False
         self.is_initial_centered = False
+        self.is_running_task = False
 
         self.follow_path_counter = 0
 

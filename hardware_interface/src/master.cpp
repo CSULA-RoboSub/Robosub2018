@@ -185,13 +185,14 @@ const double defaultHeightPower = 100;
 ///////////////////////////////////////////////
 
 /////////////////PID_heading constants and variables/////////////////
-const double kp_heading=10; //11;//3.55;//3.55
+const double kp_heading=11; //11;//3.55;//3.55
 const double kd_heading=0.4; //0.75;//2.05;//2.05
-const double ki_heading=0.003;
+const double ki_heading=0.008;
 
 double pid_i_heading = 0;
 // double headingTimePrev = 0;
 double prev_error_heading = 0;
+double rotation_ki_threshold = 5;
 double rotationThreshold = 3;
 ///////////////////////////////////////////////
 
@@ -217,12 +218,12 @@ double forwardBackwardDistancePrev = 0;
 double keepPositionX = 0;
 double keepPositionY = 0;
 double positionControlMOffset = 0;
-const double keepPositionForwardThreshold = 1.0; //meters
+const double keepPositionForwardThreshold = 0.9; //meters
 const double keepPositionRightThreshold = 0.5; //meters
 const double keepPositionMaxPowerForwardBackward = 200;
 const double keepPositionMaxPowerRightLeft = 200;
-const double keepCourseRightMult = 0.03;
-const double keepCourseForwardMult = 0.1;
+const double keepCourseRightMult = 0.028;
+const double keepCourseForwardMult = 0.09;
 
 //----------------------------------------------------------------------------
 //---------------------------- helper functions ------------------------------
@@ -384,7 +385,7 @@ void setRotationPower(double rotatePower){
   rotatePower = motorPowerCap(rotatePower);
   
   if(isDoingStrafeMovement()){
-    setMHorizontal(-1, base_thrust - (rotatePower*0.5), -1, base_thrust - (rotatePower*0.5));
+    setMHorizontal(-1, base_thrust - (rotatePower*0.4), -1, base_thrust - (rotatePower*0.4));
   }
   else{
     setMHorizontal(base_thrust + rotatePower, -1, base_thrust - rotatePower, -1);
@@ -396,7 +397,7 @@ double rotationPID(double error_heading){
   // double error_heading = degreeToTurn();
   // double rotationElapsedTime = (loopTime - headingTimePrev)/base_thrust;
   // headingTimePrev = loopTime;
-  if(-rotationThreshold <= error_heading && error_heading <= rotationThreshold)
+  if(-rotation_ki_threshold <= error_heading && error_heading <= rotation_ki_threshold)
     pid_i_heading = pid_i_heading+(ki_heading*error_heading);
   else
     pid_i_heading = 0;

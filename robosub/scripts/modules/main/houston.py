@@ -48,19 +48,29 @@ class Houston():
         self.path_1 = Path(self)
         self.dice = Dice(self)
         self.path_2 = Path(self)
-        self.chip_1 = Chip(self)
-        self.chip_2 = Chip(self)
+        self.chip = Chip(self)
         self.roulette = Roulette(self)
         self.slots = Slots(self)
         self.pinger_a = PingerA(self)
         self.pinger_b = PingerB(self)
         self.cash_in = CashIn(self)
-        #self.buoy = Buoy(self)
+        # self.buoy = Buoy(self)
         self.navigation = navigation
         self.cvcontroller = CVController()
         self.counts = Counter()
         
         self.orientation = Orientation()
+
+        ###########################################
+        ########## RUN ALL TASK QUEUE #############
+        self.states_run_all = [
+            self.pregate,
+            self.gate, 
+            self.path_1, 
+            self.dice,
+            self.path_2,
+            self.slots
+        ]
 
         ################ THRESHOLD VARIABLES ################
         self.task_timer = 300
@@ -76,8 +86,8 @@ class Houston():
         ################ TASKS LIST ################
         """
         self.tasks values listed below
-        'gate', 'path', 'dice', 'chip', 'path', 'chip', 'slots', 'pinger_b', 
-        'roulette', 'pinger_a', 'cash_in'
+        'pregate', 'gate', 'path', 'dice', 'path', 'slots', 'chip', 'pinger_a', 
+        'roulette', 'pinger_b', 'cash_in'
         """
         self.tasks = task_list
 
@@ -85,24 +95,16 @@ class Houston():
         self.state_num = 0
         self.states = [
             self.pregate,
-            self.gate, 
-            self.path_1, 
-            self.dice, 
-            self.chip_1, 
+            self.gate,
+            self.path_1,
+            self.dice,
             self.path_2,
-            self.slots, 
-            self.chip_2, 
-            self.pinger_a, 
-            self.roulette, 
-            self.pinger_b, 
+            self.slots,
+            self.pinger_a,
+            self.chip,
+            self.roulette,
+            self.pinger_b,
             self.cash_in
-        ]
-
-        self.states_run_all = [
-            self.pregate,
-            self.gate, 
-            self.path_1, 
-            self.dice
         ]
 
         self.gui_states = {
@@ -122,14 +124,13 @@ class Houston():
             'gate': 1,
             'path_1': 2,
             'dice': 3,
-            'chip_1': 4,
-            'path_2': 5,
-            'chip_2': 6,
-            'slots': 7,
-            'pinger_a': 8,
-            'roulette': 9,
-            'pinger_b': 10,
-            'cash_in': 11
+            'path_2': 4,
+            'slots': 5,
+            'pinger_a': 6,
+            'chip': 7,
+            'roulette': 8,
+            'pinger_b': 9,
+            'cash_in': 10
         }
 
         ################ AUV MOBILITY VARIABLES ################
@@ -208,8 +209,8 @@ class Houston():
                 self.state = self.states_run_all[self.state_num]
 
                 self.state.reset()
-                print 'doing task: {}'.format(self.tasks[self.state_num])
-                self.state.start(self.tasks[self.state_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+                print 'doing task: {}'.format(self.state.task_name)
+                self.state.start(self.state.task_name, self.navigation, self.cvcontroller, self.power, self.rotation)
 
                 if self.state.complete():
                     self.state_num += 1
@@ -226,12 +227,13 @@ class Houston():
         self.navigation.cancel_h_nav()
         self.navigation.cancel_m_nav()
         self.navigation.cancel_r_nav()
-        print '\nattempting to run task number: {}\
-               \ntask: {}'.format(task_num, self.tasks[task_num])
-
         self.state = self.states[task_num]
+        
+        print '\nattempting to run task number: {}\
+               \ntask: {}'.format(task_num, self.state.task_name)
+
         self.state.reset()
-        self.state.start(self.tasks[task_num], self.navigation, self.cvcontroller, self.power, self.rotation)
+        self.state.start(self.state.task_name, self.navigation, self.cvcontroller, self.power, self.rotation)
         
         self.is_task_running = False
 

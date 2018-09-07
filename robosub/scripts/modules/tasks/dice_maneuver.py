@@ -4,9 +4,10 @@ from robosub.msg import MControl
 
 class DiceManeuver():
     def __init__(self):
+        self.reset()
         ################ THRESHOLD VARIABLES ################
         self.touching_die_threshold = 100
-        self.nothing_found_threshold = 100
+        self.nothing_found_threshold = 120
         self.back_up_threshold = 100
 
         ################ FLAG VARIABLES ################
@@ -48,12 +49,13 @@ class DiceManeuver():
         }
 
         self.m_power_forward_horizontal = {
-            -1: 85,
+            -1: 100,
              0: 140,
-             1: 85
+             1: 100
         }
 
         ################ AUV MOBILITY VARIABLES ################
+        self.navigation = None
         self.rotation_angle = 5
         self.move_forward = 'forward'
         self.move_backward = 'backward'
@@ -65,11 +67,12 @@ class DiceManeuver():
         # TODO remove soon
         self.rotation_direction = 'right'
         self.m_state_is_moving_forward = 0
-        self.m_distance = 1.1
+        self.m_distance_forward = 1.1
+        self.m_distance_backward = 1.8
 
         ################ FRAME VARIABLES ################
         self.frame = (744, 480)
-        self.close_enough_values = (200, 200)
+        self.close_enough_values = (150, 150)
         # self.frame = (640, 480)
 
         ################ ROS STUFF ######################
@@ -82,6 +85,7 @@ class DiceManeuver():
         self.is_1st_die_touched = False
         self.is_2nd_die_touched = False
         self.is_task_complete = False
+        self.is_running_task = False
 
         self.touching_die_counter = 0
         self.nothing_found_counter = 0
@@ -108,7 +112,7 @@ class DiceManeuver():
         
         elif width_height[1] >= self.close_enough_values[1] and not self.is_moving_forward:
             self.is_moving_forward = True
-            navigation.cancel_and_m_nav('distance', 'forward', self.m_power, self.m_distance)
+            navigation.cancel_and_m_nav('distance', 'forward', self.m_power, self.m_distance_forward)
             self.m_state_is_moving_forward = 1
 
         # if self.frame == width_height:
@@ -143,10 +147,10 @@ class DiceManeuver():
 
     # completed_dice ##################################################################################
     def completed_dice_check(self):
-        check_1st = self.is_1st_die_touched
-        check_2nd = self.is_2nd_die_touched
+        # check_1st = self.is_1st_die_touched
+        # check_2nd = self.is_2nd_die_touched
 
-        if check_1st and check_2nd:
+        if self.dice_touched >= 2:
             self.is_task_complete = True
 
         return self.is_task_complete
@@ -158,7 +162,8 @@ class DiceManeuver():
     # no_shape_found ##################################################################################
     def no_shape_found(self, navigation, coordinates, power, rotation, width_height):
         if self.nothing_found_counter >= self.nothing_found_threshold:
-            self.rotate(navigation, power, rotation)
+            # self.rotate(navigation, power, rotation)
+            pass
         self.nothing_found_counter += 1
 
     # centered_and_shape_found ##################################################################################
@@ -177,14 +182,20 @@ class DiceManeuver():
     #movement control status callback
     def m_status_callback(self, movement_status):
         # print(rotation_status)
-        if self.is_moving_forward:
+        # print('movement_status.power: {}, movement_status.mDirection: {}, movement_status.distance: {}, movement_status.state: {}, self.m_state_is_moving_forward: {}'.format(movement_status.power, movement_status.mDirection, movement_status.distance, movement_status.state, self.m_state_is_moving_forward))
+        if not self.is_running_task:
+            return
 
-            if movement_status.state == 0 and self.m_state_is_moving_forward == 1 and abs(movement_status.distance - self.m_distance) < 0.001 and movement_status.mDirection == 1 and movement_status.power == 0:
+        if self.is_moving_forward:
+            # print('self.is_moving_forward')
+            if movement_status.state == 0 and self.m_state_is_moving_forward == 1 and abs(movement_status.distance - self.m_distance_forward) < 0.001 and movement_status.power == 0:
                 # print('in state 1')
-                self.m_nav('distance', 'backward', self.m_power, self.m_distance)
+                self.navigation.m_nav('distance', 'backward', self.m_power, self.m_distance_backward)
                 self.m_state_is_moving_forward = 2
                 # print("backward wp state 2")
 
-            if movement_status.state == 0 and self.m_state_is_moving_forward == 2 and abs(movement_status.distance - self.m_distance) < 0.001 and movement_status.mDirection == 3 and movement_status.power == 0:
+            elif movement_status.state == 0 and self.m_state_is_moving_forward == 2 and abs(movement_status.distance - self.m_distance_backward) < 0.001 and movement_status.power == 0:
                 self.dice_touched += 1
-                self.reset_after_1st_die()
+                self.is_1st_die_touched = True
+                # print('in state 2')
+                

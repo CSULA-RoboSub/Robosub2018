@@ -1,13 +1,13 @@
 import utils
 import time
-import PathClassifier as pc
+import GateClassifier as gc
 import PathPreprocessor as pp
 import cv2
 
 class PathDetector():
 
     def __init__(self):
-        self.classifier = pc.PathClassifier()
+        self.classifier = gc.GateClassifier()
         self.found = False
         self.preprocess = pp.PathPreprocessor()
         self.directions = [0,0]
@@ -34,30 +34,36 @@ class PathDetector():
             return self.shapes[3] # square
 
     def detect(self, frame):
-        height, width, ch = frame.shape
-        center = (width / 2, height / 2)
-        regions_of_interest, _ = self.preprocess.get_interest_regions(frame)
-        
-        for roi in regions_of_interest:
-            utils.draw_red_box(frame, roi)
+        if frame is not None:
+            height, width, ch = frame.shape
+            center = (width / 2, height / 2)
+            regions_of_interest, _ = self.preprocess.get_interest_regions(frame)
+            
+            for roi in regions_of_interest:
+                utils.draw_red_box(frame, roi)
 
-        # path = self.classifier.classify(frame, regions_of_interest)
-        if regions_of_interest:
-            path = utils.get_max_area(regions_of_interest)
+            # path = self.classifier.classify(frame, regions_of_interest)
+            if regions_of_interest:
+                path = utils.get_max_area(regions_of_interest)
+                
+            else:
+                path = None
+                
+            path_shape = self.get_shape(path, self.shape_buffer)
             
+            if (path == None):
+                self.directions = [0, 0]
+                self.found = False
+                w, h = 0, 0
+            else:
+                x, y, w, h = path
+                utils.draw_blue_box(frame, path)
+                self.directions = utils.get_directions(center, x, y, w, h)
+                self.directions.append(0)
+                self.found = True
+            return (self.found, self.directions, path_shape, (w, h))
         else:
-            path = None
+            print('error no frame')
+            return False, None, None, None
+
             
-        path_shape = self.get_shape(path, self.shape_buffer)
-        
-        if (path == None):
-            self.directions = [0, 0]
-            self.found = False
-            w, h = 0, 0
-        else:
-            x, y, w, h = path
-            utils.draw_blue_box(frame, path)
-            self.directions = utils.get_directions(center, x, y, w, h)
-            self.directions.append(0)
-            self.found = True
-        return (self.found, self.directions, path_shape, (w, h))
