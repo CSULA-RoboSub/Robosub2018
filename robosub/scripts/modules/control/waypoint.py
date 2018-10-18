@@ -24,6 +24,8 @@ class Waypoint():
             1 : 'staying',
             2 : 'right'
         }
+
+    #store information DVL is sending for later use
     def dvl_callback(self, dvl_msg):
         #x is east axis y is north axis, dvl uses compass north east as axis
         #currently in meters
@@ -34,6 +36,7 @@ class Waypoint():
         self.dvl_msg.zpos = dvl_msg.zpos
         self.dvl_msg.zvel = dvl_msg.zvel
 
+    #rename functions to be descriptive, make a new function to convert degrees
     def rotation_callback(self, rotation_msg):
         #yaw value from imu will be +- 180 deg, so convert to match dvl 0-360
         if 90 <= rotation_msg.yaw and rotation_msg.yaw <= 180:
@@ -41,11 +44,6 @@ class Waypoint():
         else:
             heading = rotation_msg.yaw + 270
         self.heading = heading
-        # print('current yaw: %.2f' % self.heading)
-    # def rotation_callback(self, rotation_msg):
-    #     #dvl heading value goes from 0-360
-    #     self.heading = rotation_msg.data
-    #     # print('current yaw: %.2f' % self.heading)
 
     def depth_callback(self, depth):
         #currently in feet
@@ -189,19 +187,11 @@ class Waypoint():
             degree = 0
             direction = self.directions[1]
 
-
-        # print('degree: %.2f' % degree)
-        # print('direction: ' + direction)
-
         return direction, degree, distance
 
     def get_distance(self, x2, y2):
-        # print('x2: %.2f y2: %.2f' %(x2,y2))
         x1 = self.dvl_msg.xpos
         y1 = self.dvl_msg.ypos
-        # print('x1: %.2f y1: %.2f' %(x1,y1))
-
-
         l1 = max(x1,x2) - min(x1,x2)
         l2 = max(y1,y2) - min(y1,y2)
         distance = math.sqrt(l1*l1 + l2*l2)

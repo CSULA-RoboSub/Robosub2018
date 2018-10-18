@@ -39,17 +39,12 @@ class CVController():
         self.is_camera = False
         self.is_camera_640x480 = False
         ################ INSTANCES ################
-        # self.buoydetector = BuoyDetector.BuoyDetector()
         self.gatedetector = GateDetector.GateDetector()
         self.pathdetector = PathDetector.PathDetector()
         self.pathfollowdetector = PathFollowDetector.PathFollowDetector()
         self.dicedetector = DiceDetector.DiceDetector()
-        # self.chipdetector = ChipDetector.ChipDetector()
         self.roulettedetector = RouletteDetector.RouletteDetector()
         self.slotsdetector = SlotsDetector.SlotsDetector()
-        # self.pingerdetector = PingerDetector.PingerDetector()
-        # self.cashindetector = CashInDetector.CashInDetector()
-
         ################ FPS COUNTER ################
         self.fps_output = 15
 
@@ -66,15 +61,6 @@ class CVController():
             'slots': self.slotsdetector,
             'roulette': self.roulettedetector
         }
-            # 'chip': self.chipdetector,
-
-            # 'pinger_b': self.pingerdetector,
-            # 'pinger_a': self.pingerdetector,
-            # 'cash_in': self.cashindetector
-
-        # set.models = {
-
-        # }
 
         self.camera_start_dictionary = {
             0: self.opencv_camera_start,
@@ -132,7 +118,6 @@ class CVController():
         self.thread = None
         self.is_stop = False
 
-
         try:
             self.loop = GLib.MainLoop()
             # self.loop = None
@@ -142,7 +127,6 @@ class CVController():
             self.sub_camera_found = 0
             print '*******unable to initialize Glib.MainLoop()*******'
 
-    # start ##################################################################################
     def start(self, task_name):
         self.is_stop = False
         if self.sub_camera_found == 1:
@@ -152,7 +136,7 @@ class CVController():
             self.camera_start_dictionary[self.sub_camera_found](task_name)
         # time.sleep(self.time_delay)
         print 'start cvcontroller'
-    # stop ##################################################################################
+
     def stop(self):
         self.is_stop = True
         self.outraw.release()
@@ -165,38 +149,27 @@ class CVController():
         cv2.destroyAllWindows()
         print 'stop cvcontroller'
 
-    # set_lower_color ##################################################################################
-    def set_lower_color(self, task_name, lower):
-        self.tasks[task_name].preprocess.set_lower_color(task_name, lower)
+    # may use in future??
+    # def set_lower_color(self, task_name, lower):
+    #     self.tasks[task_name].preprocess.set_lower_color(task_name, lower)
 
-    # set_upper_color ##################################################################################
-    def set_upper_color(self, task_name, upper):
-        self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
+    # def set_upper_color(self, task_name, upper):
+    #     self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
 
-    # set_model ##################################################################################
-    def set_model(self, task_name=None):
-        pass
-        # TODO set model for detectors
+    # def set_model(self, task_name=None):
+    #     pass
+    #     # TODO set model for detectors
 
-    # camera selection functions ######################################################################
     def change_camera_to(self, camera_direction, task_name):
         self.stop()
         self.camera_direction = camera_direction
         self.start(task_name)
-        
-    # raw_frame ##################################################################################
-    def raw_frame(self):
-        return self.current_raw_frame
     
-    # processed_frame ##################################################################################
-    def processed_frame(self):
-        return self.current_processed_frame
-    
-    # setup_video_output ##################################################################################
     def setup_video_output(self, task_name):
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         now = datetime.datetime.now()
         timestamp = '%d-%d-%d_%dh%dm%ds' % (now.year, now.month, now.day, now.hour, now.minute, now.second)
+        #TODO change to boolean for sub camera
         if self.sub_camera_found == 1:
             if not self.is_camera_640x480:
                 res = (744, 480)
@@ -310,18 +283,12 @@ class CVController():
             # finally:
             buf.unmap(mapinfo)
                 
-    # sub_driver_camera_detect ##################################################################################
-    def sub_driver_camera_detect(self, task, camera_direction = None):
+    def sub_driver_camera_detect(self, task):
         if not task:
-            return None, None, None, None
-            
-        if not camera_direction:
-            # camera_direction = 'down'
-            camera_direction = self.camera_direction
+            return None, None, None, None    
+        camera_direction = self.camera_direction
 
         self.cv_task = self.tasks[task]
-        # self.display_output('down')
-        # self.display_output(camera_direction)
         if self.sample[camera_direction]:
             # print("have sample")
             buf = self.sample[camera_direction].get_buffer()

@@ -8,20 +8,20 @@ from waypoint import Waypoint
 from threading import Thread
 import time
 
+
 class Navigation():
     """
-    AUV 2017 Version
+    AUV 2019 Version
     Controls thrusters to move or point AUV to a certain direction given power and direction or rotational values
     """
 
-    def __init__(self, wp = None):
-        self.is_killswitch_on = False
+    #TODO remove everything having to do with kill_switch
 
+    def __init__(self, wp = None):
         self.pub_h_nav = rospy.Publisher('height_control', HControl, queue_size=100)
         self.pub_r_nav = rospy.Publisher('rotation_control', RControl, queue_size=100)
         self.pub_m_nav = rospy.Publisher('movement_control', MControl, queue_size=100)
 
-        # rospy.init_node('navigation_node', anonymous=True)
         rospy.Subscriber('rotation_control_status', RControl, self.r_status_callback, queue_size=100)
         rospy.Subscriber('movement_control_status', MControl, self.m_status_callback, queue_size=100)
         rospy.Subscriber('height_control_status', HControl, self.h_status_callback, queue_size=100)
@@ -38,9 +38,7 @@ class Navigation():
             'lock': 5
         }
         self.hState = None  # state
-
         self.depth = None  # depth (nonstop moving: -1, moving distance: x)
-
         self.hPower = 100  # power
 
         # used for RControl (int state, float rotation, int power) ####################################
@@ -52,9 +50,7 @@ class Navigation():
             'keep_rotate_front_cam_dist': 4  # keeping rotating with fcd
         }
         self.rState = None  # state
-
         self.rotation = None  # rotation (nonstop rotating: -1, rotate degree: x)
-
         self.rPower = 90  # power
 
         # used for MControl (int state, int mDirection, float power, float distance) #######
@@ -77,11 +73,8 @@ class Navigation():
         }
 
         self.mDirection = None  # mDirection
-
         self.mPower = None  # power (none: 0, motor power: x)
-
         self.distance = None  # distance (distance away from the object: x)
-
         self.runningTime = None  # runningTime (time for the motor to turn on)
 
         #waypoint variables
@@ -117,6 +110,7 @@ class Navigation():
         #var for saved heading
         self.saved_heading = None
         self.saved_heading_path1 = None
+
     def set_h_nav(self, hState, depth, hPower):
         """
         hState -- 'down': 0, 'staying': 1, 'up': 2
@@ -130,7 +124,6 @@ class Navigation():
             self.hState = self.hStates[hState]
 
         self.depth = depth
-
         self.hPower = hPower
 
     def set_r_nav(self, rState, rotation, rPower):
@@ -212,53 +205,41 @@ class Navigation():
 
     def h_nav(self, hState=None, depth=None, hPower=None):
         """
-        Start horizontal navigation given hState and depth when killswitch is on.
+        Start horizontal navigation given hState and depth.
         hState -- 'down': 0, 'staying': 1, 'up': 2
         depth -- nonstop moving: -1, moving distance: x
         hPower -- int
         """
 
-        if self.is_killswitch_on:
+        if hState is not None or depth is not None or hPower is not None:
+            self.set_h_nav(hState, depth, hPower)
 
-            if hState is not None or depth is not None or hPower is not None:
-                self.set_h_nav(hState, depth, hPower)
+        self.h_control.state = self.hState
+        self.h_control.depth = self.depth
+        self.h_control.power = self.hPower
 
-            self.h_control.state = self.hState
-            self.h_control.depth = self.depth
-            self.h_control.power = self.hPower
-
-            self.pub_h_nav.publish(self.h_control)
-            # self.ros_sleep()
-            # rospy.sleep(.1)
-
-            # print('state: %d depth: %.2f power: %d' % (self.hState, self.depth, self.hPower))
+        self.pub_h_nav.publish(self.h_control)
 
     def r_nav(self, rState=None, rotation=None, rPower=None):
         """
-        Start rotational navigation given rState and rotation when killswitch is on.
+        Start rotational navigation given rState and rotation on.
         rState -- 'left': 0, 'staying': 1, 'right': 2, 'rotate_front_cam_dist': 3, 'keep_rotate_front_cam_dist': 4
         rotation -- nonstop rotating: -1, rotate degree: x
         rPower -- int
         """
 
-        if self.is_killswitch_on:
+        if rState is not None or rotation is not None or rPower is not None:
+            self.set_r_nav(rState, rotation, rPower)
 
-            if rState is not None or rotation is not None or rPower is not None:
-                self.set_r_nav(rState, rotation, rPower)
+        self.r_control.state = self.rState
+        self.r_control.rotation = self.rotation
+        self.r_control.power = self.rPower
 
-            self.r_control.state = self.rState
-            self.r_control.rotation = self.rotation
-            self.r_control.power = self.rPower
-
-            self.pub_r_nav.publish(self.r_control)
-            # self.ros_sleep()
-            # rospy.sleep(.1)
-
-            # print('state: %d rotation: %.2f power: %d' % (self.rState, self.rotation, self.rPower))
+        self.pub_r_nav.publish(self.r_control)
 
     def m_nav(self, mState=None, mDirection=None, power=None, value=None):
         """
-        Start movement navigation given mState, mDirection, and power/distance/runningTime when killswitch is on.
+        Start movement navigation given mState, mDirection, and power/distance/runningTime on.
         mState -- 'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5
         mDirection -- 'none': 0, 'forward': 1, 'right': 2, 'backward': 3, 'left': 4
         power -- none: 0, motor power: x
@@ -267,61 +248,30 @@ class Navigation():
             (5)runningTime: time for the motor to turn on
         """
 
-        if self.is_killswitch_on:
+        if mState is not None or mDirection is not None or power is not None:
+            self.set_m_nav(mState, mDirection, power, value)
 
-            if mState is not None or mDirection is not None or power is not None:
-                self.set_m_nav(mState, mDirection, power, value)
+        self.m_control.state = self.mState
+        self.m_control.mDirection = self.mDirection
+        self.m_control.power = self.mPower
+        self.m_control.distance = self.distance
+        self.m_control.runningTime = self.runningTime
 
-            self.m_control.state = self.mState
-            self.m_control.mDirection = self.mDirection
-            self.m_control.power = self.mPower
-            self.m_control.distance = self.distance
-            self.m_control.runningTime = self.runningTime
-
-            self.pub_m_nav.publish(self.m_control)
-            # self.ros_sleep()
-            # rospy.sleep(.1)
-
-            # print(
-            #     'state: %d direction: %d power: %.2f distance: %.2f runningTime: %.2f'
-            #     % (self.mState, self.mDirection, self.mPower, self.distance, self.runningTime)
-            # )
-
-    def start(self):
-        """Starts navigation with set preferences when killswitch is plugged in"""
-
-        self.is_killswitch_on = True
-
-    def stop(self):
-        """Stops navigation when killswitch is unplugged"""
-
-        self.is_killswitch_on = False
-
-    def ros_sleep(self, time = 0.05):
-        if time:
-            rospy.sleep(time)
-        else:
-            rospy.sleep()
+        self.pub_m_nav.publish(self.m_control)
 
     def ros_rate(self, hz = 100):
         rospy.Rate(hz)
 
-
-    def go_to_depth(self, depth, h_power = None):
-        if h_power is None:
-            h_power = 100
-            
+    def go_to_depth(self, depth, h_power=100):
         direction, depth_change = self.waypoint.get_depth_directions(depth)
         self.h_nav(direction, depth_change, h_power)
 
 ############################### Waypoint Functions ######################################################################################
-    
+    #callbacks allow waypoints to wait for movements to complete before moving on
     #rotaton control status callback
     def r_status_callback(self, rotation_status):
-        # print(rotation_status)
         if self.is_running_waypoint_rotation and self.is_busy_waypoint:
             if rotation_status.state == 1:
-                # print('waypoint rotation r_status_callback')
                 self.is_running_waypoint_movement = True
                 self.w_distance_m = self.waypoint.get_distance(self.current_waypoint_x, self.current_waypoint_y)
                 self.m_nav('distance', 'forward', self.w_power_m, self.w_distance_m)
@@ -329,7 +279,7 @@ class Navigation():
                 print("foward wp state 1")
                 self.is_running_waypoint_rotation = False
                 self.waypoint_state = 1
-                # print(self.w_distance_m)
+
 
     #movement control status callback
     def m_status_callback(self, movement_status):
@@ -496,8 +446,7 @@ class Navigation():
         self.exit_waypoints = exit
 
     def reset_thread(self):
-        if self.thread_w:
-            self.thread_w = None
+        self.thread_w = None
 
     def reset_wp_vals(self):        
         self.is_running_waypoint_rotation = False
@@ -521,6 +470,7 @@ class Navigation():
         self.saved_heading = self.waypoint.get_dvl_yaw()
         print('saved heading: {}'.format(str(self.saved_heading)))
     
+    #to prevent the sub won't surface
     def do_depth_cap(self, h_power):
         depth = self.waypoint.get_depth()
 

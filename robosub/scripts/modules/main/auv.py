@@ -12,7 +12,10 @@ import modules.main.status as status
 
 from houston import Houston
 
-
+"""
+Set up for Houston and all other modules, container that holds all instances of Houston, 
+and other classes
+"""
 class AUV():
     """AUV Master, automates tasks"""
 
