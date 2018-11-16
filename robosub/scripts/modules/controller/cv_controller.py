@@ -26,7 +26,8 @@ try:
 
     from gi.repository import Tcam, Gst, GLib, GObject
 except:
-    print '*******unable to import sub camera drivers*******'
+    print
+    "*******unable to import sub camera drivers*******"
 
 
 class CVController():
@@ -143,11 +144,13 @@ class CVController():
         self.outprocessed.release()
         self.close_pipeline()
         if self.cap:
-            self.cap.release()
-            self.cap = None
-            print 'laptop/default camera released'
+           self.cap.release()
+           self.cap = None
+           print
+           "laptop/default camera released"
         cv2.destroyAllWindows()
-        print 'stop cvcontroller'
+        print
+        "stop cvcontroller"
 
     # may use in future??
     # def set_lower_color(self, task_name, lower):
@@ -156,8 +159,8 @@ class CVController():
     # def set_upper_color(self, task_name, upper):
     #     self.tasks[task_name].preprocess.set_upper_color(task_name, upper)
 
-    # def set_model(self, task_name=None):
-    #     pass
+    def set_model(self, task_name=None):
+        pass
     #     # TODO set model for detectors
 
     def change_camera_to(self, camera_direction, task_name):

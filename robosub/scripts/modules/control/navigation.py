@@ -18,6 +18,8 @@ class Navigation():
     #TODO remove everything having to do with kill_switch
 
     def __init__(self, wp = None):
+        self.is_killswitch_on = False
+
         self.pub_h_nav = rospy.Publisher('height_control', HControl, queue_size=100)
         self.pub_r_nav = rospy.Publisher('rotation_control', RControl, queue_size=100)
         self.pub_m_nav = rospy.Publisher('movement_control', MControl, queue_size=100)
@@ -258,6 +260,16 @@ class Navigation():
         self.m_control.runningTime = self.runningTime
 
         self.pub_m_nav.publish(self.m_control)
+
+    def start(self):
+        """Starts navigation with set preferences when killswitch is plugged in"""
+
+        self.is_killswitch_on = True
+
+    def stop(self):
+        """Stops navigation when killswitch is unplugged"""
+
+        self.is_killswitch_on = False
 
     def ros_rate(self, hz = 100):
         rospy.Rate(hz)
