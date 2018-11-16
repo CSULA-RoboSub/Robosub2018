@@ -1,4 +1,4 @@
-source /opt/ros/lunar/setup.bash
+source /opt/ros/melodic/setup.bash
 
 mkdir -p ~/robosub_ws
 mv ../../../Robosub2018 ~/robosub_ws/src
