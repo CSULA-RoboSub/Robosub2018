@@ -9,8 +9,8 @@ def talker():
     # pubYaw = rospy.Publisher('yaw', Float32, queue_size=0)
 
     rospy.init_node('ez_test_pub', anonymous=True)
-    r = rospy.Rate(30) 
-    
+    r = rospy.Rate(30)
+
     msg = Rotation()
 
     # msgRoll = Float32()
@@ -21,7 +21,7 @@ def talker():
 
         msg.pitch = 0
         msg.roll = 0
-        msg.yaw = 50
+        msg.yaw = 
 
         # rospy.loginfo(msg)
         pub.publish(msg)
@@ -39,5 +39,5 @@ def talker():
 if __name__ == '__main__':
     try:
         talker()
-    except rospy.ROSInterruptException: 
+    except rospy.ROSInterruptException:
         pass

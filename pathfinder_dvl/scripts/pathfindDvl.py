@@ -1,4 +1,4 @@
-#CALIFORNIA STATE UNIVERSITY TELEDYNE PATHFINDER DVL DRIVERS - ROBOSUB 2018# 
+#CALIFORNIA STATE UNIVERSITY TELEDYNE PATHFINDER DVL DRIVERS - ROBOSUB 2018#
 ########### by Diego Santillan in collaboration with Adam Loeffler###########
 ################### Additional ROS work by Jonathan Song ####################
 
@@ -33,8 +33,8 @@ class RunDVL:
         self.yaw = heading
         self.pitch = rotation.pitch
         self.roll = rotation.roll
-        
-        # print('current yaw: %.2f' % self.yaw)
+
+        #print('current yaw: %.2f' % self.yaw)
 
     def main(self):
 
@@ -55,13 +55,13 @@ class RunDVL:
 
         # ROS publisher setup
         pub = rospy.Publisher('dvl_status', DVL, queue_size = 1)
-        # pubHeading = rospy.Publisher('dvl_heading', Float32, queue_size = 1)
+        #pubHeading = rospy.Publisher('dvl_heading', Float32, queue_size = 1)
         pubSS = rospy.Publisher('dvl_ss', Float32, queue_size = 1)
         rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size = 1)
         msg = DVL()
-        # msgHeading = Float32()
+        msgHeading = Float32()
         msgSS = Float32()
-        
+
         #PD6 settings --------------------------------------------------------------
         dvl.write("CR1\r") #set factory defaults.(Pathfinder guide p.67)
         dvl.write("CP1\r") # required command
@@ -85,7 +85,7 @@ class RunDVL:
 
         ################################PROGRAM BEGINS##############################
         print "dvl start"
-        heading = 0 
+        heading = 0
         dvl_heading = 0
         east_trans = 0
         north_trans = 0
@@ -121,8 +121,8 @@ class RunDVL:
                     dvl.write("EH " + str(heading_int) + ", 1\r") #Update Heading
                 if self.pitch and self.roll and mod_val % 2 == 1:
                     mod_val = 0
-                    pitch = self.pitch 
-                    pitch *= 100 
+                    pitch = self.pitch
+                    pitch *= 100
                     pitch_int = int(pitch)
                     if (pitch - pitch_int) >= 0.5:
                         pitch_int += 1
@@ -140,7 +140,7 @@ class RunDVL:
                     line = dvl.readline()
                 except:
                     print("read fail")
-# 
+#
                 # print(line)
 
                 if line[:3] == ":BD": #If the message is a positional update
@@ -169,7 +169,7 @@ class RunDVL:
                     msg.zvel = up_vel
                     pub.publish(msg)
 
-                # elif line[:3] == ":SA": #If the message is orientation 
+                # elif line[:3] == ":SA": #If the message is orientation
                 #     line = line.split(",")
                 #     # pitch = float(line[1])
                 #     # roll = float(line[2])
@@ -185,12 +185,12 @@ class RunDVL:
                     line = line.split(",")
                     msgSS.data = float(line[5])
                     pubSS.publish(msgSS)
-                    
+
                     # print line
                     # print "Heading:", heading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "\r"
-                    
+
                 # print "IMU Heading:", heading, "DVL Heading:", dvl_heading, "east_vel:", east_vel, "north_vel:", north_vel, "depth_vel:", depth_vel, "Status:", status, "Xpos", east_trans, "YPos", north_trans, "ZPos", depth_trans
-                
+
                 # if (loop_time - pubTimePrev) > pubTimeInterval:
                 #     pubTimePrev = loop_time
 
@@ -200,5 +200,5 @@ dvl = RunDVL()
 if __name__ == '__main__':
     try:
         dvl.main()
-    except rospy.ROSInterruptException: 
+    except rospy.ROSInterruptException:
         pass

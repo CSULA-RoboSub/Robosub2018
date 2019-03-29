@@ -54,6 +54,7 @@ add_message_files(
   RControl.msg
   MControl.msg
   CVIn.msg
+  LedIndicator.msg
   CVOut.msg
   Hydrophone.msg
   Dropper.msg

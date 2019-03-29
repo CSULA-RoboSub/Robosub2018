@@ -1,7 +1,6 @@
 import rospy
 import os
 from std_msgs.msg import Int8
-
 import modules.main.config as config
 from modules.control.motor import Motor
 from modules.control.navigation import Navigation
@@ -13,17 +12,18 @@ import modules.main.status as status
 from houston import Houston
 
 """
-Set up for Houston and all other modules, container that holds all instances of Houston, 
+Set up for Houston and all other modules, container that holds all instances of Houston,
 and other classes
 """
+
+
 class AUV():
     """AUV Master, automates tasks"""
 
     def __init__(self):
         rospy.init_node('AUV', anonymous=True)  # initialize AUV rosnode
-
-        rospy.Subscriber('kill_switch', Int8, self.kill_switch_callback)  # Subscriber for magnet kill switch
-
+        # Subscriber for magnet kill switch
+        rospy.Subscriber('kill_switch', Int8, self.kill_switch_callback)
         self.motor_state = None
         self.tasks = None
 
@@ -104,7 +104,7 @@ class AUV():
         """Starts the modules when magnet killswitch is plugged in"""
 
         self.motor.start()
-        self.navigation.start()
+        # self.navigation.start()
         self.keyboard.start()
         self.houston.start()
 

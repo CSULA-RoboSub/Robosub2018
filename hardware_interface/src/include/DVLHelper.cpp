@@ -10,13 +10,13 @@ double DVLHelper::getDirection(double x1, double y1, double x2, double y2, doubl
         heading = yaw - 90;
     else
         heading = yaw + 270;
-    
+
     double directionDegree = rad2deg(std::atan2(y2-y1, x2-x1));
     if (directionDegree >= 0)
         directionDegree = 180 - directionDegree;
     else
         directionDegree = -180 - directionDegree;
-        
+
     double dvl_yaw;
     if (90 <= directionDegree && directionDegree <= 180)
         dvl_yaw = directionDegree - 90;
@@ -51,7 +51,7 @@ double DVLHelper::getDirection(double x1, double y1, double x2, double y2, doubl
 
 double DVLHelper::getDistance(double x1, double y1, double x2, double y2){
     double distance = 0;
-    
+
     double l1 = std::max(x1, x2) - std::min(x1, x2);
     double l2 = std::max(y1, y2) - std::min(y1, y2);
     distance = std::sqrt(l1*l1 + l2*l2);

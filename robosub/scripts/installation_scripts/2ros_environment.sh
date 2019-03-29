@@ -1,7 +1,7 @@
 source /opt/ros/melodic/setup.bash
 
 mkdir -p ~/robosub_ws
-mv ../../../Robosub2018 ~/robosub_ws/src
+mv ../../../Robosub2019 ~/robosub_ws/src
 
 cd ~/robosub_ws/
 catkin_make

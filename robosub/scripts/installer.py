@@ -8,7 +8,7 @@ def main():
                     '\nAre you sure you want to do first time setup for robosub? [y/n]: '
                 ).lower()
     if response == 'y':
-        print('Setting up dependencies for Ubuntu 17.04')
+        print('Setting up dependencies for Ubuntu 18.04')
         installer.install()
         installer.set_dialout()
     elif response == 'n':

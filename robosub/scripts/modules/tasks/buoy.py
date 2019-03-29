@@ -1,4 +1,4 @@
-from modules.sensors.computer_vision import BuoyDetector
+#from modules.sensors.computer_vision import BuoyDetector
 from task import Task
 
 class Buoy(Task):

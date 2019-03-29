@@ -6,7 +6,7 @@ sudo apt update
 
 sudo apt-get -y install ros-melodic-desktop-full
 
-apt-cache search ros-melodic
+apt search ros-melodic
 
 sudo rosdep init
 rosdep update
@@ -14,4 +14,4 @@ rosdep update
 echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
-sudo apt-get install python-rosinstall python-rosinstall-generator python-wstool build-essential
+sudo apt-get -y install python-rosinstall python-rosinstall-generator python-wstool build-essential

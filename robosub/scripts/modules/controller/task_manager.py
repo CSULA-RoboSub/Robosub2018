@@ -1,13 +1,14 @@
 import rospy
 import math
-from auv_cal_state_la_2017.msg import CVIn
-from auv_cal_state_la_2017.msg import CVOut
+from robosub.msg import CVIn
+from robosub.msg import CVOut
 
 import BuoyDetector
 import DiceDetector
 import GateDetector
-from modules.sensors.computer_vision import 
+from modules.sensors.computer_vision import *
 #from modules.control.navigation import Navigation
+
 
 class TaskManager:
     """ To decide on the task at hand than send coordinates to navigation"""
@@ -17,7 +18,7 @@ class TaskManager:
 
         self.coordinates = []
         self.dice_pair = []
-        
+
         self.detectgate = None
         self.detectdice = None
         self.detectbuoy = None
@@ -47,7 +48,7 @@ class TaskManager:
 
         found, gate_coordinates = self.detectgate.detect()
         ''' add 'and found is True' when gate circle works '''
-        #if gate_coordinates[0] == 0 and gate_coordinates[1] == 0 and found:
+        # if gate_coordinates[0] == 0 and gate_coordinates[1] == 0 and found:
         #    self.is_gate_found = True
 
         """ neg_gate_coords is used to invert the coordinate """
@@ -55,7 +56,6 @@ class TaskManager:
 
         #neg_gate_coords = [ -x for x in gate_coordinates]
         return found, gate_coordinates
-
 
     def detect_dice(self):
         print('detect_dice')
@@ -95,18 +95,17 @@ class TaskManager:
             self.detectbuoy = BuoyDetector.BuoyDetector()
 
         found, buoy_coordinates = self.detectbuoy.detect()
-        #if buoy_coordinates[0] == 0 and buoy_coordinates[1] == 0 and found is True:
+        # if buoy_coordinates[0] == 0 and buoy_coordinates[1] == 0 and found is True:
         #    self.is_buoy_found = True
-        
+
         #neg_gate_coords = [ -x for x in buoy_coordinates]
         return found, buoy_coordinates
-
 
     def complete_gate(self):
         """ to increase the radius of the circle of the sub, we must divide """
         """ by a larger number. multiplying by a radius is not applicable """
         """ since we are only moving by -1, 0 and 1 """
-        
+
         if (self.gate_circle_loc < 2*math.pi):
             self.gate_circle_loc += math.pi/100
             x = math.sin(self.gate_circle_loc)
@@ -132,7 +131,7 @@ class TaskManager:
             print('circling gate completed')
             coord_x = 0
             coord_y = 0
-        
+
         return True, [coord_x, coord_y]
 
     def complete_buoy(self):
@@ -151,14 +150,14 @@ class TaskManager:
 
     def brake(self):
         pass
-        #navigation.brake(self)
-    
+        # navigation.brake(self)
+
     def start(self):
         """ Starts TaskManager. """
         pass
         # TODO perhaps start needs to be call along with which task you would like to perform
-        #self.navigation.start()
-        
+        # self.navigation.start()
+
     def stop(self):
         """ Stops TasksManager. """
         rospy.on_shutdown(shutdown())
@@ -169,7 +168,9 @@ class TaskManager:
         """ Shutdown message for TaskManager """
         print('Shutting down Taskmanager')
 
+
 tm = TaskManager()
+
 
 def talker():
     # pub = rospy.Publisher('cv_to_master', CVIn)
@@ -196,14 +197,14 @@ def talker():
 
     pub = rospy.Publisher('cv_to_master', CVIn)
     rospy.init_node('cv_talker', anonymous=True)
-    r = rospy.Rate(30) #30hz
-    
+    r = rospy.Rate(30)  # 30hz
+
     msg = CVIn()
 
     while not rospy.is_shutdown():
-    #   msg.found, coords = tm.detect_buoy()
-    # task manager will need to get task from auv(houston)"""
-    # which will be give to houston by the task queue """
+        #   msg.found, coords = tm.detect_buoy()
+        # task manager will need to get task from auv(houston)"""
+        # which will be give to houston by the task queue """
         if (userinput == 'buoy'):
             if not tm.is_buoy_found:
                 msg.found, coords = tm.detect_buoy()
@@ -241,11 +242,13 @@ def talker():
         pub.publish(msg)
         r.sleep()
 
+
 if __name__ == '__main__':
     try:
         talker()
-    except rospy.ROSInterruptException: 
+    except rospy.ROSInterruptException:
         pass
+
 
 def taskcompleted():
     pass

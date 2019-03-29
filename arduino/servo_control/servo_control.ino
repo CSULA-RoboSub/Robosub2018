@@ -3,12 +3,13 @@
 #include <robosub/Torpedo.h>
 #include <robosub/Dropper.h>
 #include <SparkFun_Tlc5940.h>
+#include <avr/power.h>
 #include <tlc_servos.h>
 
 //Tlc5940 Tlc;/
 
 ros::NodeHandle nh;
-
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(64, 6, NEO_GRB + NEO_KHZ800);
 int DROPPER_BOTTOM_SERVO_PIN = 0;
 int DROPPER_TOP_SERVO_PIN = 1;
 int TORPEDO_LEFT_SERVO_PIN = 2;
@@ -81,7 +82,7 @@ void dropper_cb(const robosub::Dropper& msg) {
     Tlc.update();
     delay(3000);
     tlc_setServo(DROPPER_BOTTOM_SERVO_PIN,250);
-    Tlc.update(); 
+    Tlc.update();
     delay(3000);
     tlc_setServo(DROPPER_TOP_SERVO_PIN,0);
     Tlc.update();
@@ -95,15 +96,18 @@ void dropper_cb(const robosub::Dropper& msg) {
 ros::Subscriber<robosub::Torpedo> torpedo_subscriber("torpedo", &torpedo_cb);
 ros::Subscriber<robosub::Dropper> dropper_subscriber("dropper", &dropper_cb);
 
+
 void setup() {
+
   tlc_initServos();
   Serial.begin(9600);
   nh.initNode();
   nh.subscribe(torpedo_subscriber);
   nh.subscribe(dropper_subscriber);
   delay(1000)
+
 }
- 
+
 void loop() {
   nh.spinOnce();
 }

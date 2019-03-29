@@ -39,8 +39,8 @@ def printHControl(data):
         }
 
         text = (
-            '%s depth: %.2f /power: %d'
-            % (hStates[data.state], data.depth, data.power)
+                '%s depth: %.2f /power: %d'
+                % (hStates[data.state], data.depth, data.power)
         )
 
         # text = (
@@ -68,8 +68,8 @@ def printRControl(data):
         }
 
         text = (
-            'rotate %s %.2f degrees /power: %d'
-            % (rStates[data.state], data.rotation, data.power)
+                'rotate %s %.2f degrees /power: %d'
+                % (rStates[data.state], data.rotation, data.power)
         )
         # text = (
         #     'state: %s rotation: %.2f power: %d'
@@ -106,8 +106,8 @@ def printMControl(data):
 
         # TODO make conditional statements for stopping and different states
         text = (
-            '%s /power: %d /distance: %.2f /runningTime: %.2f /state: %s'
-            % (directions[data.mDirection], data.power, data.distance, data.runningTime, mStates[data.state])
+                '%s /power: %d /distance: %.2f /runningTime: %.2f /state: %s'
+                % (directions[data.mDirection], data.power, data.distance, data.runningTime, mStates[data.state])
         )
         # text = (
         #     'state: %s direction: %s power: %d distance: %.2f runningTime: %.2f'
