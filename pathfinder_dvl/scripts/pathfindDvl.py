@@ -1,7 +1,6 @@
 #CALIFORNIA STATE UNIVERSITY TELEDYNE PATHFINDER DVL DRIVERS - ROBOSUB 2018#
 ########### by Diego Santillan in collaboration with Adam Loeffler###########
 ################### Additional ROS work by Jonathan Song ####################
-
 import rospy
 from pathfinder_dvl.msg import DVL
 from ez_async_data.msg import Rotation
@@ -34,7 +33,7 @@ class RunDVL:
         self.pitch = rotation.pitch
         self.roll = rotation.roll
 
-        #print('current yaw: %.2f' % self.yaw)
+        # print('current yaw: %.2f' % self.yaw)
 
     def main(self):
 
@@ -55,11 +54,11 @@ class RunDVL:
 
         # ROS publisher setup
         pub = rospy.Publisher('dvl_status', DVL, queue_size = 1)
-        #pubHeading = rospy.Publisher('dvl_heading', Float32, queue_size = 1)
+        # pubHeading = rospy.Publisher('dvl_heading', Float32, queue_size = 1)
         pubSS = rospy.Publisher('dvl_ss', Float32, queue_size = 1)
         rospy.Subscriber('current_rotation', Rotation, self.rCallBack, queue_size = 1)
         msg = DVL()
-        msgHeading = Float32()
+        # msgHeading = Float32()
         msgSS = Float32()
 
         #PD6 settings --------------------------------------------------------------
