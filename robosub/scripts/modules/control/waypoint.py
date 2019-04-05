@@ -14,10 +14,8 @@ class Waypoint():
         self.heading = None
         self.depth = None
         self.waypoint_list = deque()
-        self.waypoint_list_rot = deque()
-        self.cur_x = 1
-        self.cur_y = 1
-        self.cur_depth = 1
+        #self.waypoint_list_rot = deque()
+
 
         # rospy.init_node('waypoint_node', anonymous=True)
         rospy.Subscriber('dvl_status', DVL, self.dvl_callback, queue_size=1)
@@ -103,12 +101,11 @@ class Waypoint():
 
 
     def enqueue_current_position(self):
-        if self.cur_x and self.cur_y and self.cur_depth:
+        cur_x,cur_y,cur_depth = self.get_position()
+        if cur_x and cur_y and cur_depth:
             print('queued (x,y,depth): %.2f, %.2f, %.2f' % (self.cur_x, self.cur_y, self.cur_depth))
             self.waypoint_list.append([self.cur_x,self.cur_y,self.cur_depth])
-            self.cur_x += 1
-            self.cur_y += 1
-            self.cur_depth += 1
+
 
     def enqueue_current_rotation(self):
         cur_rot = self.get_dvl_yaw()
