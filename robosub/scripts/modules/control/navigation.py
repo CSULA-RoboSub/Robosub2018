@@ -65,9 +65,7 @@ class Navigation():
             'off': 0,
             'power': 1,  # adjust with power
             'distance': 2,  # ajust with distance
-            'front_cam_center': 3,  # centered with front camera
-            'bot_cam_center': 4,  # centered with bottom camera
-            'motor_time': 5  # turn on motor with specific time
+            'motor_time': 3  # turn on motor with specific time
         }
         self.mState = None  # state
 
@@ -151,7 +149,7 @@ class Navigation():
 
     def set_m_nav(self, mState, mDirection, power, value=0.0):
         """
-        mState -- 'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5
+        mState -- 'off': 0, 'power': 1, 'distance': 2, 'motor_time': 3
         mDirection -- 'none': 0, 'forward': 1, 'right': 2, 'backward': 3, 'left': 4
         power -- none: 0, motor power: x
         value -- based on mState
@@ -178,26 +176,16 @@ class Navigation():
         elif self.mState == self.mStates['motor_time']:
             self.runningTime = value
 
-    def cancel_m_nav(self, power=None):
-        if not power:
-            power = 140
+    def cancel_m_nav(self, power=140):
         self.m_nav('off', 'none', power)
 
-    def cancel_h_nav(self, power=None):
-        if not power:
-            power = 100
+    def cancel_h_nav(self, power=100):
         self.h_nav('staying', 0, power)
 
-    def cancel_r_nav(self, power=None):
-        if not power:
-            power = 90
+    def cancel_r_nav(self, power=90):
         self.r_nav('staying', 0, power)
 
     def cancel_all_nav(self, power=None):
-
-        #self.m_nav('off', 'none', power)
-        #self.h_nav('staying', 0, power)
-        #self.r_nav('staying', 0, power)
          self.cancel_m_nav(power)
          self.cancel_r_nav(power)
          self.cancel_h_nav(power)
@@ -225,9 +213,9 @@ class Navigation():
         if hState is not None or depth is not None or hPower is not None:
             self.set_h_nav(hState, depth, hPower)
 
-        self.h_control.state = self.hState
-        self.h_control.depth = self.depth
-        self.h_control.power = self.hPower
+        self.h_control.state = hState
+        self.h_control.depth = depth
+        self.h_control.power = hPower
 
         self.pub_h_nav.publish(self.h_control)
 
@@ -242,9 +230,9 @@ class Navigation():
         if rState is not None or rotation is not None or rPower is not None:
             self.set_r_nav(rState, rotation, rPower)
 
-        self.r_control.state = self.rState
-        self.r_control.rotation = self.rotation
-        self.r_control.power = self.rPower
+        self.r_control.state = rState
+        self.r_control.rotation = rotation
+        self.r_control.power = rPower
         self.pub_r_nav.publish(self.r_control)
 
     def m_nav(self, mState=None, mDirection=None, power=None, value=None):
@@ -261,11 +249,11 @@ class Navigation():
         if mState is not None or mDirection is not None or power is not None:
             self.set_m_nav(mState, mDirection, power, value)
 
-        self.m_control.state = self.mState
-        self.m_control.mDirection = self.mDirection
-        self.m_control.power = self.mPower
-        self.m_control.distance = self.distance
-        self.m_control.runningTime = self.runningTime
+        self.m_control.state = mState
+        self.m_control.mDirection = mDirection
+        self.m_control.power = mPower
+        self.m_control.distance = distance
+        self.m_control.runningTime = runningTime
         self.pub_m_nav.publish(self.m_control)
 
     def ros_rate(self, hz=100):
@@ -361,13 +349,8 @@ class Navigation():
         #self.waypoint.display_rot_waypoints()
 
 
-    def run_last_queue_waypoint(self, r_power=None, h_power=None, m_power=None):
-        if not r_power:
-            r_power = self.r_power
-        if not h_power:
-            h_power = self.h_power
-        if not m_power:
-            m_power = self.m_power
+    def run_last_queue_waypoint(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+
         # travel to waypoint at front of queue
         print(self.waypoint.is_empty())
         if not self.waypoint.is_empty():
@@ -382,13 +365,7 @@ class Navigation():
                              direction_h, distance_h, h_power, distance_m, m_power)
 
 
-    def run_through_queued_waypoints(self, r_power=None, h_power=None, m_power=None):
-        if not r_power:
-            r_power = self.r_power
-        if not h_power:
-            h_power = self.h_power
-        if not m_power:
-            m_power = self.m_power
+    def run_through_queued_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
         # travel to waypoint at front of queue
         if not self.waypoint.is_empty():
             last_x, last_y, last_depth = self.waypoint.run_through()
@@ -402,13 +379,8 @@ class Navigation():
                               direction_h, distance_h, h_power, distance_m, m_power)
 
 
-    def run_queue_waypoints(self, r_power=None, h_power=None, m_power=None):
-        if not r_power:
-            r_power = self.r_power
-        if not h_power:
-            h_power = self.h_power
-        if not m_power:
-            m_power = self.m_power
+    def run_queue_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
+
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         # self.set_exit_waypoints(False)
@@ -420,7 +392,7 @@ class Navigation():
 
         print('finished running all waypoints')
 
-    def run_queue_waypoints_async(self, r_power=None, h_power=None, m_power=None):
+    def run_queue_waypoints_async(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
         if not r_power:
             r_power = self.r_power
         if not h_power:
@@ -452,7 +424,7 @@ class Navigation():
                 direction_r, degree_r = self.waypoint.get_directions_with_heading(last_yaw)
                 self.go_waypoint(direction_r,degree_r,r_power,direction_h,distance_h,h_power,distance_m,m_power)
 
-    def run_rot_queue_waypoints(self, r_power=None, h_power=None, m_power=None):
+    def run_rot_queue_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
             if not r_power:
                 r_power = self.r_power
             if not h_power:
