@@ -41,7 +41,7 @@ class Keyboard():
         self.r_power = 100
         self.thread_w = None
         self.exit = False
-        self.w_time_delay = 5
+        self.w_time_delay = 3
 
     def getch(self):
         """Gets keyboard input if killswitch is plugged in"""
