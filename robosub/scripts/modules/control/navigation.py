@@ -43,9 +43,6 @@ class Navigation():
             'unlock': 4,
             'lock': 5
         }
-        self.hState = None  # state
-        self.depth = None  # depth (nonstop moving: -1, moving distance: x)
-        self.hPower = 100  # power
 
         # used for RControl (int state, float rotation, int power) ####################################
         self.rStates = {
@@ -55,10 +52,6 @@ class Navigation():
             'rotate_front_cam_dist': 3,  # rotate with fcd
             'keep_rotate_front_cam_dist': 4  # keeping rotating with fcd
         }
-        self.rState = None  # state
-        # rotation (nonstop rotating: -1, rotate degree: x)
-        self.rotation = None
-        self.rPower = 90  # power
 
         # used for MControl (int state, int mDirection, float power, float distance) #######
         self.mStates = {
@@ -67,8 +60,6 @@ class Navigation():
             'distance': 2,  # ajust with distance
             'motor_time': 3  # turn on motor with specific time
         }
-        self.mState = None  # state
-
         self.directions = {
             'none': 0,
             'forward': 1,
@@ -76,11 +67,6 @@ class Navigation():
             'backward': 3,
             'left': 4
         }
-
-        self.mDirection = None  # mDirection
-        self.mPower = None  # power (none: 0, motor power: x)
-        self.distance = None  # distance (distance away from the object: x)
-        self.runningTime = None  # runningTime (time for the motor to turn on)
 
         # waypoint variables
         if waypoint:
