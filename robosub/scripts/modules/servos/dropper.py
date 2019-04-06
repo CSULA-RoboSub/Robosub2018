@@ -1,6 +1,6 @@
 import rospy
 from robosub.msg import Dropper
-from robosub.msg import LedIndicator
+from std_msgs import Int8
 from modules.main.status import log
 
 # def close_both_gates(self):
@@ -21,9 +21,8 @@ DROP_OPTIONS = {
 }
 
 dropper = Dropper()
-ledIndicator = LedIndicator()
 pub = rospy.Publisher('dropper', Dropper, queue_size=100)
-pubLed = rospy.Publisher('led', ledIndicator, queue_size=1)
+pubLed = rospy.Publisher('led', Int8, queue_size=1)
 
 def drop_control(state):
     """
@@ -32,7 +31,7 @@ def drop_control(state):
     state = int(state)
     if state in DROP_OPTIONS:
         dropper.state = state
-        ledIndicator.state = 18
+        ledIndicator.data = 18
         pub.publish(dropper)
         pubLed.publish(ledIndicator)
         print DROP_OPTIONS[state]
