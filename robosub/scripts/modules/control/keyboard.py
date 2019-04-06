@@ -237,7 +237,7 @@ class Keyboard():
 
         elif char == 's':
             self.navigation.cancel_all_nav()
-            #elf.navigation.cancel_m_nav()
+            #self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'backward', self.m_power)
             if char != last_char:
                 print('Going backward with power %.2f' % self.m_power)
