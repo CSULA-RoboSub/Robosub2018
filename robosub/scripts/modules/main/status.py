@@ -91,10 +91,8 @@ def printMControl(data):
             0: 'off',
             1: 'power',  # adjust with power
             2: 'distance',  # ajust with distance
-            3: 'front_cam_center',  # centered with front camera
-            4: 'bot_cam_center',  # centered with bottom camera
-            5: 'motor_time'  # turn on motor with specific time
-        }
+            3: 'motor_time'  # turn on motor with specific time
+            }
 
         directions = {
             0: 'none',

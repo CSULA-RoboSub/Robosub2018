@@ -41,7 +41,7 @@ class Keyboard():
         self.r_power = 100
         self.thread_w = None
         self.exit = False
-        self.w_time_delay = 5
+        self.w_time_delay = 3
 
     def getch(self):
         """Gets keyboard input if killswitch is plugged in"""
@@ -198,7 +198,7 @@ class Keyboard():
                     time.sleep(self.w_time_delay)
                     self.navigation.run_queue_waypoints()
                     #self.navigation.run_rot_queue_waypoints()
-                    self.navigation.set_exit_waypoints(True)
+            self.navigation.set_exit_waypoints(True)
         else:
             print('Magnet is not plugged in.')
 
@@ -238,7 +238,7 @@ class Keyboard():
 
         elif char == 's':
             self.navigation.cancel_all_nav()
-            #elf.navigation.cancel_m_nav()
+            #self.navigation.cancel_m_nav()
             self.navigation.m_nav('power', 'backward', self.m_power)
             if char != last_char:
                 print('Going backward with power %.2f' % self.m_power)
