@@ -116,66 +116,6 @@ class Navigation():
         self.saved_heading = None
         self.saved_heading_path1 = None
 
-    def set_h_nav(self, hState, depth, hPower):
-        """
-        hState -- 'down': 0, 'staying': 1, 'up': 2
-        depth -- nonstop moving: -1, moving distance: x
-        hPower -- int
-        """
-
-        if hState.isdigit():
-            self.hState = hState
-        else:
-            self.hState = self.hStates[hState]
-
-        self.depth = depth
-        self.hPower = hPower
-
-    def set_r_nav(self, rState, rotation, rPower):
-        """
-        rState -- 'left': 0, 'staying': 1, 'right': 2, 'rotate_front_cam_dist': 3, 'keep_rotate_front_cam_dist': 4
-        rotation -- nonstop rotating: -1, rotate degree: x
-        rPower -- int
-        """
-
-        if rState.isdigit():
-            self.rState = rState
-        else:
-            self.rState = self.rStates[rState]
-
-        self.rotation = rotation
-
-        self.rPower = rPower
-
-    def set_m_nav(self, mState, mDirection, power, value=0.0):
-        """
-        mState -- 'off': 0, 'power': 1, 'distance': 2, 'motor_time': 3
-        mDirection -- 'none': 0, 'forward': 1, 'right': 2, 'backward': 3, 'left': 4
-        power -- none: 0, motor power: x
-        value -- based on mState
-            (2)distance: distance away from the object: x
-            (5)runningTime: time for the motor to turn on
-        """
-
-        if mState.isdigit():
-            self.mState = mState
-        else:
-            self.mState = self.mStates[mState]
-
-        if mDirection.isdigit():
-            self.mDirection = mDirection
-        else:
-            self.mDirection = self.directions[mDirection]
-
-        self.mPower = power
-        self.distance = 0.0
-        self.runningTime = 0.0
-
-        if self.mState == self.mStates['distance']:
-            self.distance = value
-        elif self.mState == self.mStates['motor_time']:
-            self.runningTime = value
-
     def cancel_m_nav(self, power=140):
         self.m_nav('off', 'none', power)
 
@@ -202,6 +142,7 @@ class Navigation():
         self.cancel_m_nav(power)
         self.m_nav(mState, mDirection, power, value)
 
+
     def h_nav(self, hState=None, depth=None, hPower=None):
         """
         Start horizontal navigation given hState and depth.
@@ -210,13 +151,13 @@ class Navigation():
         hPower -- int
         """
 
-        if hState is not None or depth is not None or hPower is not None:
-            self.set_h_nav(hState, depth, hPower)
+        if hState.isdigit():
+            self.h_control.state = hState
+        else:
+            self.h_control.state = self.hStates[hState]
 
-        self.h_control.state = hState
         self.h_control.depth = depth
         self.h_control.power = hPower
-
         self.pub_h_nav.publish(self.h_control)
 
     def r_nav(self, rState=None, rotation=None, rPower=None):
@@ -227,13 +168,16 @@ class Navigation():
         rPower -- int
         """
 
-        if rState is not None or rotation is not None or rPower is not None:
-            self.set_r_nav(rState, rotation, rPower)
+        if rState.isdigit():
+            self.r_control.state = rState
+        else:
+            self.r_control.state = self.rStates[rState]
 
         self.r_control.state = rState
         self.r_control.rotation = rotation
         self.r_control.power = rPower
         self.pub_r_nav.publish(self.r_control)
+
 
     def m_nav(self, mState=None, mDirection=None, power=None, value=None):
         """
@@ -245,12 +189,24 @@ class Navigation():
             (2)distance: distance away from the object: x
             (5)runningTime: time for the motor to turn on
         """
+        if mState.isdigit():
+            self.m_control.state = mState
+        else:
+            self.m_control.state = self.mStates[mState]
 
-        if mState is not None or mDirection is not None or power is not None:
-            self.set_m_nav(mState, mDirection, power, value)
+        if mDirection.isdigit():
+            self.m_control.mDirection = mDirection
+        else:
+            self.m_control.mDirection = self.directions[mDirection]
 
-        self.m_control.state = mState
-        self.m_control.mDirection = mDirection
+        distance = 0.0
+        runningTime = 0.0
+
+        if self.m_control.state == self.mStates['distance']:
+            distance = value
+        elif self.m_control.state == self.mStates['motor_time']:
+            runningTime = value
+
         self.m_control.power = mPower
         self.m_control.distance = distance
         self.m_control.runningTime = runningTime
