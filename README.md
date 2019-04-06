@@ -6,8 +6,8 @@ and python 2.7.13
 ## First time setup:
 
 ### In terminal:
-- git clone https://github.com/CSULA-RoboSub/Robosub2019.git or git@github.com:CSULA-RoboSub/Robosub2019.git
-- cd Robosub2019/robosub/scripts
+- git clone https://github.com/CSULA-RoboSub/Robosub2018.git or git@github.com:CSULA-RoboSub/Robosub2018.git
+- cd Robosub2018/robosub/scripts
 - python installer.py
 
 #### After installation:
