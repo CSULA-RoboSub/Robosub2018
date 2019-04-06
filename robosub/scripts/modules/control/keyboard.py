@@ -198,7 +198,6 @@ class Keyboard():
                     time.sleep(self.w_time_delay)
                     self.navigation.run_queue_waypoints()
                     #self.navigation.run_rot_queue_waypoints()
-                    self.navigation.set_exit_waypoints(True)
         else:
             print('Magnet is not plugged in.')
 

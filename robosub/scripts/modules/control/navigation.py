@@ -238,7 +238,7 @@ class Navigation():
     def m_nav(self, mState=None, mDirection=None, power=None, value=None):
         """
         Start movement navigation given mState, mDirection, and power/distance/runningTime on.
-        mState -- 'off': 0, 'power': 1, 'distance': 2, 'front_cam_center': 3, 'bot_cam_center': 4, 'motor_time': 5
+        mState -- 'off': 0, 'power': 1, 'distance': 2, 'motor_time': 3
         mDirection -- 'none': 0, 'forward': 1, 'right': 2, 'backward': 3, 'left': 4
         power -- none: 0, motor power: x
         value -- based on mState
@@ -383,7 +383,6 @@ class Navigation():
 
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
-        # self.set_exit_waypoints(False)
         print('running all queue waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
             if not self.is_busy_waypoint and self.is_at_assigned_depth():
@@ -451,10 +450,6 @@ class Navigation():
             return True
         return False
 
-
-
-    def set_exit_waypoints(self, exit=False):
-        self.exit_waypoints = exit
 
     def reset_thread(self):
         self.thread_w = None
