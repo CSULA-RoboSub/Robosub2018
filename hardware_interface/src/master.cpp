@@ -5,11 +5,11 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/Float32.h>
 #include <robosub/HControl.h>
 #include <robosub/RControl.h>
 #include <robosub/MControl.h>
-#include <robosub/LedIndicator.h>
 #include <pathfinder_dvl/DVL.h>
 #include <ez_async_data/Rotation.h>
 #include <hardware_interface/MotorHorizontal.h>
@@ -170,7 +170,7 @@ std_msgs::Float32 currentDepth;
 robosub::HControl hControlStatus;
 robosub::RControl rControlStatus;
 robosub::MControl mControlStatus;
-robosub::LedIndicator ledStatus;
+std_msgs::Int8 ledStatus;
 
 hardware_interface::MotorVertical mVertical;
 hardware_interface::MotorHorizontal mHorizontal;
@@ -390,14 +390,14 @@ void setRotationPower(double rotatePower){
 //error_heading comes from degreeToTurn() which is always positive
 void rotateLeftDynamically(const double& error_heading){
   // cout << "rotate left dyn" << endl;
-  ledStatus.state = 6;
+  ledStatus.data = 6;
   double rotatePower = rotationPID(-error_heading); //negative error for left
   setRotationPower(rotatePower);
 }
 
 void rotateRightDynamically(const double& error_heading){
   // cout << "rotate right dyn" << endl;
-  ledStatus.state = 7;
+  ledStatus.data = 7;
   double rotatePower = rotationPID(error_heading); //positive error for right
   setRotationPower(rotatePower);
 }
@@ -434,7 +434,7 @@ void hControlCallback(const robosub::HControl& hControl){
     if(!isGoingUp && !isGoingDown){
       isGoingDown = true;
       ROS_INFO("Going down...");
-      ledStatus.state = 3;
+      ledStatus.data = 3;
 
     }else{
       ROS_INFO("Sub is still running.");
@@ -461,7 +461,7 @@ void hControlCallback(const robosub::HControl& hControl){
     if(!isGoingDown && !isGoingUp){
       isGoingUp = true;
       ROS_INFO("Going up...");
-      ledStatus.state = 4;
+      ledStatus.data = 4;
     }
     else{
       ROS_INFO("Sub is still running.");
@@ -510,7 +510,7 @@ void hControlCallback(const robosub::HControl& hControl){
 void rControlCallback(const robosub::RControl& rControl){
   if (rControl.rotation > 180){
     ROS_INFO("Error rotation must be less or equal to 180 degrees");
-    return
+    return;
   }
   int rState = rControl.state;
   double rotation = rControl.rotation;
@@ -618,25 +618,25 @@ void mControlCallback(const robosub::MControl& mControl){
         case 1:
         keepMovingForward = true;
         directionStr = "forward";
-        ledStatus.state = 1;
+        ledStatus.data = 1;
         break;
 
         case 2:
         keepMovingRight = true;
         directionStr = "right";
-        ledStatus.state = 9;
+        ledStatus.data = 9;
         break;
 
         case 3:
         keepMovingBackward = true;
         directionStr = "backward";
-        ledStatus.state = 2;
+        ledStatus.data = 2;
         break;
 
         case 4:
         keepMovingLeft = true;
         directionStr = "left";
-        ledStatus.state = 8;
+        ledStatus.data = 8;
         break;
       }
 
@@ -657,25 +657,25 @@ void mControlCallback(const robosub::MControl& mControl){
         case 1:
         keepMovingForward = true;
         directionStr = "forward";
-        ledStatus.state = 1;
+        ledStatus.data = 1;
         break;
 
         case 2:
         keepMovingRight = true;
         directionStr = "right";
-        ledStatus.state = 9;
+        ledStatus.data = 9;
         break;
 
         case 3:
         keepMovingBackward = true;
         directionStr = "backward";
-        ledStatus.state = 2;
+        ledStatus.data = 2;
         break;
 
         case 4:
         keepMovingLeft = true;
         directionStr = "left";
-        ledStatus.state = 8;
+        ledStatus.data = 8;
         break;
       }
 
@@ -696,22 +696,22 @@ void mControlCallback(const robosub::MControl& mControl){
       switch(mControl.mDirection){
         case 1:
         directionStr = "forward";
-        ledStatus.state = 1;
+        ledStatus.data = 1;
         break;
 
         case 2:
         directionStr = "right";
-        ledStatus.state = 9;
+        ledStatus.data = 9;
         break;
 
         case 3:
         directionStr = "backward";
-        ledStatus.state = 2;
+        ledStatus.data = 2;
         break;
 
         case 4:
         directionStr = "left";
-        ledStatus.state = 8;
+        ledStatus.data = 8;
         break;
       }
       mControlMode3 = true;
@@ -1090,7 +1090,7 @@ int main(int argc, char **argv){
   mControlPublisher = nh.advertise<robosub::MControl>("movement_control_status", 100);
   mVerticalPublisher = nh.advertise<hardware_interface::MotorVertical>("motor_vertical", 1);
   mHorizontalPublisher = nh.advertise<hardware_interface::MotorHorizontal>("motor_horizontal", 1);
-  ledPublisher = nh.advertise<robosub::LedIndicator>("led",1);
+  ledPublisher = nh.advertise<std_msgs::Int8>("led",1);
 
   currentDepthSubscriber = nh.subscribe("current_depth", 1, currentDepthCallback);
   hControlSubscriber = nh.subscribe("height_control", 100, hControlCallback);
