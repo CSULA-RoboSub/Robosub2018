@@ -58,8 +58,10 @@ class Navigation():
             'off': 0,
             'power': 1,  # adjust with power
             'distance': 2,  # ajust with distance
-            'motor_time': 3  # turn on motor with specific time
-        }
+            'front_cam_center': 3,  # centered with front camera
+            'bot_cam_center': 4,  # centered with bottom camera
+            'motor_time': 5  # turn on motor with specific time
+}
         self.directions = {
             'none': 0,
             'forward': 1,
@@ -201,9 +203,9 @@ class Navigation():
     def ros_rate(self, hz=100):
         rospy.Rate(hz)
 
-    def go_to_depth(self, depth, h_power=100):
-        direction, depth_change = self.waypoint.get_depth_directions(depth)
-        self.h_nav(direction, depth_change, h_power)
+    # def go_to_depth(self, depth, h_power=100):
+    #     direction, depth_change = self.waypoint.get_depth_directions(depth)
+    #     self.h_nav(direction, depth_change, h_power)
 
     ############################### Waypoint Functions ######################################################################################
     # callbacks allow waypoints to wait for movements to complete before moving on
@@ -253,6 +255,30 @@ class Navigation():
         if height_status.state == 0 or height_status.state == 2:
             self.depth_assignment = height_status.depth
 
+    def is_running_waypoint(self):
+        return self.is_busy_waypoint
+
+    def clear_waypoints(self):
+         self.waypoint.clear_all()
+
+    def is_empty(self):
+        return self.waypoint.is_empty()
+
+    def enqueue_current_waypoint(self):
+        self.waypoint.enqueue_current_position()
+
+    def display_waypoints(self):
+        self.waypoint.display_waypoints()
+
+    def enqueue_current_height(self):
+        self.waypoint.enqueue_current_height()
+
+    def display_height_waypoints(self):
+        self.waypoint.display_height_waypoints()
+
+    def is_height_empty(self):
+        return self.waypoint.is_height_empty()
+
     # go to waypoint from current position
     def go_waypoint(self, direction_r, degree_r, power_r, direction_h, distance_h, power_h, distance_m, power_m):
         # if not direction or not degree or not distance or not depth or not power or not h_power:
@@ -272,29 +298,14 @@ class Navigation():
         self.w_distance_m = distance_m
         self.w_power_m = power_m
 
-    def is_running_waypoint(self):
-        return self.is_busy_waypoint
-
-    def clear_waypoints(self):
-         self.waypoint.clear_all()
-
-         #rot functions were made to test waypoints outside of pool, just with IMU yaw
-    def is_empty(self):
-        #return self.waypoint.is_rot_empty()
-        return self.waypoint.is_empty()
-
-    def enqueue_current_waypoint(self):
-        self.waypoint.enqueue_current_position()
-        #self.waypoint.enqueue_current_rotation()
-    def display_waypoints(self):
-        self.waypoint.display_waypoints()
-        #self.waypoint.display_rot_waypoints()
-
-
-    def run_last_queue_waypoint(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
-
+    def run_last_queue_waypoint(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         # travel to waypoint at front of queue
-        print(self.waypoint.is_empty())
         if not self.waypoint.is_empty():
             last_x, last_y, last_depth = self.waypoint.dequeue()
             self.current_waypoint_x = last_x
@@ -306,29 +317,28 @@ class Navigation():
             self.go_waypoint(direction_r, degree_r, r_power,
                              direction_h, distance_h, h_power, distance_m, m_power)
 
-
-    def run_through_queued_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
-        # travel to waypoint at front of queue
-        if not self.waypoint.is_empty():
-            last_x, last_y, last_depth = self.waypoint.run_through()
-            self.current_waypoint_x = last_x
-            self.current_waypoint_y = last_y
-            direction_r, degree_r, distance_m = self.waypoint.get_directions(
-                 last_x, last_y)
-             direction_h, distance_h = self.waypoint.get_depth_directions(
-                 last_depth)
-             self.go_waypoint(direction_r, degree_r, r_power,
-                              direction_h, distance_h, h_power, distance_m, m_power)
-
-
-    def run_queue_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
-
+    def run_queue_waypoints(self, r_power=None, h_power=None, m_power=None):
+        if not r_power:
+            r_power = self.r_power
+        if not h_power:
+            h_power = self.h_power
+        if not m_power:
+            m_power = self.m_power
         # print('waiting 4 seconds')
         # self.ros_sleep(4)
         print('running all queue waypoints...')
         while not self.waypoint.is_empty() and not self.exit_waypoints:
             if not self.is_busy_waypoint and self.is_at_assigned_depth():
-                self.run_through_queued_waypoints(r_power, h_power, m_power)
+
+                last_x, last_y, last_depth = self.waypoint.run_through()
+                self.current_waypoint_x = last_x
+                self.current_waypoint_y = last_y
+                direction_r, degree_r, distance_m = self.waypoint.get_directions(
+                     last_x, last_y)
+                 direction_h, distance_h = self.waypoint.get_depth_directions(
+                     last_depth)
+                self.go_waypoint(direction_r, degree_r, r_power,
+                                  direction_h, distance_h, h_power, distance_m, m_power)
                 self.reset_wp_vals()
 
         print('finished running all waypoints')
@@ -346,49 +356,49 @@ class Navigation():
             target=self.run_queue_waypoints, args=(r_power, h_power, m_power))
         self.thread_w.start()
 
-    def rot_queue(self,r_power=None, h_power=None, m_power=None,direction_h=None,distance_h=None,distance_m=None):
-            if not r_power:
-                r_power = self.r_power
-            if not h_power:
-                h_power = self.h_power
-            if not m_power:
-                m_power = self.m_power
-            if not direction_h:
-                direction_h = 'staying'
-            if not distance_h:
-                distance_h = 0
-            if not distance_m:
-                distance_m = 0
-            if not self.waypoint.is_rot_empty():
-                last_yaw = self.waypoint.dequeue_rot()
-                print(last_yaw)
-                direction_r, degree_r = self.waypoint.get_directions_with_heading(last_yaw)
-                self.go_waypoint(direction_r,degree_r,r_power,direction_h,distance_h,h_power,distance_m,m_power)
-
-    def run_rot_queue_waypoints(self, r_power=self.r_power, h_power=self.h_power, m_power=self.m_power):
-            if not r_power:
-                r_power = self.r_power
-            if not h_power:
-                h_power = self.h_power
-            if not m_power:
-                m_power = self.m_power
-            print('running all queue waypoints...')
-            while not self.waypoint.is_rot_empty() and not self.exit_waypoints:
-                if not self.is_busy_waypoint and self.is_at_assigned_yaw():
-                    self.rot_queue(r_power, h_power, m_power)
-                    self.reset_wp_vals()
+    def go_height(self,direction_h,distance_h,power_h):
+        if self.is_busy_waypoint:
+            return
+        self.is_busy_waypoint = True
+        self.cancel_all_nav()
+        self.waypoint_state = 0
+        rospy.sleep(2)
+        print('going to waypoint')
+        print('Moving ' + distance_h + ' in direction ' + direction_h)
+        self.h_nav(direction_h, distance_h, power_h)
 
 
-            print('finished running all waypoints')
+    def run_last_height_queue_waypoint(self,h_power=100):
+        if not h_power:
+            h_power = self.h_power
+
+        print('running last queue waypoint...')
+        while not self.waypoint.is_height_empty() and not self.exit_waypoints:
+            if not self.is_busy_waypoint and self.is_at_assigned_depth():
+                last_depth = self.waypoint.run_last_height_queue_waypoint()
+                direction_h, distance_h = self.waypoint.get_depth_directions(last_depth)
+                go_height(direction_h,distance_h,power_h)
+                self.reset_wp_vals()
+        print('finished running last waypoint')
+
+
+    def run_height_waypoints(self,h_power):
+        if not h_power:
+            h_power = self.h_power
+        print('running all height queue waypoints...')
+        while not self.waypoint.is_height_empty() and not self.exit_waypoints:
+            if not self.is_busy_waypoint and self.is_at_assigned_depth():
+                last_depth = self.waypoint.run_through_height()
+                direction_h, distance_h = self.waypoint.get_depth_directions(
+                    last_depth)
+                go_height(direction_h,distance_h,power_h)
+                self.reset_wp_vals()
+        print('finished running all waypoints')
+
 
     # check if sub is within depth threshold
     def is_at_assigned_depth(self):
         if abs(self.depth_assignment - self.waypoint.get_depth()) <= self.depth_threshold:
-            return True
-        return False
-
-    def is_at_assigned_yaw(self):
-        if self.rState == 1
             return True
         return False
 

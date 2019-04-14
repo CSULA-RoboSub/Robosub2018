@@ -14,7 +14,7 @@ class Waypoint():
         self.heading = None
         self.depth = None
         self.waypoint_list = deque()
-        #self.waypoint_list_rot = deque()
+        #self.waypoint_list_height_test = deque()
 
 
         # rospy.init_node('waypoint_node', anonymous=True)
@@ -60,7 +60,8 @@ class Waypoint():
 
     def clear_all(self):
         self.waypoint_list = []
-        #self.waypoint_list_rot = []
+        self.waypoint_list_height_test = []
+        self.waypoint_list = []
 
     def dequeue(self):
         if self.waypoint_list:
@@ -82,36 +83,41 @@ class Waypoint():
         else:
             print('No waypoints in queue')
 
-    def is_rot_empty(self):
-        if self.waypoint_list_rot:
+    def enqueue_current_position(self):
+        cur_x,cur_y,cur_depth = self.get_position()
+        if cur_x and cur_y and cur_depth:
+            print('queued (x,y,depth): %.2f, %.2f, %.2f' % (cur_x, cur_y, cur_depth))
+            self.waypoint_list.append([cur_x,cur_y,cur_depth])
+
+    def is_height_empty(self):
+        if self.waypoint_list_height_test:
             return False
         return True
 
-    def display_rot_waypoints(self):
-            if self.waypoint_list_rot:
-                for i in self.waypoint_list_rot:
+    def last_height_waypoint(self):
+        if self.waypoint_list_height_test:
+            ret = self.waypoint_list_height_test.pop()
+            return ret
+        return None
+
+    def display_height_waypoints(self):
+            if self.waypoint_list_height_test:
+                for i in self.waypoint_list_height_test:
                     print i
             else:
                 print('No waypoints in queue')
 
-    def dequeue_rot(self):
-        if self.waypoint_list_rot:
-            ret = self.waypoint_list_rot.popleft()
+    def run_through_height(self):
+        if self.waypoint_list_height_test:
+            ret = self.waypoint_list_height_test.popleft()
             return ret
+        return None
 
-
-    def enqueue_current_position(self):
-        cur_x,cur_y,cur_depth = self.get_position()
-        if cur_x and cur_y and cur_depth:
-            print('queued (x,y,depth): %.2f, %.2f, %.2f' % (self.cur_x, self.cur_y, self.cur_depth))
-            self.waypoint_list.append([self.cur_x,self.cur_y,self.cur_depth])
-
-
-    def enqueue_current_rotation(self):
-        cur_rot = self.get_dvl_yaw()
-        if cur_rot:
-            self.waypoint_list_rot.append(cur_rot)
-            print(cur_rot)
+    def enqueue_current_height(self):
+        cur_height = self.get_depth()
+        if cur_height:
+            print('queued (x): %.2f' % (cur_height))
+            self.waypoint_list_height_test.append(cur_height)
 
 ######################## waypoint getters ########################
     def get_position(self):
@@ -122,11 +128,6 @@ class Waypoint():
 
     def get_depth(self):
         return self.depth
-
-    def get_dvl_yaw(self):
-        if not self.heading:
-            return 90.0
-        return self.heading
 
     def get_depth_directions(self, new_depth):
         if new_depth is None or self.depth is None:

@@ -156,13 +156,16 @@ class Keyboard():
                     response = ''
                     print('height: %.2f' % height)
                 elif char == 'g':
+                    print('Waypoint are only recording height')
                     print('Waypoint set at - ')
-                    self.navigation.enqueue_current_waypoint()
+                    #self.navigation.enqueue_current_waypoint()
+                    self.navigation.enqueue_current_height()
 
                 elif char == 'l':
                     while True:
                         try:
-                            if(self.navigation.is_empty()):
+                            #if(self.navigation.is_empty()):
+                            if(self.navigation.is_height_empty()):
                                 print('No waypoints in queue')
                             else:
                                 response = raw_input(
@@ -182,22 +185,22 @@ class Keyboard():
                         response = ''
                 elif char == 'k':
                     print('These are the current waypoints')
-                    self.navigation.display_waypoints()
+                    #self.navigation.display_waypoints()
+                    self.navigation.display_height_waypoints()
 
                 elif char == 't':
-                    # self.navigation.run_top_stack_waypoint(self.r_power, self.h_power, self.m_power)
                     print('Attempting to go to the most recent waypoint')
-                    self.navigation.run_last_queue_waypoint(
-                        self.r_power, self.h_power, self.m_power)
-                    #print(self.waypoint.is_empty())
-                    #self.waypoint.is_empty()
+                    # self.navigation.run_last_queue_waypoint(
+                    #     self.r_power, self.h_power, self.m_power)
+                    self.navigation.run_last_height_queue_waypoint(self.h_power)
+
                 elif char == 'p':
                     print('Attempting to run through all waypoints')
                     print('waiting %d seconds' % self.w_time_delay)
 
                     time.sleep(self.w_time_delay)
-                    self.navigation.run_queue_waypoints()
-                    #self.navigation.run_rot_queue_waypoints()
+                    #self.navigation.run_queue_waypoints()
+                    self.navigation.run_height_waypoints()
             self.navigation.set_exit_waypoints(True)
         else:
             print('Magnet is not plugged in.')
